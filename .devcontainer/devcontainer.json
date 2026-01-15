@@ -16,7 +16,7 @@
 		"ghcr.io/devcontainers-extra/features/prettier:1": {
 			"version": "latest"
 		},
-		"ghcr.io/devcontainers-extra/features/ruff:1": {
+		"ghcr.io/devcontainers-extra/features/ruff:2": {
 			"version": "latest"
 		}
 	}
