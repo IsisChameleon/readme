@@ -1,12 +1,24 @@
 [project]
-name = "server"
+name = "readme-server"
 version = "0.1.0"
-description = "Add your description here"
+description = "Kid Reading Voice App – server (API + bot)"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn>=0.34.0",
     "loguru>=0.7.3",
-    "pipecat-ai[daily,hume]>=0.0.98",
+    "pipecat-ai[daily,deepgram,google,hume,local-smart-turn-v3,runner,silero]>=0.0.98",
+    "pipecatcloud>=0.2.6",
     "python-dotenv>=1.2.1",
     "supabase>=2.27.0",
+    "aiortc>=1.14.0",
 ]
+
+[dependency-groups]
+dev = ["ruff~=0.12.1"]
+
+[tool.ruff]
+line-length = 100
+[tool.ruff.lint]
+select = ["I"]
