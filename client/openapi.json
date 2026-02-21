@@ -74,7 +74,6 @@
           },
           "household_id": {
             "type": "string",
-            "format": "uuid",
             "title": "Household Id"
           }
         },
@@ -102,12 +101,10 @@
         "properties": {
           "book_id": {
             "type": "string",
-            "format": "uuid",
             "title": "Book Id"
           },
           "household_id": {
             "type": "string",
-            "format": "uuid",
             "title": "Household Id"
           },
           "status": {

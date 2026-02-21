@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import Annotated, Literal
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from loguru import logger
@@ -23,19 +23,19 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 
 
 class UploadBookRequest(BaseModel):
-    household_id: UUID
+    household_id: str
 
     @classmethod
     def as_form(
         cls,
-        household_id: Annotated[UUID, Form(...)],
+        household_id: Annotated[str, Form(...)],
     ) -> "UploadBookRequest":
         return cls(household_id=household_id)
 
 
 class UploadBookResponse(BaseModel):
-    book_id: UUID
-    household_id: UUID
+    book_id: str
+    household_id: str
     status: Literal["processing"]
     storage_path: str
 
@@ -57,7 +57,10 @@ async def upload_book(
     request: UploadBookRequestForm,
     file: UploadFile = File(...),
 ) -> UploadBookResponse:
-    filename = file.filename or "book.pdf"
+    if not request.household_id.strip():
+        raise HTTPException(status_code=422, detail="household_id is required.")
+
+    filename = Path(file.filename or "book.pdf").name
     content_type = file.content_type or ""
     if not filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are supported.")
@@ -68,8 +71,8 @@ async def upload_book(
     if not payload:
         raise HTTPException(status_code=400, detail="Uploaded file is empty.")
 
-    book_id = uuid4()
-    storage_path = f"{request.household_id}/books/{book_id}.pdf"
+    book_id = str(uuid4())
+    storage_path = f"households/{request.household_id}/books/{book_id}/{filename}"
     title = Path(filename).stem
     client = _supabase_client()
 
@@ -81,8 +84,8 @@ async def upload_book(
         )
         client.table("books").insert(
             {
-                "id": str(book_id),
-                "household_id": str(request.household_id),
+                "id": book_id,
+                "household_id": request.household_id,
                 "title": title,
                 "storage_path": storage_path,
                 "status": "processing",
@@ -94,7 +97,7 @@ async def upload_book(
     finally:
         await file.close()
 
-    enqueue_process_book(str(book_id))
+    enqueue_process_book(book_id)
     return UploadBookResponse(
         book_id=book_id,
         household_id=request.household_id,

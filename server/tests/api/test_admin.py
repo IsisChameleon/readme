@@ -31,7 +31,7 @@ def _post_upload(
 
 def test_upload_success_returns_processing_status() -> None:
     client = TestClient(app)
-    household_id = "11111111-1111-1111-1111-111111111111"
+    household_id = "household-123"
 
     mock_client = Mock()
     mock_bucket = Mock()
@@ -52,7 +52,8 @@ def test_upload_success_returns_processing_status() -> None:
     payload = response.json()
     assert payload["status"] == "processing"
     assert payload["household_id"] == household_id
-    assert payload["storage_path"].startswith(f"{household_id}/books/")
+    assert payload["storage_path"].startswith(f"households/{household_id}/books/")
+    assert f"/books/{payload['book_id']}/" in payload["storage_path"]
     assert payload["storage_path"].endswith(".pdf")
 
     mock_client.storage.from_.assert_called_once_with(admin.SUPABASE_BOOKS_BUCKET)
@@ -76,9 +77,32 @@ def test_upload_requires_household_id() -> None:
     assert response.status_code == 422
 
 
-def test_upload_requires_valid_household_id() -> None:
+def test_upload_accepts_non_uuid_household_id() -> None:
     client = TestClient(app)
-    response = _post_upload(client=client, household_id="not-a-uuid")
+    household_id = "not-a-uuid"
+
+    mock_client = Mock()
+    mock_bucket = Mock()
+    mock_client.storage.from_.return_value = mock_bucket
+    mock_insert_builder = Mock()
+    mock_table = Mock()
+    mock_client.table.return_value = mock_table
+    mock_table.insert.return_value = mock_insert_builder
+    mock_insert_builder.execute.return_value = {"data": []}
+
+    with (
+        patch.object(admin, "_supabase_client", return_value=mock_client),
+        patch.object(admin, "enqueue_process_book"),
+    ):
+        response = _post_upload(client=client, household_id=household_id)
+
+    assert response.status_code == 200
+    assert response.json()["household_id"] == household_id
+
+
+def test_upload_rejects_blank_household_id() -> None:
+    client = TestClient(app)
+    response = _post_upload(client=client, household_id="   ")
     assert response.status_code == 422
 
 
@@ -86,7 +110,7 @@ def test_upload_rejects_non_pdf_file_extension() -> None:
     client = TestClient(app)
     response = _post_upload(
         client=client,
-        household_id="11111111-1111-1111-1111-111111111111",
+        household_id="household-123",
         filename="notes.txt",
         content=b"hello",
         content_type="text/plain",
@@ -99,7 +123,7 @@ def test_upload_rejects_invalid_pdf_content_type() -> None:
     client = TestClient(app)
     response = _post_upload(
         client=client,
-        household_id="11111111-1111-1111-1111-111111111111",
+        household_id="household-123",
         filename="book.pdf",
         content=b"hello",
         content_type="text/plain",
@@ -112,7 +136,7 @@ def test_upload_rejects_empty_file() -> None:
     client = TestClient(app)
     response = _post_upload(
         client=client,
-        household_id="11111111-1111-1111-1111-111111111111",
+        household_id="household-123",
         filename="book.pdf",
         content=b"",
         content_type="application/pdf",
@@ -123,7 +147,7 @@ def test_upload_rejects_empty_file() -> None:
 
 def test_upload_returns_500_when_storage_or_db_fails() -> None:
     client = TestClient(app)
-    household_id = "11111111-1111-1111-1111-111111111111"
+    household_id = "household-123"
 
     mock_client = Mock()
     mock_bucket = Mock()

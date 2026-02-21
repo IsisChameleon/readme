@@ -49,10 +49,7 @@ export interface components {
              * Format: binary
              */
             file: string;
-            /**
-             * Household Id
-             * Format: uuid
-             */
+            /** Household Id */
             household_id: string;
         };
         /** HTTPValidationError */
@@ -62,15 +59,9 @@ export interface components {
         };
         /** UploadBookResponse */
         UploadBookResponse: {
-            /**
-             * Book Id
-             * Format: uuid
-             */
+            /** Book Id */
             book_id: string;
-            /**
-             * Household Id
-             * Format: uuid
-             */
+            /** Household Id */
             household_id: string;
             /**
              * Status
