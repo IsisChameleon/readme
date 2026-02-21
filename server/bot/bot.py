@@ -23,7 +23,10 @@ from pipecat.services.openai.llm import OpenAILLMService
 from pipecat.transports.base_transport import BaseTransport, TransportParams
 from pipecat.transports.daily.transport import DailyParams
 
-from prompt import system_prompt
+try:
+    from .prompt import system_prompt
+except ImportError:
+    from prompt import system_prompt
 
 load_dotenv(override=True)
 
