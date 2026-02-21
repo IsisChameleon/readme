@@ -1,0 +1,92 @@
+name: readme-dev
+
+services:
+  client:
+    build:
+      context: .
+      dockerfile: client/dev.Dockerfile
+    working_dir: /workspace/client
+    volumes:
+      - ./client:/workspace/client
+      - client_node_modules:/workspace/client/node_modules
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:${API_PORT:-8000}
+      BOT_START_URL: http://bot:7860/start
+      BOT_START_PUBLIC_API_KEY: ${BOT_START_PUBLIC_API_KEY:-}
+    ports:
+      - "${CLIENT_PORT:-3000}:3000"
+    command: sh -c "pnpm install --frozen-lockfile && pnpm dev --hostname 0.0.0.0 --port 3000"
+    depends_on:
+      - api
+      - bot
+
+  api:
+    build:
+      context: .
+      dockerfile: server/dev.Dockerfile
+    working_dir: /workspace/server
+    volumes:
+      - ./server:/workspace/server
+      - api_venv:/workspace/server/.venv
+    env_file:
+      - ./server/.env
+    environment:
+      DRAMATIQ_BROKER_URL: redis://dragonfly:6379/0
+    ports:
+      - "${API_PORT:-8000}:8000"
+    command: sh -c "uv sync --frozen && uv run uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload"
+
+  bot:
+    build:
+      context: .
+      dockerfile: server/dev.Dockerfile
+    working_dir: /workspace/server
+    volumes:
+      - ./server:/workspace/server
+      - bot_venv:/workspace/server/.venv
+    env_file:
+      - ./server/.env
+    ports:
+      - "${BOT_PORT:-7860}:7860"
+    command: sh -c "uv sync --frozen && uv run python -m pipecat.runner.run"
+
+  worker:
+    profiles: ["worker"]
+    build:
+      context: .
+      dockerfile: server/dev.Dockerfile
+    working_dir: /workspace/server
+    volumes:
+      - ./server:/workspace/server
+      - worker_venv:/workspace/server/.venv
+    env_file:
+      - ./server/.env
+    environment:
+      DRAMATIQ_BROKER_URL: redis://dragonfly:6379/0
+    command: sh -c "uv sync --frozen && uv run python -m dramatiq worker.tasks"
+    depends_on:
+      - dragonfly
+
+  dragonfly:
+    profiles: ["worker"]
+    image: docker.dragonflydb.io/dragonflydb/dragonfly:latest
+    command:
+      [
+        "--logtostderr",
+        "--bind",
+        "0.0.0.0",
+        "--port",
+        "6379",
+        "--default_lua_flags=allow-undeclared-keys",
+      ]
+    ports:
+      - "${DRAGONFLY_PORT:-6379}:6379"
+    volumes:
+      - dragonfly_data:/data
+
+volumes:
+  client_node_modules:
+  api_venv:
+  bot_venv:
+  worker_venv:
+  dragonfly_data:
