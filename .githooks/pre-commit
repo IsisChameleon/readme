@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(git rev-parse --show-toplevel)"
+
+if [ -x "$ROOT_DIR/server/.venv/bin/python" ]; then
+  "$ROOT_DIR/server/.venv/bin/python" "$ROOT_DIR/scripts/export_openapi.py"
+else
+  python3 "$ROOT_DIR/scripts/export_openapi.py"
+fi
+
+pnpm --dir "$ROOT_DIR/client" openapi:generate
+
+git add client/openapi.json client/lib/api/schema.ts
