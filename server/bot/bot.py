@@ -3,7 +3,6 @@ import os
 from dotenv import load_dotenv
 from loguru import logger
 
-from pipecat.audio.turn.smart_turn.local_smart_turn_v3 import LocalSmartTurnAnalyzerV3
 from pipecat.audio.vad.silero import SileroVADAnalyzer
 from pipecat.audio.vad.vad_analyzer import VADParams
 from pipecat.frames.frames import LLMRunFrame
@@ -11,13 +10,17 @@ from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.runner import PipelineRunner
 from pipecat.pipeline.task import PipelineParams, PipelineTask
 from pipecat.processors.aggregators.llm_context import LLMContext
-from pipecat.processors.frameworks.rtvi import RTVIConfig, RTVIObserver, RTVIProcessor
+from pipecat.processors.aggregators.llm_response_universal import (
+    LLMContextAggregatorPair,
+    LLMUserAggregatorParams,
+)
+from pipecat.processors.frameworks.rtvi import RTVIConfig, RTVIProcessor
 from pipecat.runner.types import RunnerArguments
 from pipecat.runner.utils import create_transport
 from pipecat.services.deepgram.stt import DeepgramSTTService
 from pipecat.services.hume.tts import HumeTTSService
 from pipecat.services.openai.llm import OpenAILLMService
-from pipecat.transports.base_transport import BaseTransport
+from pipecat.transports.base_transport import BaseTransport, TransportParams
 from pipecat.transports.daily.transport import DailyParams
 
 from prompt import system_prompt
@@ -27,6 +30,7 @@ load_dotenv(override=True)
 
 async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
     """Pipeline: input → STT → context → LLM → TTS → output."""
+    logger.info(f"run_bot started with transport={type(transport).__name__}")
 
     stt = DeepgramSTTService(
         api_key=os.getenv("DEEPGRAM_API_KEY"),
@@ -47,7 +51,12 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
         {"role": "user", "content": "Hello!"},
     ]
     context = LLMContext(messages)
-    context_aggregator = llm.create_context_aggregator(context)
+    context_aggregator = LLMContextAggregatorPair(
+        context,
+        user_params=LLMUserAggregatorParams(
+            vad_analyzer=SileroVADAnalyzer(params=VADParams(stop_secs=0.2)),
+        ),
+    )
 
     rtvi = RTVIProcessor(config=RTVIConfig(config=[]))
 
@@ -68,7 +77,6 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
         pipeline,
         params=PipelineParams(
             audio_out_sample_rate=44100,
-            allow_interruptions=True,
             enable_metrics=True,
             enable_usage_metrics=True,
         ),
@@ -76,6 +84,7 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
 
     @rtvi.event_handler("on_client_ready")
     async def on_client_ready(rtvi):
+        logger.info("RTVI client-ready received")
         await rtvi.set_bot_ready()
         await task.queue_frames([LLMRunFrame()])
 
@@ -94,15 +103,21 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
 
 async def bot(runner_args: RunnerArguments):
     """Main bot entry point compatible with Pipecat Cloud."""
+    logger.info(f"bot() invoked with runner_args={type(runner_args).__name__}")
     transport_params = {
         "daily": lambda: DailyParams(
             audio_in_enabled=True,
             audio_out_enabled=True,
-            vad_analyzer=SileroVADAnalyzer(params=VADParams(stop_secs=0.2)),
-            turn_analyzer=LocalSmartTurnAnalyzerV3(),
-        )
+        ),
+        "webrtc": lambda: TransportParams(
+            audio_out_enabled=True,
+            audio_in_enabled=True,
+            video_out_enabled=False,
+            video_in_enabled=False,
+        ),
     }
     transport = await create_transport(runner_args, transport_params)
+    logger.info(f"Transport created: {type(transport).__name__}")
     await run_bot(transport, runner_args)
 
 
