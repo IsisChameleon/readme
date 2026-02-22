@@ -28,6 +28,7 @@ jobs:
       run:
         working-directory: server
     env:
+      UV_PYTHON: "3.13"
       PIPECAT_TOKEN: ${{ secrets.PIPECAT_TOKEN }}
       PIPECAT_ORG: stormy-badger-olive-971
       PIPECAT_DEFAULT_PUBLIC_KEY_NAME: readme-prototype
@@ -39,6 +40,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
 
       - name: Setup uv
         uses: astral-sh/setup-uv@v6
@@ -58,8 +64,7 @@ jobs:
       - name: Resolve public API key (readme-prototype)
         run: |
           set -euo pipefail
-          KEY_LINE="$(uv run pcc organizations keys list --organization "${PIPECAT_ORG}" | grep "${PIPECAT_DEFAULT_PUBLIC_KEY_NAME}" | head -1 || true)"
-          KEY_VALUE="$(printf '%s' "${KEY_LINE}" | grep -Eo 'pk_[0-9a-f-]+' | head -1 || true)"
+          KEY_VALUE="$(uv run pcc organizations keys list --organization "${PIPECAT_ORG}" | awk -v keyname="${PIPECAT_DEFAULT_PUBLIC_KEY_NAME}" 'index($0,keyname){if (match($0,/pk_[0-9a-f-]+/)) {print substr($0,RSTART,RLENGTH); exit}}')"
           if [ -z "${KEY_VALUE}" ]; then
             echo "Could not resolve public API key named '${PIPECAT_DEFAULT_PUBLIC_KEY_NAME}' in organization '${PIPECAT_ORG}'." >&2
             exit 1
@@ -78,6 +83,13 @@ jobs:
             --registry dockerhub \
             --username "${DOCKERHUB_USERNAME}" \
             --version "${IMAGE_TAG}"
+
+      - name: Smoke test image boots (import check)
+        run: |
+          set -euo pipefail
+          IMAGE_REF="${DOCKERHUB_USERNAME}/readme-bot:${IMAGE_TAG}"
+          docker pull "${IMAGE_REF}"
+          docker run --rm "${IMAGE_REF}" python -c "import bot; print('bot import ok')"
 
       - name: Deploy dev agent
         run: |

@@ -135,9 +135,14 @@ Behavior:
 
 1. Triggers on `push` to `main` (and manual `workflow_dispatch`).
 2. Builds and pushes a Docker image for the bot.
-3. Deploys Pipecat Cloud using `server/pcc-deploy.toml`.
-4. Uses `readme-dev` secret set.
-5. Checks agent status after deploy.
+3. Runs a container import smoke test (`import bot`) on the pushed image tag.
+4. Deploys Pipecat Cloud using `server/pcc-deploy.toml`.
+5. Uses `readme-dev` secret set.
+6. Checks agent status after deploy.
+
+CI runtime note:
+
+1. Workflow pins `uv` to Python 3.13 (`UV_PYTHON=3.13`) to avoid `onnxruntime` wheel mismatch on Python 3.14.
 
 One-time setup:
 
