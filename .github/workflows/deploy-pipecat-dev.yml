@@ -79,7 +79,7 @@ jobs:
       - name: Build and push image
         run: |
           set -euo pipefail
-          uv run pcc docker build-push \
+          printf 'y\ny\ny\n' | uv run pcc docker build-push \
             --registry dockerhub \
             --username "${DOCKERHUB_USERNAME}" \
             --version "${IMAGE_TAG}"
