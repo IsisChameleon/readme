@@ -44,3 +44,4 @@ lerna-debug.log*
 
 docs/plans/**
 data/
+scripts/output/*.json
