@@ -1,7 +1,7 @@
-agent_name = "readme-reading-agent"
-image = "YOUR_DOCKERHUB_USER/readme-server:latest"
-secret_set = "readme-reading-app"
-agent_profile = "agent-2x"
+agent_name = "readme-bot-dev"
+image = "isischameleon/readme-bot:latest"
+secret_set = "readme-dev"
+agent_profile = "agent-1x"
 enable_krisp = true
 
 [scaling]

@@ -1,0 +1,105 @@
+name: Deploy Pipecat Dev Bot
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "server/bot/**"
+      - "server/Dockerfile"
+      - "server/pyproject.toml"
+      - "server/uv.lock"
+      - "server/pcc-deploy.toml"
+      - ".github/workflows/deploy-pipecat-dev.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-pipecat-dev
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Build + Deploy Dev Agent
+    runs-on: ubuntu-latest
+    environment: dev
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: server
+    env:
+      PIPECAT_TOKEN: ${{ secrets.PIPECAT_TOKEN }}
+      PIPECAT_ORG: stormy-badger-olive-971
+      PIPECAT_DEFAULT_PUBLIC_KEY_NAME: readme-prototype
+      DOCKERHUB_USERNAME: isischameleon
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+      PCC_SECRET_SET: readme-dev
+      IMAGE_TAG: sha-${{ github.sha }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Validate required secrets
+        run: |
+          set -euo pipefail
+          for key in PIPECAT_TOKEN DOCKERHUB_TOKEN; do
+            if [ -z "${!key:-}" ]; then
+              echo "Missing required secret: $key" >&2
+              exit 1
+            fi
+          done
+
+      - name: Resolve public API key (readme-prototype)
+        run: |
+          set -euo pipefail
+          KEY_LINE="$(uv run pcc organizations keys list --organization "${PIPECAT_ORG}" | grep "${PIPECAT_DEFAULT_PUBLIC_KEY_NAME}" | head -1 || true)"
+          KEY_VALUE="$(printf '%s' "${KEY_LINE}" | grep -Eo 'pk_[0-9a-f-]+' | head -1 || true)"
+          if [ -z "${KEY_VALUE}" ]; then
+            echo "Could not resolve public API key named '${PIPECAT_DEFAULT_PUBLIC_KEY_NAME}' in organization '${PIPECAT_ORG}'." >&2
+            exit 1
+          fi
+          echo "PIPECAT_DEFAULT_PUBLIC_KEY=${KEY_VALUE}" >> "${GITHUB_ENV}"
+
+      - name: Docker login
+        run: |
+          set -euo pipefail
+          echo "${DOCKERHUB_TOKEN}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
+
+      - name: Build and push image
+        run: |
+          set -euo pipefail
+          uv run pcc docker build-push \
+            --registry dockerhub \
+            --username "${DOCKERHUB_USERNAME}" \
+            --version "${IMAGE_TAG}"
+
+      - name: Deploy dev agent
+        run: |
+          set -euo pipefail
+          uv run pcc deploy \
+            --organization "${PIPECAT_ORG}" \
+            --secrets "${PCC_SECRET_SET}" \
+            --no-credentials \
+            --force
+
+      - name: Verify status
+        run: |
+          set -euo pipefail
+          AGENT_NAME="$(grep '^agent_name' pcc-deploy.toml | head -1 | cut -d '"' -f2)"
+          uv run pcc agent status "${AGENT_NAME}" --organization "${PIPECAT_ORG}"
+
+      - name: Smoke test start endpoint with readme-prototype key
+        run: |
+          set -euo pipefail
+          AGENT_NAME="$(grep '^agent_name' pcc-deploy.toml | head -1 | cut -d '"' -f2)"
+          curl -fsS -X POST "https://api.pipecat.daily.co/v1/public/${AGENT_NAME}/start" \
+            -H "Authorization: Bearer ${PIPECAT_DEFAULT_PUBLIC_KEY}" \
+            -H "Content-Type: application/json" \
+            -d '{"createDailyRoom": true}' \
+            > /dev/null
