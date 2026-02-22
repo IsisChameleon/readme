@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(git rev-parse --show-toplevel)"
+SERVER_VENV_BIN="$ROOT_DIR/server/.venv/bin"
+PY_FILES="$(git diff --cached --name-only --diff-filter=ACMR | rg '\.py$' || true)"
+
+if [ -n "$PY_FILES" ]; then
+  if [ ! -x "$SERVER_VENV_BIN/ruff" ] || [ ! -x "$SERVER_VENV_BIN/ty" ]; then
+    echo "Missing ruff/ty in $ROOT_DIR/server/.venv."
+    echo "Run: cd server && uv sync"
+    exit 1
+  fi
+
+  echo "$PY_FILES" | xargs "$SERVER_VENV_BIN/ruff" check
+
+  SERVER_TY_FILES="$(echo "$PY_FILES" | rg '^server/(api|bot|shared|worker)/.*\.py$' || true)"
+  if [ -n "$SERVER_TY_FILES" ]; then
+    echo "$SERVER_TY_FILES" \
+      | sed "s#^#$ROOT_DIR/#" \
+      | xargs "$SERVER_VENV_BIN/ty" check --project "$ROOT_DIR/server" --python "$ROOT_DIR/server/.venv"
+  fi
+fi
+
+if [ -x "$SERVER_VENV_BIN/python" ]; then
+  "$SERVER_VENV_BIN/python" "$ROOT_DIR/scripts/export_openapi.py"
+else
+  python3 "$ROOT_DIR/scripts/export_openapi.py"
+fi
+
+pnpm --dir "$ROOT_DIR/client" openapi:generate
+
+git add client/openapi.json client/lib/api/schema.ts

@@ -13,10 +13,15 @@ dependencies = [
     "python-dotenv>=1.2.1",
     "supabase>=2.27.0",
     "aiortc>=1.14.0",
+    "dramatiq[redis]>=1.18.0",
 ]
 
 [dependency-groups]
-dev = ["ruff~=0.12.1"]
+dev = [
+    "ruff~=0.12.1",
+    "ty>=0.0.1",
+    "pytest>=8.0.0",
+]
 
 [tool.ruff]
 line-length = 100

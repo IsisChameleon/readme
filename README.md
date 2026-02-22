@@ -7,3 +7,7 @@
 
 ## Quick Start
 See [SETUP.md](./SETUP.md) for detailed instructions.
+
+## Deployment Docs
+- [Deployment Guide (dev + prod)](./docs/deployment-guide.md)
+- [Release Environment Variable Matrix](./docs/release-env-matrix.md)

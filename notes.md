@@ -17,3 +17,9 @@ cd /Users/isabelleredactive/src/readme/client
 pnpm install
 pnpm dev
 
+API
+
+cd /Users/isabelleredactive/src/readme/server
+uv run uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
+
+
