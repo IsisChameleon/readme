@@ -9,7 +9,7 @@
 
 - Compose file: `docker-compose.yaml`
 - Default services: `client`, `api`, `bot`
-- Optional worker profile services: `worker`, `dragonfly`
+- Optional worker profile services: `worker`, `redis`
 
 ### Start Commands
 
@@ -29,9 +29,9 @@
 
 ### Port Overrides (optional)
 
-- Defaults: `CLIENT_PORT=3000`, `API_PORT=8000`, `BOT_PORT=7860`, `DRAGONFLY_PORT=6379`
+- Defaults: `CLIENT_PORT=3000`, `API_PORT=8000`, `BOT_PORT=7860`, `REDIS_PORT=6379`
 - Example override:
-  - `CLIENT_PORT=3100 API_PORT=8100 BOT_PORT=7960 DRAGONFLY_PORT=6380 docker compose --profile worker up --build`
+  - `CLIENT_PORT=3100 API_PORT=8100 BOT_PORT=7960 REDIS_PORT=6380 docker compose --profile worker up --build`
 
 ## Preferred Patterns (From Collaboration)
 
@@ -52,7 +52,7 @@
 - If asked to commit staged work, commit only staged files.
 - For this repo's local Docker setup:
   - Keep `client`, `api`, and `bot` in the default stack.
-  - Put `worker` + broker (`dragonfly`) behind the `worker` profile.
+  - Put `worker` + broker (`redis`) behind the `worker` profile.
   - Keep ports configurable via env vars with sensible defaults.
   - Do not add `UID:GID` user mapping unless explicitly requested.
   - On macOS, do not add watcher polling flags by default (`WATCHFILES_FORCE_POLLING`, `WATCHPACK_POLLING`) unless file watching issues are observed.

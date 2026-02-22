@@ -368,7 +368,6 @@ Adopt Terraform/OpenTofu when at least one is true:
 Status as of 2026-02-21:
 1. Step 1 implementation completed in codebase:
 - Added migration: `/Users/isabelleredactive/src/readme/server/api/migrations/0001_books.sql`
-- Added migration: `/Users/isabelleredactive/src/readme/server/api/migrations/0002_books_household_id.sql`
 - Added worker skeleton: `/Users/isabelleredactive/src/readme/server/worker/tasks.py`
 - Added admin router: `/Users/isabelleredactive/src/readme/server/api/admin.py`
 - Added upload endpoint + models: `/Users/isabelleredactive/src/readme/server/api/admin.py` (`POST /admin/books/upload`, `UploadBookRequest`, `UploadBookResponse`)

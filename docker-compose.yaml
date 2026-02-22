@@ -31,7 +31,8 @@ services:
     env_file:
       - ./server/.env
     environment:
-      DRAMATIQ_BROKER_URL: redis://dragonfly:6379/0
+      DRAMATIQ_BROKER_URL: redis://redis:6379/0
+      APP_REDIS_URL: redis://redis:6379/0
     ports:
       - "${API_PORT:-8000}:8000"
     command: sh -c "uv sync --frozen && uv run uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload"
@@ -46,9 +47,11 @@ services:
       - bot_venv:/workspace/server/.venv
     env_file:
       - ./server/.env
+    environment:
+      APP_REDIS_URL: redis://redis:6379/0
     ports:
       - "${BOT_PORT:-7860}:7860"
-    command: sh -c "uv sync --frozen && uv run python -m pipecat.runner.run"
+    command: sh -c "uv sync --frozen && uv run python -m pipecat.runner.run --host 0.0.0.0 --port 7860 --transport daily"
 
   worker:
     profiles: ["worker"]
@@ -62,31 +65,24 @@ services:
     env_file:
       - ./server/.env
     environment:
-      DRAMATIQ_BROKER_URL: redis://dragonfly:6379/0
+      DRAMATIQ_BROKER_URL: redis://redis:6379/0
+      APP_REDIS_URL: redis://redis:6379/0
     command: sh -c "uv sync --frozen && uv run python -m dramatiq worker.tasks"
     depends_on:
-      - dragonfly
+      - redis
 
-  dragonfly:
+  redis:
     profiles: ["worker"]
-    image: docker.dragonflydb.io/dragonflydb/dragonfly:latest
-    command:
-      [
-        "--logtostderr",
-        "--bind",
-        "0.0.0.0",
-        "--port",
-        "6379",
-        "--default_lua_flags=allow-undeclared-keys",
-      ]
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
     ports:
-      - "${DRAGONFLY_PORT:-6379}:6379"
+      - "${REDIS_PORT:-6379}:6379"
     volumes:
-      - dragonfly_data:/data
+      - redis_data:/data
 
 volumes:
   client_node_modules:
   api_venv:
   bot_venv:
   worker_venv:
-  dragonfly_data:
+  redis_data:
