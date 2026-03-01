@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - "server/bot/**"
-      - "server/Dockerfile"
+      - "server/bot/Dockerfile"
       - "server/pyproject.toml"
       - "server/uv.lock"
       - "server/pcc-deploy.toml"
@@ -79,10 +79,11 @@ jobs:
       - name: Build and push image
         run: |
           set -euo pipefail
-          printf 'y\ny\ny\n' | uv run pcc docker build-push \
-            --registry dockerhub \
-            --username "${DOCKERHUB_USERNAME}" \
-            --version "${IMAGE_TAG}"
+          IMAGE_REF="${DOCKERHUB_USERNAME}/readme-bot:${IMAGE_TAG}"
+          LATEST_REF="${DOCKERHUB_USERNAME}/readme-bot:latest"
+          docker build -f bot/Dockerfile -t "${IMAGE_REF}" -t "${LATEST_REF}" .
+          docker push "${IMAGE_REF}"
+          docker push "${LATEST_REF}"
 
       - name: Smoke test image boots (import check)
         run: |

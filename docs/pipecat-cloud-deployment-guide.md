@@ -1,6 +1,6 @@
 # Pipecat Cloud Deployment Guide
 
-Last updated: 2026-02-22
+Last updated: 2026-03-01
 
 This guide is based on actual deployment notes from this project and focuses on repeatable deploys with fewer surprises.
 
@@ -64,7 +64,8 @@ Important from real deploy notes:
 From `server/`:
 
 ```bash
-uv run pcc docker build-push
+docker build -f bot/Dockerfile -t isischameleon/readme-bot:latest .
+docker push isischameleon/readme-bot:latest
 ```
 
 Always test the image locally before cloud deploy:
