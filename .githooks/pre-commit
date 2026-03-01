@@ -3,7 +3,9 @@ set -euo pipefail
 
 ROOT_DIR="$(git rev-parse --show-toplevel)"
 SERVER_VENV_BIN="$ROOT_DIR/server/.venv/bin"
-PY_FILES="$(git diff --cached --name-only --diff-filter=ACMR | rg '\.py$' || true)"
+STAGED_FILES="$(git diff --cached --name-only --diff-filter=ACMR || true)"
+PY_FILES="$(printf '%s\n' "$STAGED_FILES" | grep -E '\.py$' || true)"
+CLIENT_FILES="$(printf '%s\n' "$STAGED_FILES" | grep -E '^client/' || true)"
 
 if [ -n "$PY_FILES" ]; then
   if [ ! -x "$SERVER_VENV_BIN/ruff" ] || [ ! -x "$SERVER_VENV_BIN/ty" ]; then
@@ -14,12 +16,16 @@ if [ -n "$PY_FILES" ]; then
 
   echo "$PY_FILES" | xargs "$SERVER_VENV_BIN/ruff" check
 
-  SERVER_TY_FILES="$(echo "$PY_FILES" | rg '^server/(api|bot|shared|worker)/.*\.py$' || true)"
+  SERVER_TY_FILES="$(echo "$PY_FILES" | grep -E '^server/(api|bot|shared|worker)/.*\.py$' || true)"
   if [ -n "$SERVER_TY_FILES" ]; then
     echo "$SERVER_TY_FILES" \
       | sed "s#^#$ROOT_DIR/#" \
       | xargs "$SERVER_VENV_BIN/ty" check --project "$ROOT_DIR/server" --python "$ROOT_DIR/server/.venv"
   fi
+fi
+
+if [ -n "$CLIENT_FILES" ]; then
+  pnpm --dir "$ROOT_DIR/client" lint
 fi
 
 if [ -x "$SERVER_VENV_BIN/python" ]; then

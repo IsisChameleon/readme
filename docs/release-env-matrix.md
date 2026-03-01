@@ -1,6 +1,6 @@
 # Release Environment Variable Matrix
 
-Last updated: 2026-02-22
+Last updated: 2026-02-25
 
 This file is for hosted deploys (`dev` and `prod`). Local `.env` files remain the source for local Docker/dev runs.
 
@@ -47,6 +47,16 @@ Required:
 1. `BOT_START_URL`
 2. `BOT_START_PUBLIC_API_KEY` (optional; set only when start endpoint requires it)
 3. `NEXT_PUBLIC_API_BASE_URL`
+
+Vercel environment mapping:
+
+1. `Preview` maps to `dev`
+2. `Production` maps to `prod`
+
+Client `BOT_START_URL` values:
+
+1. `dev` (`Preview`): `https://api.pipecat.daily.co/v1/public/readme-bot-dev/start`
+2. `prod` (`Production`): set to the prod Pipecat public `/start` endpoint
 
 ## Local-Only (Optional for Local Testing)
 
