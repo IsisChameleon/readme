@@ -1,5 +1,15 @@
 name: readme-dev
 
+# Prerequisites:
+#   1. supabase start           (runs local Supabase, applies migrations)
+#   2. docker compose up        (runs app services on shared Supabase network)
+#
+# Seed demo data (first time only):
+#   SUPABASE_URL=http://127.0.0.1:54321 \
+#   SUPABASE_SECRET_KEY=<secret key from supabase start> \
+#   cd server && uv run python ../scripts/load_chunks_to_supabase.py \
+#     --input ../scripts/output/alice_chunks_plan_b_first2.json
+
 services:
   client:
     build:
@@ -31,11 +41,15 @@ services:
     env_file:
       - ./server/.env
     environment:
+      SUPABASE_URL: http://supabase_kong_readme:8000
       DRAMATIQ_BROKER_URL: redis://redis:6379/0
       APP_REDIS_URL: redis://redis:6379/0
     ports:
       - "${API_PORT:-8000}:8000"
     command: sh -c "uv sync --frozen && uv run uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload"
+    networks:
+      - default
+      - supabase
 
   bot:
     build:
@@ -48,10 +62,14 @@ services:
     env_file:
       - ./server/.env
     environment:
+      SUPABASE_URL: http://supabase_kong_readme:8000
       APP_REDIS_URL: redis://redis:6379/0
     ports:
       - "${BOT_PORT:-7860}:7860"
     command: sh -c "uv sync --frozen && uv run python -m pipecat.runner.run --host 0.0.0.0 --port 7860 --transport daily"
+    networks:
+      - default
+      - supabase
 
   worker:
     profiles: ["worker"]
@@ -65,11 +83,15 @@ services:
     env_file:
       - ./server/.env
     environment:
+      SUPABASE_URL: http://supabase_kong_readme:8000
       DRAMATIQ_BROKER_URL: redis://redis:6379/0
       APP_REDIS_URL: redis://redis:6379/0
     command: sh -c "uv sync --frozen && uv run python -m dramatiq worker.tasks"
     depends_on:
       - redis
+    networks:
+      - default
+      - supabase
 
   redis:
     profiles: ["worker"]
@@ -79,6 +101,11 @@ services:
       - "${REDIS_PORT:-6379}:6379"
     volumes:
       - redis_data:/data
+
+networks:
+  supabase:
+    external: true
+    name: supabase_network_readme
 
 volumes:
   client_node_modules:
