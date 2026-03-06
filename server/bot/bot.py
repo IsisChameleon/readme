@@ -2,6 +2,8 @@ import os
 
 from dotenv import load_dotenv
 from loguru import logger
+from pipecat.adapters.schemas.function_schema import FunctionSchema
+from pipecat.adapters.schemas.tools_schema import ToolsSchema
 from pipecat.audio.vad.silero import SileroVADAnalyzer
 from pipecat.audio.vad.vad_analyzer import VADParams
 from pipecat.pipeline.pipeline import Pipeline
@@ -12,6 +14,7 @@ from pipecat.processors.aggregators.llm_response_universal import (
     LLMContextAggregatorPair,
     LLMUserAggregatorParams,
 )
+from pipecat.processors.frame_processor import FrameDirection
 from pipecat.runner.types import RunnerArguments
 from pipecat.runner.utils import create_transport
 from pipecat.services.deepgram.stt import DeepgramSTTService
@@ -21,20 +24,60 @@ from pipecat.transports.base_transport import BaseTransport, TransportParams
 from pipecat.transports.daily.transport import DailyParams
 
 try:
-    from .processors.book_reader import BookReaderProcessor
+    from .library import Library
+    from .processors.frames import BookSelectedFrame, ResumeReadingFrame, StartReadingFrame
+    from .processors.state_manager import BookReadingStateManager
 except ImportError:
-    from processors.book_reader import BookReaderProcessor  # type: ignore[assignment]
+    from library import Library  # type: ignore[assignment]
+    from processors.frames import (  # type: ignore[assignment]
+        BookSelectedFrame,
+        ResumeReadingFrame,
+        StartReadingFrame,
+    )
+    from processors.state_manager import BookReadingStateManager  # type: ignore[assignment]
 
 load_dotenv(override=True)
 
 
+def _build_tools() -> ToolsSchema:
+    return ToolsSchema(
+        standard_tools=[
+            FunctionSchema(
+                name="select_book",
+                description="Select a book for the child to read.",
+                properties={
+                    "book_id": {"type": "string", "description": "The ID of the book to select."},
+                },
+                required=["book_id"],
+            ),
+            FunctionSchema(
+                name="start_reading",
+                description="Start reading the selected book aloud from a given chunk.",
+                properties={
+                    "book_id": {"type": "string", "description": "The ID of the book to read."},
+                    "chunk_id": {
+                        "type": "integer",
+                        "description": "The chunk index to start reading from (0-based).",
+                    },
+                },
+                required=["book_id", "chunk_id"],
+            ),
+            FunctionSchema(
+                name="resume_reading",
+                description="Resume reading the book aloud from where the child left off.",
+                properties={
+                    "book_id": {"type": "string", "description": "The ID of the book to resume."},
+                },
+                required=["book_id"],
+            ),
+        ]
+    )
+
+
 async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
-    """Pipeline: input → STT → user_agg → LLM → BookReader → assistant_agg → TTS → output."""
+    """Pipeline: input -> STT -> user_agg -> LLM -> StateManager -> assistant_agg -> TTS -> output."""
     logger.info(f"run_bot started with transport={type(transport).__name__}")
 
-    # MVP: hardcoded demo values. Post-MVP these come from call state
-    # (set by the API when creating a Daily room for a reading session).
-    book_id = "book_demo_001"
     kid_id = "demo_kid"
 
     stt = DeepgramSTTService(
@@ -51,7 +94,8 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
         model="gpt-4",
     )
 
-    context = LLMContext()
+    tools = _build_tools()
+    context = LLMContext(tools=tools)
     agg_pair = LLMContextAggregatorPair(
         context,
         user_params=LLMUserAggregatorParams(
@@ -61,7 +105,50 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
     user_agg = agg_pair.user()
     assistant_agg = agg_pair.assistant()
 
-    book_reader = BookReaderProcessor(kid_id=kid_id, context=context)
+    library = Library(kid_id=kid_id)
+    state_manager = BookReadingStateManager(library=library, context=context)
+
+    # -- Register function call handlers on the LLM --
+
+    async def handle_select_book(params):
+        book = library.initialize_book(params.arguments["book_id"])
+        if book:
+            await params.result_callback(f"Book '{book.title}' selected.")
+            await state_manager.queue_frame(
+                BookSelectedFrame(
+                    book_id=book.id,
+                    book_title=book.title,
+                ),
+                FrameDirection.DOWNSTREAM,
+            )
+            logger.info(f"[Bot] BookSelected frame queued: {book.id}")
+        else:
+            await params.result_callback("Book not found.")
+
+    async def handle_start_reading(params):
+        await params.result_callback("Starting to read.")
+        await state_manager.queue_frame(
+            StartReadingFrame(
+                book_id=params.arguments["book_id"],
+                chunk_index=params.arguments.get("chunk_id", 0),
+            ),
+            FrameDirection.DOWNSTREAM,
+        )
+        logger.info(f"[Bot] StartReading frame queued: {params.arguments['book_id']}")
+
+    async def handle_resume_reading(params):
+        await params.result_callback("Resuming reading.")
+        await state_manager.queue_frame(
+            ResumeReadingFrame(
+                book_id=params.arguments["book_id"],
+            ),
+            FrameDirection.DOWNSTREAM,
+        )
+        logger.info(f"[Bot] ResumeReading frame queued: {params.arguments['book_id']}")
+
+    llm.register_function("select_book", handle_select_book)
+    llm.register_function("start_reading", handle_start_reading)
+    llm.register_function("resume_reading", handle_resume_reading)
 
     pipeline = Pipeline(
         [
@@ -69,10 +156,10 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
             stt,
             user_agg,
             llm,
-            book_reader,
-            assistant_agg,
+            state_manager,
             tts,
             transport.output(),
+            assistant_agg,
         ]
     )
 
@@ -88,7 +175,7 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
     @task.rtvi.event_handler("on_client_ready")
     async def on_client_ready(rtvi):
         logger.info("RTVI client-ready received")
-        await book_reader.initialize_book(book_id)
+        await state_manager.enter_book_selection()
 
     @transport.event_handler("on_client_connected")
     async def on_client_connected(transport, participant):
@@ -97,7 +184,7 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
     @transport.event_handler("on_client_disconnected")
     async def on_client_disconnected(transport, client):
         logger.info("Client disconnected — saving progress")
-        book_reader.save_progress()
+        library.save_progress()
         await task.cancel()
 
     runner = PipelineRunner(handle_sigint=runner_args.handle_sigint)
