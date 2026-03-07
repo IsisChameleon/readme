@@ -8,8 +8,8 @@ ROOT_DIR = Path(__file__).resolve().parents[3]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-from server.api.main import app
 import server.api.admin as admin
+from server.api.main import app
 
 
 def _post_upload(
