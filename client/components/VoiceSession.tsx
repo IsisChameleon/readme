@@ -1,7 +1,8 @@
 'use client';
 
-import { usePipecatClient, usePipecatClientMediaTrack } from '@pipecat-ai/client-react';
+import { usePipecatClientMediaTrack } from '@pipecat-ai/client-react';
 import {
+  ConnectButton,
   PipecatAppBase,
   TranscriptOverlay,
   UserAudioControl,
@@ -9,7 +10,6 @@ import {
 } from '@pipecat-ai/voice-ui-kit';
 import { Plasma } from '@pipecat-ai/voice-ui-kit/webgl';
 import { useRouter } from 'next/navigation';
-import { useEffect, useRef } from 'react';
 
 const PLASMA_CONFIG = {
   useCustomColors: true,
@@ -30,69 +30,22 @@ const STATUS_COLORS: Record<string, string> = {
   disconnected: '#FF6B6B',
 };
 
-const SessionInner = ({ handleDisconnect }: { handleDisconnect: () => void | Promise<void> }) => {
-  const client = usePipecatClient();
+interface SessionInnerProps {
+  handleConnect?: () => void | Promise<void>;
+  handleDisconnect?: () => void | Promise<void>;
+}
+
+const SessionInner = ({ handleConnect, handleDisconnect }: SessionInnerProps) => {
   const remoteAudioTrack = usePipecatClientMediaTrack('audio', 'bot');
-  const { state: connectionState, isDisconnected } = usePipecatConnectionState();
+  const { state: connectionState } = usePipecatConnectionState();
   const router = useRouter();
-  const lastTapRef = useRef<number>(0);
-  const wasConnectedRef = useRef(false);
-  const handleDisconnectRef = useRef(handleDisconnect);
-  const clientRef = useRef(client);
-  handleDisconnectRef.current = handleDisconnect;
-  clientRef.current = client;
-
-  // Clean up voice session on unmount (browser back, navigation) and tab close/refresh.
-  // Guards on client.connected so it's a no-op when there's no active session.
-  useEffect(() => {
-    const cleanup = () => {
-      if (!clientRef.current?.connected) return;
-      handleDisconnectRef.current?.();
-      clientRef.current.disconnect();
-    };
-    window.addEventListener('beforeunload', cleanup);
-    return () => {
-      window.removeEventListener('beforeunload', cleanup);
-      cleanup();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (connectionState === 'connected') {
-      wasConnectedRef.current = true;
-    }
-    if (isDisconnected && wasConnectedRef.current) {
-      router.push('/dashboard');
-    }
-  }, [connectionState, isDisconnected, router]);
-
-  const onDisconnect = async () => {
-    try {
-      await handleDisconnect?.();
-      await client?.disconnect();
-    } finally {
-      router.push('/dashboard');
-    }
-  };
-
-  const handleOrbTap = async () => {
-    const now = Date.now();
-    const timeSinceLast = now - lastTapRef.current;
-
-    if (timeSinceLast < 300) {
-      await onDisconnect();
-      return;
-    }
-
-    lastTapRef.current = now;
-  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%', background: '#150f20', position: 'relative' }}>
-      {/* Top bar — overlaid on top of orb */}
+      {/* Top bar */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px', zIndex: 10 }}>
         <button
-          onClick={onDisconnect}
+          onClick={() => router.push('/dashboard')}
           style={{ color: '#9ca3af', fontFamily: 'var(--font-nunito)', fontSize: '14px', background: 'none', border: 'none', cursor: 'pointer' }}
         >
           ← back
@@ -105,15 +58,8 @@ const SessionInner = ({ handleDisconnect }: { handleDisconnect: () => void | Pro
         </div>
       </div>
 
-      {/* Orb — fills all available space */}
-      <div
-        style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', minHeight: 0 }}
-        onClick={handleOrbTap}
-        role="button"
-        aria-label="Double-tap to leave call"
-        tabIndex={0}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleOrbTap(); }}
-      >
+      {/* Orb */}
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 0 }}>
         <Plasma
           width={600}
           height={600}
@@ -123,7 +69,7 @@ const SessionInner = ({ handleDisconnect }: { handleDisconnect: () => void | Pro
         />
       </div>
 
-      {/* Bottom controls — overlaid on bottom of orb */}
+      {/* Bottom controls */}
       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0 24px 24px', gap: '8px' }}>
         <TranscriptOverlay
           participant="local"
@@ -139,8 +85,12 @@ const SessionInner = ({ handleDisconnect }: { handleDisconnect: () => void | Pro
           fadeOutDuration={1500}
           className="text-center"
         />
-        <div style={{ marginTop: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '8px' }}>
           <UserAudioControl visualizerProps={{ barCount: 5 }} />
+          <ConnectButton
+            onConnect={handleConnect}
+            onDisconnect={handleDisconnect}
+          />
         </div>
       </div>
     </div>
@@ -151,12 +101,11 @@ export const VoiceSession = () => (
   <PipecatAppBase
     transportType="daily"
     connectParams={{ endpoint: '/api/start' }}
-    connectOnMount
     initDevicesOnMount
     themeProps={{ defaultTheme: 'dark' }}
   >
-    {({ handleDisconnect }) => (
-      <SessionInner handleDisconnect={handleDisconnect ?? (() => {})} />
+    {({ handleConnect, handleDisconnect }) => (
+      <SessionInner handleConnect={handleConnect} handleDisconnect={handleDisconnect} />
     )}
   </PipecatAppBase>
 );
