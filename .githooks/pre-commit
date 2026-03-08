@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(git rev-parse --show-toplevel)"
 SERVER_VENV_BIN="$ROOT_DIR/server/.venv/bin"
 STAGED_FILES="$(git diff --cached --name-only --diff-filter=ACMR || true)"
-PY_FILES="$(printf '%s\n' "$STAGED_FILES" | grep -E '\.py$' || true)"
+PY_FILES="$(printf '%s\n' "$STAGED_FILES" | grep -E '\.py$' | grep -Ev '^\.agents/|^\.claude/' || true)"
 CLIENT_FILES="$(printf '%s\n' "$STAGED_FILES" | grep -E '^client/' || true)"
 
 if [ -n "$PY_FILES" ]; then

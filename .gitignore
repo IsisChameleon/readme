@@ -45,3 +45,9 @@ lerna-debug.log*
 docs/plans/**
 data/
 scripts/output/*.json
+
+# Agent/Claude local settings and plans
+.agents/settings.local.json
+.claude/settings.local.json
+.claude/plan/
+.cursor/
