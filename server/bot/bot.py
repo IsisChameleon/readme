@@ -17,8 +17,8 @@ from pipecat.processors.aggregators.llm_response_universal import (
 from pipecat.processors.frame_processor import FrameDirection
 from pipecat.runner.types import RunnerArguments
 from pipecat.runner.utils import create_transport
+from pipecat.services.cartesia.tts import CartesiaTTSService
 from pipecat.services.deepgram.stt import DeepgramSTTService
-from pipecat.services.hume.tts import HumeTTSService
 from pipecat.services.openai.llm import OpenAILLMService
 from pipecat.transports.base_transport import BaseTransport, TransportParams
 from pipecat.transports.daily.transport import DailyParams
@@ -84,9 +84,10 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
         api_key=os.environ["DEEPGRAM_API_KEY"],
     )
 
-    tts = HumeTTSService(
-        api_key=os.environ["HUME_API_KEY"],
-        voice_id="f898a92e-685f-43fa-985b-a46920f0650b",
+    tts = CartesiaTTSService(
+        api_key=os.environ["CARTESIA_API_KEY"],
+        voice_id="4f7f1324-1853-48a6-b294-4e78e8036a83",
+        model="sonic-2",
     )
 
     llm = OpenAILLMService(
