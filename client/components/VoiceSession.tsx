@@ -10,6 +10,7 @@ import {
 } from '@pipecat-ai/voice-ui-kit';
 import { Plasma } from '@pipecat-ai/voice-ui-kit/webgl';
 import { useRouter } from 'next/navigation';
+import { useRef } from 'react';
 
 const PLASMA_CONFIG = {
   useCustomColors: true,
@@ -97,15 +98,30 @@ const SessionInner = ({ handleConnect, handleDisconnect }: SessionInnerProps) =>
   );
 };
 
-export const VoiceSession = () => (
-  <PipecatAppBase
-    transportType="daily"
-    connectParams={{ endpoint: '/api/start' }}
-    initDevicesOnMount
-    themeProps={{ defaultTheme: 'dark' }}
-  >
-    {({ handleConnect, handleDisconnect }) => (
-      <SessionInner handleConnect={handleConnect} handleDisconnect={handleDisconnect} />
-    )}
-  </PipecatAppBase>
-);
+export const VoiceSession = () => {
+  const handleDisconnectRef = useRef<(() => void | Promise<void>) | undefined>(undefined);
+
+  return (
+    <PipecatAppBase
+      transportType="daily"
+      connectParams={{ endpoint: '/api/start' }}
+      initDevicesOnMount
+      themeProps={{ defaultTheme: 'dark' }}
+      clientOptions={{
+        callbacks: {
+          onServerMessage: (data: unknown) => {
+            const msg = data as Record<string, unknown> | null;
+            if (msg?.type === 'UserVerballyInitiatedDisconnect') {
+              handleDisconnectRef.current?.();
+            }
+          },
+        },
+      }}
+    >
+      {({ handleConnect, handleDisconnect }) => {
+        handleDisconnectRef.current = handleDisconnect;
+        return <SessionInner handleConnect={handleConnect} handleDisconnect={handleDisconnect} />;
+      }}
+    </PipecatAppBase>
+  );
+};
