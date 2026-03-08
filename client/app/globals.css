@@ -35,3 +35,27 @@ body {
   color: var(--foreground);
   font-family: var(--font-nunito), Arial, Helvetica, sans-serif;
 }
+
+/* Retheme voice-ui-kit buttons on the call page:
+   orange outline + transparent fill, amber text */
+.voice-ui-kit {
+  --color-active: #F5A623;
+  --color-active-foreground: #F5A623;
+  --color-active-accent: rgba(245, 166, 35, 0.1);
+  --color-destructive: #E8853A;
+  --color-destructive-foreground: #fff;
+  --color-inactive: rgba(245, 166, 35, 0.6);
+  --color-inactive-foreground: #F5A623;
+}
+
+/* Connect/Disconnect button: transparent fill, orange border */
+.voice-ui-kit [data-slot="button"] {
+  background: transparent;
+  border: 2px solid var(--color-active);
+  color: var(--color-active);
+}
+
+.voice-ui-kit [data-slot="button"]:hover {
+  background: rgba(245, 166, 35, 0.1);
+}
+
