@@ -26,7 +26,7 @@ const PLASMA_CONFIG = {
 
 const STATUS_COLORS: Record<string, string> = {
   connected: '#7DC4A6',
-  connecting: '#F5A623',
+  connecting: '#CAB8EB',
   disconnected: '#FF6B6B',
 };
 

@@ -36,26 +36,49 @@ body {
   font-family: var(--font-nunito), Arial, Helvetica, sans-serif;
 }
 
-/* Retheme voice-ui-kit buttons on the call page:
-   orange outline + transparent fill, amber text */
-.voice-ui-kit {
-  --color-active: #F5A623;
-  --color-active-foreground: #F5A623;
-  --color-active-accent: rgba(245, 166, 35, 0.1);
-  --color-destructive: #E8853A;
-  --color-destructive-foreground: #fff;
-  --color-inactive: rgba(245, 166, 35, 0.6);
-  --color-inactive-foreground: #F5A623;
+/* Retheme voice-ui-kit on the call page:
+   lavender palette — harmonises with the orb's pink/purple tones.
+   @layer base prevents Tailwind v4 from stripping --color-* vars
+   that collide with its theme namespace. */
+@layer base {
+  .vkui-root.dark {
+    --color-active: #B89AE0;
+    --color-active-foreground: #CAB8EB;
+    --color-active-accent: rgba(167, 139, 218, 0.12);
+    --color-active-ring: rgba(167, 139, 218, 0.2);
+    --color-primary: #CAB8EB;
+    --color-primary-foreground: #1a1425;
+    --color-destructive: #E07A8A;
+    --color-destructive-foreground: #fff;
+    --color-secondary: rgba(167, 139, 218, 0.15);
+    --color-secondary-foreground: #CAB8EB;
+    --color-inactive: rgba(167, 139, 218, 0.45);
+    --color-inactive-foreground: #B89AE0;
+    --color-border: rgba(167, 139, 218, 0.25);
+    --color-input: rgba(167, 139, 218, 0.15);
+    --color-popover: #1e1730;
+    --color-popover-foreground: #d4c8ee;
+    --color-card: #1e1730;
+    --color-card-foreground: #d4c8ee;
+    --color-accent: rgba(167, 139, 218, 0.12);
+    --color-accent-foreground: #CAB8EB;
+    --color-muted: #2a2040;
+    --color-muted-foreground: rgba(202, 184, 235, 0.6);
+    --color-foreground: #d4c8ee;
+    --color-background: #150f20;
+    --color-ring: rgba(167, 139, 218, 0.3);
+  }
 }
 
-/* Connect/Disconnect button: transparent fill, orange border */
+/* Connect/Disconnect button: transparent fill, lavender border */
 .voice-ui-kit [data-slot="button"] {
   background: transparent;
-  border: 2px solid var(--color-active);
-  color: var(--color-active);
+  border: 1.5px solid rgba(184, 154, 224, 0.6);
+  color: #CAB8EB;
 }
 
 .voice-ui-kit [data-slot="button"]:hover {
-  background: rgba(245, 166, 35, 0.1);
+  background: rgba(167, 139, 218, 0.1);
+  border-color: rgba(184, 154, 224, 0.85);
 }
 
