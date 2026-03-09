@@ -24,12 +24,13 @@ export const proxy = async (request: NextRequest) => {
     }
   );
 
-  const { data: { user } } = await supabase.auth.getUser();
+  // Refresh session cookies (required by Supabase SSR)
+  await supabase.auth.getUser();
 
-  const { pathname } = request.nextUrl;
-  const isProtected = pathname.startsWith('/dashboard') || pathname.startsWith('/call');
-
-  // DEV: bypass auth check — allow unauthenticated access to protected routes
+  // DEV: auth check bypassed — uncomment to enforce protected routes
+  // const { data: { user } } = await supabase.auth.getUser();
+  // const { pathname } = request.nextUrl;
+  // const isProtected = pathname.startsWith('/dashboard') || pathname.startsWith('/call');
   // if (!user && isProtected) {
   //   const url = request.nextUrl.clone();
   //   url.pathname = '/';
