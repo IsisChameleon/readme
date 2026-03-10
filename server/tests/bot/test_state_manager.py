@@ -19,7 +19,7 @@ from pipecat.processors.aggregators.llm_context import LLMContext
 from pipecat.processors.frame_processor import FrameDirection
 
 from bot.library import Library
-from bot.processors.frames import ResumeReadingFrame, StartReadingFrame
+from bot.processors.frames import EndSessionFrame, StartReadingFrame
 from bot.processors.state_manager import BookReadingStateManager, State
 
 FAKE_BOOKS = [
@@ -167,16 +167,16 @@ async def test_start_reading_respects_chunk_index():
 
 
 @pytest.mark.asyncio
-async def test_start_reading_ignored_outside_book_selection():
+async def test_start_reading_ignored_during_reading():
     sm, library, collector = _make_state_manager()
-    sm._state = State.QA
+    sm._state = State.READING
 
     await sm.process_frame(
         StartReadingFrame(book_id="book_001"),
         FrameDirection.DOWNSTREAM,
     )
 
-    assert sm.state == State.QA
+    assert sm.state == State.READING
     assert collector.tts_texts() == []
 
 
@@ -223,17 +223,17 @@ async def test_user_interrupt_outside_reading_passes_through():
 
 
 # ======================================================================
-# Resume reading
+# Resume reading (start_reading without chunk_id from QA)
 # ======================================================================
 
 
 @pytest.mark.asyncio
-async def test_resume_reading_transitions_from_qa():
+async def test_start_reading_resumes_from_qa():
     sm, library, collector = _make_state_manager()
     sm._state = State.QA
 
     await sm.process_frame(
-        ResumeReadingFrame(book_id="book_001"),
+        StartReadingFrame(book_id="book_001"),
         FrameDirection.DOWNSTREAM,
     )
 
@@ -244,17 +244,20 @@ async def test_resume_reading_transitions_from_qa():
 
 
 @pytest.mark.asyncio
-async def test_resume_reading_ignored_outside_qa():
+async def test_start_reading_from_qa_preserves_chunk_position():
     sm, library, collector = _make_state_manager()
-    sm._state = State.BOOK_SELECTION
+    sm._state = State.QA
+    library.current_chunk_index = 1
 
     await sm.process_frame(
-        ResumeReadingFrame(book_id="book_001"),
+        StartReadingFrame(book_id="book_001"),
         FrameDirection.DOWNSTREAM,
     )
 
-    assert sm.state == State.BOOK_SELECTION
-    assert collector.tts_texts() == []
+    assert sm.state == State.READING
+    assert library.current_chunk_index == 1
+    texts = collector.tts_texts()
+    assert "There was a rabbit." in texts[0]
 
 
 # ======================================================================
@@ -306,7 +309,7 @@ async def test_tts_stopped_passes_frame_upstream():
 
 
 @pytest.mark.asyncio
-async def test_end_of_book_returns_to_selection():
+async def test_end_of_book_enters_finished():
     sm, library, collector = _make_state_manager(progress=2)
     sm._state = State.READING
     sm._reading_tts_active = True
@@ -314,9 +317,10 @@ async def test_end_of_book_returns_to_selection():
     with _patch_supabase():
         await sm.process_frame(BotStoppedSpeakingFrame(), FrameDirection.DOWNSTREAM)
 
-    texts = collector.tts_texts()
-    assert any("end" in t.lower() for t in texts)
-    assert sm.state == State.BOOK_SELECTION
+    assert sm.state == State.FINISHED
+    # Should trigger LLM to celebrate (LLMMessagesAppendFrame upstream)
+    appends = [f for f, d in collector.frames if isinstance(f, LLMMessagesAppendFrame)]
+    assert len(appends) >= 1
 
 
 # ======================================================================
@@ -342,3 +346,122 @@ async def test_non_handled_frames_pass_through():
     await sm.process_frame(frame, FrameDirection.DOWNSTREAM)
 
     assert any(f is frame for f, _ in collector.frames)
+
+
+# ======================================================================
+# FINISHED state
+# ======================================================================
+
+
+@pytest.mark.asyncio
+async def test_finished_allows_start_reading():
+    """Re-reading from FINISHED goes directly to READING at chunk 0."""
+    sm, library, collector = _make_state_manager()
+    sm._state = State.FINISHED
+
+    await sm.process_frame(
+        StartReadingFrame(book_id="book_001", chunk_index=0),
+        FrameDirection.DOWNSTREAM,
+    )
+
+    assert sm.state == State.READING
+    assert library.current_chunk_index == 0
+    texts = collector.tts_texts()
+    assert "Once upon a time." in texts[0]
+
+
+@pytest.mark.asyncio
+async def test_finished_end_session_sets_shutdown_pending():
+    """EndSessionFrame in FINISHED sets _shutdown_pending."""
+    sm, library, collector = _make_state_manager()
+    sm._state = State.FINISHED
+
+    await sm.process_frame(
+        EndSessionFrame(reason="user_goodbye"),
+        FrameDirection.DOWNSTREAM,
+    )
+
+    assert sm._shutdown_pending is True
+
+
+@pytest.mark.asyncio
+async def test_end_session_works_from_any_state():
+    """EndSessionFrame sets _shutdown_pending regardless of current state."""
+    for state in (State.BOOK_SELECTION, State.QA, State.READING, State.FINISHED):
+        sm, library, collector = _make_state_manager()
+        sm._state = state
+
+        await sm.process_frame(
+            EndSessionFrame(reason="user_goodbye"),
+            FrameDirection.DOWNSTREAM,
+        )
+
+        assert sm._shutdown_pending is True, f"end_session should work in {state.value}"
+
+
+@pytest.mark.asyncio
+async def test_finished_bot_stopped_with_shutdown_calls_disconnect():
+    """BotStoppedSpeaking + _shutdown_pending fires disconnect callback."""
+    sm, library, collector = _make_state_manager()
+    sm._state = State.FINISHED
+    sm._shutdown_pending = True
+
+    disconnect_called = False
+
+    async def mock_disconnect():
+        nonlocal disconnect_called
+        disconnect_called = True
+
+    sm.set_disconnect_callback(mock_disconnect)
+
+    await sm.process_frame(BotStoppedSpeakingFrame(), FrameDirection.DOWNSTREAM)
+
+    assert disconnect_called is True
+    assert sm._shutdown_pending is False
+
+
+@pytest.mark.asyncio
+async def test_finished_user_speaking_resets_idle_event():
+    """UserStartedSpeaking in FINISHED sets the idle event (resets timer)."""
+    sm, library, collector = _make_state_manager()
+    sm._state = State.FINISHED
+
+    await sm.process_frame(UserStartedSpeakingFrame(), FrameDirection.DOWNSTREAM)
+
+    assert sm._idle_event.is_set()
+    # State should remain FINISHED (no transition to QA)
+    assert sm.state == State.FINISHED
+    # Frame should pass through
+    assert any(isinstance(f, UserStartedSpeakingFrame) for f, _ in collector.frames)
+
+
+@pytest.mark.asyncio
+async def test_finished_system_prompt_contains_book_info():
+    """FINISHED prompt includes book title and another_book_hint."""
+    sm, library, collector = _make_state_manager(progress=2)
+    sm._state = State.READING
+    sm._reading_tts_active = True
+
+    with _patch_supabase():
+        await sm.process_frame(BotStoppedSpeakingFrame(), FrameDirection.DOWNSTREAM)
+
+    messages = sm._context.get_messages()
+    system_prompt = messages[0]["content"]
+    assert "The Rabbit" in system_prompt
+    assert "end_session" in system_prompt
+
+
+@pytest.mark.asyncio
+async def test_finished_with_multiple_books_shows_alternatives():
+    """When multiple books exist, FINISHED prompt includes other book options."""
+    sm, library, collector = _make_state_manager(progress=2)
+    sm._state = State.READING
+    sm._reading_tts_active = True
+
+    with _patch_supabase():
+        await sm.process_frame(BotStoppedSpeakingFrame(), FrameDirection.DOWNSTREAM)
+
+    messages = sm._context.get_messages()
+    system_prompt = messages[0]["content"]
+    # FAKE_BOOKS has 2 books: book_001 and book_002
+    assert "book_002" in system_prompt or "The Fox" in system_prompt
