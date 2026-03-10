@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from enum import StrEnum
+
 from loguru import logger
 from pydantic import BaseModel
 
@@ -23,6 +25,11 @@ except ImportError:
     )
 
 
+class ChunkKind(StrEnum):
+    CONTENT = "content"
+    CHAPTER_TITLE = "chapter_title"
+
+
 class Book(BaseModel):
     id: str
     title: str
@@ -31,9 +38,8 @@ class Book(BaseModel):
 
 class BookChunk(BaseModel):
     chunk_index: int
+    chunk_kind: ChunkKind = ChunkKind.CONTENT
     chapter_title: str
-    page_start: int
-    page_end: int
     text: str
 
 

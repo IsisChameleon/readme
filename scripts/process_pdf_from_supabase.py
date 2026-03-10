@@ -80,8 +80,6 @@ class Chunk:
     book_id: str
     chapter_id: str
     chapter_title: str
-    page_start: int
-    page_end: int
     text: str
 
 
@@ -89,8 +87,6 @@ class Chunk:
 class Chapter:
     chapter_id: str
     title: str
-    start_page: int
-    end_page: int
 
 
 class BookChunkLLMResponseModel(BaseModel):
@@ -99,14 +95,6 @@ class BookChunkLLMResponseModel(BaseModel):
     )
     chapter_title: str = Field(
         description="Chapter title this chunk belongs to. For chapter_title chunks, this should match the heading text."
-    )
-    page_start: int | None = Field(
-        default=None,
-        description="1-based PDF page index where the chunk starts. Null means it was not confidently identified.",
-    )
-    page_end: int | None = Field(
-        default=None,
-        description="1-based PDF page index where the chunk ends. Null means it was not confidently identified.",
     )
     text: str = Field(
         description="Verbatim cleaned text that will be spoken. Chapter headings should not be duplicated in content chunks."
@@ -275,8 +263,6 @@ Critical rules:
 - Reproduce source wording exactly for kept content. Do not paraphrase, summarize, or rewrite style.
 - Keep chunks semantically complete and do not cut mid-sentence.
 - Target <= {max_chunk_words} words per content chunk.
-- Use only page numbers from [[PAGE N]] markers.
-
 Chapter-state rules:
 - Current chapter entering this page batch: "{current_chapter}" (empty means unknown).
 - If you do NOT find a new chapter heading, keep using current chapter and set current_chapter_out unchanged.
@@ -299,8 +285,6 @@ Return STRICT JSON only:
     {{
       "chunk_kind": "chapter_title|content",
       "chapter_title": "chapter this chunk belongs to",
-      "page_start": 1,
-      "page_end": 2,
       "text": "chunk text"
     }}
   ]
@@ -342,8 +326,6 @@ def llm_chunk_page_batch(
         max_retries=max_retries,
     )
 
-    min_page = page_batch[0].page_number
-    max_page = page_batch[-1].page_number
     chunks: list[dict[str, Any]] = []
     for raw in result.chunks:
         chunk_kind = raw.chunk_kind.strip().lower()
@@ -357,16 +339,10 @@ def llm_chunk_page_batch(
         else:
             if not text:
                 continue
-        page_start_raw = raw.page_start if raw.page_start is not None else min_page
-        page_end_raw = raw.page_end if raw.page_end is not None else page_start_raw
-        page_start = max(min_page, min(max_page, page_start_raw))
-        page_end = max(page_start, min(max_page, page_end_raw))
         chunks.append(
             {
                 "chunk_kind": chunk_kind,
                 "chapter_title": chapter_title[:160],
-                "page_start": page_start,
-                "page_end": page_end,
                 "text": text,
             }
         )
@@ -403,7 +379,7 @@ def build_chunks_and_chapters(raw_chunks: list[dict[str, Any]], book_id: str) ->
     chapter_counter = 1
     chunk_counter = 0
 
-    def ensure_chapter(title: str, page_start: int, page_end: int) -> str:
+    def ensure_chapter(title: str) -> str:
         nonlocal chapter_counter
         title_key = title.strip() or "Unknown Chapter"
         if title_key not in chapter_id_by_title:
@@ -413,27 +389,19 @@ def build_chunks_and_chapters(raw_chunks: list[dict[str, Any]], book_id: str) ->
             chapters_by_id[chapter_id] = Chapter(
                 chapter_id=chapter_id,
                 title=title_key[:160],
-                start_page=page_start,
-                end_page=page_end,
             )
-        chapter_id = chapter_id_by_title[title_key]
-        chapter = chapters_by_id[chapter_id]
-        chapter.start_page = min(chapter.start_page, page_start)
-        chapter.end_page = max(chapter.end_page, page_end)
-        return chapter_id
+        return chapter_id_by_title[title_key]
 
     for raw in raw_chunks:
         chunk_kind = raw["chunk_kind"]
         text = raw["text"]
-        page_start = raw["page_start"]
-        page_end = raw["page_end"]
 
         if chunk_kind == "chapter_title":
             current_chapter_title = text.strip() or raw.get("chapter_title", "").strip() or current_chapter_title
         elif raw.get("chapter_title", "").strip():
             current_chapter_title = raw["chapter_title"].strip()
 
-        chapter_id = ensure_chapter(current_chapter_title, page_start, page_end)
+        chapter_id = ensure_chapter(current_chapter_title)
         chunks.append(
             Chunk(
                 chunk_id=f"chunk_{chunk_counter:05d}",
@@ -441,15 +409,13 @@ def build_chunks_and_chapters(raw_chunks: list[dict[str, Any]], book_id: str) ->
                 book_id=book_id,
                 chapter_id=chapter_id,
                 chapter_title=current_chapter_title,
-                page_start=page_start,
-                page_end=page_end,
                 text=text,
             )
         )
         chunk_counter += 1
 
     chapters = list(chapters_by_id.values())
-    chapters.sort(key=lambda c: (c.start_page, c.chapter_id))
+    chapters.sort(key=lambda c: c.chapter_id)
     return chunks, chapters
 
 

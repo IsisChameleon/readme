@@ -54,9 +54,8 @@ def load_chunks(input_path: Path) -> None:
             {
                 "book_id": book_id,
                 "chunk_index": idx,
+                "chunk_kind": chunk.get("chunk_kind", "content"),
                 "chapter_title": chunk.get("chapter_title", ""),
-                "page_start": chunk.get("page_start"),
-                "page_end": chunk.get("page_end"),
                 "text": chunk["text"],
             }
         )

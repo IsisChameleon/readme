@@ -35,7 +35,7 @@ def get_book_chunks(book_id: str) -> list[dict]:
     resp = (
         _get_client()
         .table("book_chunks")
-        .select("chunk_index, chapter_title, page_start, page_end, text")
+        .select("chunk_index, chunk_kind, chapter_title, text")
         .eq("book_id", book_id)
         .order("chunk_index")
         .execute()
