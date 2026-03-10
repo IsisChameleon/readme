@@ -12,8 +12,8 @@ class StartReadingFrame(DataFrame):
 
 
 @dataclass
-class ResumeReadingFrame(DataFrame):
-    book_id: str = ""
+class EndSessionFrame(DataFrame):
+    reason: str = "user_goodbye"
 
 
 @dataclass

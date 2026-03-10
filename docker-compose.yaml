@@ -23,12 +23,16 @@ services:
       NEXT_PUBLIC_API_BASE_URL: http://localhost:${API_PORT:-8000}
       BOT_START_URL: http://bot:7860/start
       BOT_START_PUBLIC_API_KEY: ${BOT_START_PUBLIC_API_KEY:-}
+      SUPABASE_URL: http://supabase_kong_readme:8000
     ports:
       - "${CLIENT_PORT:-3000}:3000"
     command: sh -c "pnpm install --frozen-lockfile && pnpm dev --hostname 0.0.0.0 --port 3000"
     depends_on:
       - api
       - bot
+    networks:
+      - default
+      - supabase
 
   api:
     build:

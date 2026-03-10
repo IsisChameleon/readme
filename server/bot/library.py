@@ -45,6 +45,7 @@ class Library:
         self._book: Book | None = None
         self._chunks: list[BookChunk] = []
         self._current_chunk_index = 0
+        self._chapter_map: dict[str, int] = {}
 
     @property
     def book(self) -> Book | None:
@@ -57,6 +58,10 @@ class Library:
     @current_chunk_index.setter
     def current_chunk_index(self, value: int) -> None:
         self._current_chunk_index = value
+
+    @property
+    def chapter_map(self) -> dict[str, int]:
+        return self._chapter_map
 
     @property
     def total_chunks(self) -> int:
@@ -75,6 +80,10 @@ class Library:
         self._book = Book(**meta)
         raw_chunks = get_book_chunks(book_id)
         self._chunks = [BookChunk(**c) for c in raw_chunks]
+        self._chapter_map = {}
+        for chunk in self._chunks:
+            if chunk.chapter_title not in self._chapter_map:
+                self._chapter_map[chunk.chapter_title] = chunk.chunk_index
         self._current_chunk_index = get_reading_progress(book_id, self._kid_id)
 
         if self._current_chunk_index >= len(self._chunks):

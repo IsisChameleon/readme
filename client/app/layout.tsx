@@ -1,20 +1,22 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import type { Metadata } from 'next';
+import { Caveat, Nunito } from 'next/font/google';
+import './globals.css';
+import { Toaster } from '@/components/ui/toaster';
 
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+const caveat = Caveat({ variable: '--font-caveat', subsets: ['latin'] });
+const nunito = Nunito({ variable: '--font-nunito', subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "Readme – Kid Reading App",
-  description: "Voice-first reading companion for kids",
+  title: 'readme – stories read together',
+  description: 'Voice-first reading companion for kids',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${caveat.variable} ${nunito.variable} antialiased`}>
         {children}
+        <Toaster />
       </body>
     </html>
   );

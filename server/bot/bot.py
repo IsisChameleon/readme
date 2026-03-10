@@ -17,21 +17,25 @@ from pipecat.processors.aggregators.llm_response_universal import (
 from pipecat.processors.frame_processor import FrameDirection
 from pipecat.runner.types import RunnerArguments
 from pipecat.runner.utils import create_transport
+from pipecat.services.cartesia.tts import CartesiaTTSService
 from pipecat.services.deepgram.stt import DeepgramSTTService
-from pipecat.services.hume.tts import HumeTTSService
 from pipecat.services.openai.llm import OpenAILLMService
 from pipecat.transports.base_transport import BaseTransport, TransportParams
 from pipecat.transports.daily.transport import DailyParams
 
 try:
     from .library import Library
-    from .processors.frames import BookSelectedFrame, ResumeReadingFrame, StartReadingFrame
+    from .processors.frames import (
+        BookSelectedFrame,
+        EndSessionFrame,
+        StartReadingFrame,
+    )
     from .processors.state_manager import BookReadingStateManager
 except ImportError:
     from library import Library  # type: ignore[assignment]
     from processors.frames import (  # type: ignore[assignment]
         BookSelectedFrame,
-        ResumeReadingFrame,
+        EndSessionFrame,
         StartReadingFrame,
     )
     from processors.state_manager import BookReadingStateManager  # type: ignore[assignment]
@@ -52,23 +56,21 @@ def _build_tools() -> ToolsSchema:
             ),
             FunctionSchema(
                 name="start_reading",
-                description="Start reading the selected book aloud from a given chunk.",
+                description="Start or resume reading the selected book aloud. If chunk_id is omitted, resumes from the current position.",
                 properties={
                     "book_id": {"type": "string", "description": "The ID of the book to read."},
                     "chunk_id": {
                         "type": "integer",
-                        "description": "The chunk index to start reading from (0-based).",
+                        "description": "The chunk index to start reading from (0-based). Omit to resume from current position.",
                     },
                 },
-                required=["book_id", "chunk_id"],
+                required=["book_id"],
             ),
             FunctionSchema(
-                name="resume_reading",
-                description="Resume reading the book aloud from where the child left off.",
-                properties={
-                    "book_id": {"type": "string", "description": "The ID of the book to resume."},
-                },
-                required=["book_id"],
+                name="end_session",
+                description="End the reading session and disconnect. Only call AFTER the child has confirmed they want to leave.",
+                properties={},
+                required=[],
             ),
         ]
     )
@@ -84,9 +86,10 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
         api_key=os.environ["DEEPGRAM_API_KEY"],
     )
 
-    tts = HumeTTSService(
-        api_key=os.environ["HUME_API_KEY"],
-        voice_id="f898a92e-685f-43fa-985b-a46920f0650b",
+    tts = CartesiaTTSService(
+        api_key=os.environ["CARTESIA_API_KEY"],
+        voice_id="4f7f1324-1853-48a6-b294-4e78e8036a83",
+        model="sonic-2",
     )
 
     llm = OpenAILLMService(
@@ -136,19 +139,17 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
         )
         logger.info(f"[Bot] StartReading frame queued: {params.arguments['book_id']}")
 
-    async def handle_resume_reading(params):
-        await params.result_callback("Resuming reading.")
+    async def handle_end_session(params):
+        await params.result_callback("Ending session.")
         await state_manager.queue_frame(
-            ResumeReadingFrame(
-                book_id=params.arguments["book_id"],
-            ),
+            EndSessionFrame(reason="user_goodbye"),
             FrameDirection.DOWNSTREAM,
         )
-        logger.info(f"[Bot] ResumeReading frame queued: {params.arguments['book_id']}")
+        logger.info("[Bot] EndSession frame queued")
 
     llm.register_function("select_book", handle_select_book)
     llm.register_function("start_reading", handle_start_reading)
-    llm.register_function("resume_reading", handle_resume_reading)
+    llm.register_function("end_session", handle_end_session)
 
     pipeline = Pipeline(
         [
@@ -171,6 +172,12 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
             enable_usage_metrics=True,
         ),
     )
+
+    async def send_disconnect():
+        logger.info("Sending RTVI UserVerballyInitiatedDisconnect")
+        await task.rtvi.send_server_message({"type": "UserVerballyInitiatedDisconnect"})
+
+    state_manager.set_disconnect_callback(send_disconnect)
 
     @task.rtvi.event_handler("on_client_ready")
     async def on_client_ready(rtvi):
