@@ -58,6 +58,33 @@ def get_reading_progress(book_id: str, kid_id: str) -> int:
     return resp.data[0]["current_chunk_index"]
 
 
+def get_kid_progress(kid_id: str) -> list[dict]:
+    """Return all reading progress rows for a kid: [{book_id, current_chunk_index}, ...]."""
+    resp = (
+        _get_client()
+        .table("reading_progress")
+        .select("book_id, current_chunk_index")
+        .eq("kid_id", kid_id)
+        .execute()
+    )
+    return resp.data or []
+
+
+def get_chunk_at(book_id: str, chunk_index: int) -> dict | None:
+    """Fetch a single chunk from book_chunks by book_id and chunk_index."""
+    resp = (
+        _get_client()
+        .table("book_chunks")
+        .select("chapter_title, text")
+        .eq("book_id", book_id)
+        .eq("chunk_index", chunk_index)
+        .execute()
+    )
+    if not resp.data:
+        return None
+    return resp.data[0]
+
+
 def save_reading_progress(book_id: str, kid_id: str, chunk_index: int) -> None:
     """Upsert reading_progress row."""
     _get_client().table("reading_progress").upsert(
