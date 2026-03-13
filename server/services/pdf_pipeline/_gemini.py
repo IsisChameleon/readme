@@ -6,8 +6,6 @@ from functools import cache
 from typing import TypeVar, cast, get_origin
 
 from google.genai import Client, types
-from loguru import logger
-from pydantic import BaseModel
 from tenacity import Retrying, retry_if_exception, stop_after_attempt, wait_exponential_jitter
 
 try:
