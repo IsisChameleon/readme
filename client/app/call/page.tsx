@@ -16,7 +16,7 @@ export default function CallPage() {
     >
       <div className="vkui-root dark" style={{ width: '100%', height: '100%' }}>
         <div className="voice-ui-kit" style={{ width: '100%', height: '100%' }}>
-          <Suspense>
+          <Suspense fallback={<div style={{ width: '100%', height: '100%', background: '#150f20' }} />}>
             <VoiceSession />
           </Suspense>
         </div>

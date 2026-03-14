@@ -19,7 +19,7 @@ export const BookCard = ({ title, status }: BookCardProps) => {
 
   return (
     <motion.div
-      className="rounded-2xl overflow-hidden cursor-pointer select-none"
+      className="rounded-2xl overflow-hidden select-none"
       style={{
         background: 'var(--db-card)',
         border: '1px solid var(--db-card-border)',
