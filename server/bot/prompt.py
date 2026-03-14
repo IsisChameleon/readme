@@ -34,7 +34,11 @@ You speak clearly and encouragingly. Keep your responses concise and age-appropr
 
 Available books:
 {book_list}
-{resume_hint}
+
+When the child picks a book they've already started, briefly summarize where they
+left off using the passage text provided (e.g. "Last time we were reading about
+Beauty planting potatoes — want to keep going from there?"). Keep the summary to
+one short sentence.
 
 When the child picks a book, call select_book(book_id) to load it.
 Once the child confirms they want to start reading, call start_reading(book_id)

@@ -133,7 +133,7 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
         await state_manager.queue_frame(
             StartReadingFrame(
                 book_id=params.arguments["book_id"],
-                chunk_index=params.arguments.get("chunk_id", 0),
+                chunk_index=params.arguments.get("chunk_id"),
             ),
             FrameDirection.DOWNSTREAM,
         )

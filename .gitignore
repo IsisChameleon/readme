@@ -54,3 +54,4 @@ scripts/output/*.json
 .claude/settings.local.json
 .claude/plan/
 .cursor/
+scripts/input/*.pdf
