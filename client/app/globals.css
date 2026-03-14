@@ -16,6 +16,87 @@
   --radius: 0.75rem;
 }
 
+.dashboard-dark {
+  --db-bg: #150f20;
+  --db-card: #1e1730;
+  --db-fg: #d4c8ee;
+  --db-primary: #CAB8EB;
+  --db-muted: #2a2040;
+  --db-muted-fg: rgba(202, 184, 235, 0.45);
+  --db-border: rgba(167, 139, 218, 0.25);
+  --db-accent: #A78BDA;
+  --db-card-border: rgba(167, 139, 218, 0.1);
+  --db-glow: rgba(167, 139, 218, 0.12);
+  --db-border-dashed: rgba(167, 139, 218, 0.25);
+  --db-status-ready: var(--sage);
+  --db-status-processing: var(--amber);
+  --db-status-error: var(--coral);
+}
+
+/* Dashboard two-panel layout */
+.dashboard-panels {
+  min-height: 100dvh;
+}
+
+.dashboard-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-panel--orb {
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+}
+
+/* Orb responsive sizing: 120px on mobile/tablet, 100px on desktop */
+.reading-orb {
+  width: 120px;
+  height: 120px;
+}
+
+@media (min-width: 1025px) {
+  .reading-orb {
+    width: 100px;
+    height: 100px;
+  }
+}
+
+/* Tablet landscape: horizontal snap scroll */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+  .dashboard-panels {
+    display: flex;
+    height: 100dvh;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+  }
+  .dashboard-panel {
+    min-width: 100vw;
+    height: 100dvh;
+    scroll-snap-align: start;
+  }
+  .dashboard-panel--library {
+    overflow-y: auto;
+  }
+}
+
+/* Mobile + tablet portrait: vertical snap scroll */
+@media (max-width: 767px), (max-width: 1024px) and (orientation: portrait) {
+  .dashboard-panels {
+    height: 100dvh;
+    overflow-y: auto;
+    scroll-snap-type: y mandatory;
+  }
+  .dashboard-panel {
+    min-height: 100dvh;
+    scroll-snap-align: start;
+  }
+  .dashboard-panel--library {
+    overflow-y: auto;
+    max-height: 100dvh;
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
