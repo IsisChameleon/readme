@@ -16,7 +16,6 @@ The dashboard (`/dashboard`) is the parent-facing page for uploading and managin
 
 - Per-child reading progress tracking (future feature)
 - Book cover image upload/extraction (placeholder for now)
-- Changes to the `/call` page or `VoiceSession`
 
 ## Layout
 
@@ -29,7 +28,7 @@ The page has two logical panels:
 - "Start Reading" label below the orb
 - "Tap to talk with your reading buddy" subtitle
 - Subtle radial glow behind the orb
-- Tapping/clicking the orb navigates to `/call`
+- Tapping/clicking the orb navigates to `/call?autoconnect=true` and the call starts immediately (no extra "Connect" button step)
 
 **Panel 2 — "Your Library" (Book Grid)**
 - Header bar: logo (left), avatar + sign out (right)
@@ -65,7 +64,7 @@ The `ACCENT_COLORS` array is removed — no more per-card color cycling.
 Client component. `PlasmaOrb` dynamic import and `PlasmaErrorBoundary` are moved here from `MiniOrb.tsx` (inlined, not extracted — only one consumer). Changes:
 - Centered layout (not fixed-position floating)
 - "Start Reading" label and subtitle below the orb
-- `Link` to `/call` wraps the orb
+- `Link` to `/call?autoconnect=true` wraps the orb
 - Orb CSS display size: 100px on desktop, 120px on tablet/mobile. Plasma canvas renders at 2x (200/240) for retina.
 - Subtle glow effect via CSS (`box-shadow` or pseudo-element radial gradient)
 
@@ -182,11 +181,22 @@ Desktop (>1024px) gets no snap-scroll — panels stack with normal flow.
 | `components/UploadCard.tsx` | Restyle — match card dimensions, CSS vars |
 | `components/SignOutButton.tsx` | Minor — use CSS vars |
 | `app/globals.css` | Extend `.dashboard-dark` variables, add snap-scroll classes |
+| `components/VoiceSession.tsx` | Add auto-connect on `?autoconnect=true` query param |
+
+## Auto-Connect on `/call`
+
+When `/call` is loaded with `?autoconnect=true`, the call starts automatically on mount.
+
+**Implementation:** `SessionInner` reads `searchParams` via `useSearchParams()`. If `autoconnect=true`, a `useEffect` calls `handleConnect()` once on mount. The `ConnectButton` remains visible as a disconnect/reconnect control. If `/call` is visited without the param (e.g., direct URL), behavior is unchanged — user must click Connect.
+
+**Files changed:**
+- `components/VoiceSession.tsx` — add `useSearchParams` + `useEffect` auto-connect logic in `SessionInner`
 
 ## Testing
 
 - Verify upload still works (drag-drop and click)
-- Verify orb navigates to `/call`
+- Verify orb navigates to `/call?autoconnect=true` and call starts automatically
+- Verify `/call` without `?autoconnect` still requires manual Connect click
 - Check responsive behavior at: desktop (1280px), tablet landscape (1024x768), mobile portrait (390x844)
 - Verify dark theme consistency — no stray hardcoded colors
 - Verify book status indicators show correct colors
