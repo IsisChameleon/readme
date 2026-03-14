@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from functools import cache
-from typing import TypeVar, cast, get_origin
+from typing import TypeVar, cast
 
 from google.genai import Client, types
+from pydantic import BaseModel
 from tenacity import Retrying, retry_if_exception, stop_after_attempt, wait_exponential_jitter
 
 try:
@@ -71,8 +72,13 @@ def generate_structured(
                     response_schema=result_type,
                 ),
             )
-            check_type = get_origin(result_type) or result_type
-            if response.parsed is None or not isinstance(response.parsed, check_type):
-                raise RuntimeError(f"Gemini returned invalid structure: {response.text}")
-            return cast(T, response.parsed)
+            if response.parsed is not None and isinstance(response.parsed, result_type):
+                return cast(T, response.parsed)
+            # Gemini may return a raw dict; validate through Pydantic
+            raw = response.text or ""
+            if not raw:
+                raise RuntimeError("Gemini returned empty response")
+            if issubclass(result_type, BaseModel):
+                return cast(T, result_type.model_validate_json(raw))
+            raise RuntimeError(f"Gemini returned invalid structure: {raw}")
     raise RuntimeError("Gemini retry loop exhausted.")
