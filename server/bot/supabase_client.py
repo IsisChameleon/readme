@@ -35,7 +35,7 @@ def get_book_chunks(book_id: str) -> list[dict]:
     resp = (
         _get_client()
         .table("book_chunks")
-        .select("chunk_index, chunk_kind, chapter_title, text")
+        .select("chunk_index, chunk_kind, chapter_title, chunk_hint, text")
         .eq("book_id", book_id)
         .order("chunk_index")
         .execute()
@@ -75,7 +75,7 @@ def get_chunk_at(book_id: str, chunk_index: int) -> dict | None:
     resp = (
         _get_client()
         .table("book_chunks")
-        .select("chapter_title, text")
+        .select("chapter_title, chunk_hint, text")
         .eq("book_id", book_id)
         .eq("chunk_index", chunk_index)
         .execute()

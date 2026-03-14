@@ -44,6 +44,7 @@ class BookChunk(BaseModel):
     chunk_index: int
     chunk_kind: ChunkKind = ChunkKind.CONTENT
     chapter_title: str
+    chunk_hint: str = ""
     text: str
 
 
