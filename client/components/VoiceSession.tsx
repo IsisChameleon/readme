@@ -9,8 +9,8 @@ import {
   usePipecatConnectionState,
 } from '@pipecat-ai/voice-ui-kit';
 import { Plasma } from '@pipecat-ai/voice-ui-kit/webgl';
-import { useRouter } from 'next/navigation';
-import { useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useRef, useEffect } from 'react';
 
 const PLASMA_CONFIG = {
   useCustomColors: true,
@@ -40,6 +40,15 @@ const SessionInner = ({ handleConnect, handleDisconnect }: SessionInnerProps) =>
   const remoteAudioTrack = usePipecatClientMediaTrack('audio', 'bot');
   const { state: connectionState } = usePipecatConnectionState();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const autoConnectAttempted = useRef(false);
+
+  useEffect(() => {
+    if (searchParams.get('autoconnect') === 'true' && handleConnect && !autoConnectAttempted.current) {
+      autoConnectAttempted.current = true;
+      handleConnect();
+    }
+  }, [searchParams, handleConnect]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%', background: '#150f20', position: 'relative' }}>

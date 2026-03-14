@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { VoiceSession } from '@/components/VoiceSession';
 import '@pipecat-ai/voice-ui-kit/styles.scoped';
@@ -15,7 +16,9 @@ export default function CallPage() {
     >
       <div className="vkui-root dark" style={{ width: '100%', height: '100%' }}>
         <div className="voice-ui-kit" style={{ width: '100%', height: '100%' }}>
-          <VoiceSession />
+          <Suspense fallback={<div style={{ width: '100%', height: '100%', background: '#150f20' }} />}>
+            <VoiceSession />
+          </Suspense>
         </div>
       </div>
     </motion.div>
