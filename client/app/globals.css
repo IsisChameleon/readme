@@ -33,6 +33,11 @@
   --db-status-error: var(--coral);
 }
 
+/* Dashboard header height — used for scroll-padding offsets */
+.dashboard-header {
+  height: 56px;
+}
+
 /* Dashboard two-panel layout */
 .dashboard-panels {
   min-height: 100dvh;
@@ -47,20 +52,23 @@
   align-items: center;
   justify-content: center;
   min-height: 40vh;
+  padding-top: 24px;
+  padding-bottom: 16px;
 }
 
-/* Orb responsive sizing: 120px on mobile/tablet, 100px on desktop */
+/* Orb responsive sizing */
 .reading-orb {
-  width: 120px;
-  height: 120px;
+  width: 240px;
+  height: 240px;
 }
 
 @media (min-width: 1025px) {
   .reading-orb {
-    width: 100px;
-    height: 100px;
+    width: 320px;
+    height: 320px;
   }
 }
+
 
 /* Tablet landscape: horizontal snap scroll */
 @media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
@@ -77,6 +85,7 @@
   }
   .dashboard-panel--library {
     overflow-y: auto;
+    padding-top: 56px;
   }
 }
 
@@ -86,6 +95,7 @@
     height: 100dvh;
     overflow-y: auto;
     scroll-snap-type: y mandatory;
+    scroll-padding-top: 56px;
   }
   .dashboard-panel {
     min-height: 100dvh;
@@ -94,6 +104,7 @@
   .dashboard-panel--library {
     overflow-y: auto;
     max-height: 100dvh;
+    padding-top: 56px;
   }
 }
 

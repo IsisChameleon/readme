@@ -11,16 +11,24 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <div className="dashboard-dark min-h-screen" style={{ background: 'var(--db-bg)' }}>
       {/* Header banner */}
       <header
-        className="sticky top-0 z-50 flex items-center justify-between px-6 py-4"
-        style={{ borderBottom: '1px solid var(--db-card-border)' }}
+        className="dashboard-header sticky top-0 z-50 flex sm:grid sm:grid-cols-3 items-center justify-between px-6 py-3"
+        style={{ borderBottom: '1px solid var(--db-card-border)', background: 'var(--db-bg)' }}
       >
         <h1
-          className="text-4xl"
+          className="text-3xl"
           style={{ fontFamily: 'var(--font-caveat)', color: 'var(--db-primary)' }}
         >
           readme
         </h1>
-        <div className="flex items-center gap-3">
+        <nav className="hidden sm:flex justify-center">
+          <span
+            className="text-sm font-semibold tracking-wide uppercase"
+            style={{ color: 'var(--db-fg)', fontFamily: 'var(--font-nunito)', letterSpacing: '0.08em' }}
+          >
+            Your Library
+          </span>
+        </nav>
+        <div className="flex items-center gap-3 justify-end">
           <div
             className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold text-white"
             style={{ background: 'var(--db-accent)' }}

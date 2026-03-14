@@ -2,13 +2,19 @@
 
 import { motion } from 'framer-motion';
 import { useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Plus, SpinnerGap } from '@phosphor-icons/react';
 import { apiClient } from '@/lib/api/client';
 import { toast } from '@/hooks/use-toast';
 
-export const UploadCard = () => {
+interface UploadCardProps {
+  householdId: string;
+}
+
+export const UploadCard = ({ householdId }: UploadCardProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const router = useRouter();
 
   const handleFile = async (file: File) => {
     if (!file || file.type !== 'application/pdf') {
@@ -23,6 +29,7 @@ export const UploadCard = () => {
         bodySerializer: () => {
           const form = new FormData();
           form.append('file', file);
+          form.append('household_id', householdId);
           return form;
         },
       });
@@ -30,6 +37,7 @@ export const UploadCard = () => {
       if (error) throw new Error('Upload failed');
 
       toast({ title: 'Book uploaded!', description: 'Processing will complete shortly.', variant: 'success' as never });
+      router.refresh();
     } catch {
       toast({ title: 'Upload failed', description: 'Please try again.', variant: 'destructive' });
     } finally {
