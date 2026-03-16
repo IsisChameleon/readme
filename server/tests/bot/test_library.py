@@ -19,22 +19,19 @@ FAKE_CHUNKS = [
     {
         "chunk_index": 0,
         "chapter_title": "Chapter I",
-        "page_start": 1,
-        "page_end": 1,
+        "chunk_hint": "The story begins.",
         "text": "Once upon a time.",
     },
     {
         "chunk_index": 1,
         "chapter_title": "Chapter I",
-        "page_start": 2,
-        "page_end": 2,
+        "chunk_hint": "The rabbit appears.",
         "text": "There was a rabbit.",
     },
     {
         "chunk_index": 2,
         "chapter_title": "Chapter II",
-        "page_start": 3,
-        "page_end": 3,
+        "chunk_hint": "The story ends.",
         "text": "The end.",
     },
 ]

@@ -33,22 +33,16 @@ FAKE_CHUNKS = [
     {
         "chunk_index": 0,
         "chapter_title": "Chapter I",
-        "page_start": 1,
-        "page_end": 1,
         "text": "Once upon a time.",
     },
     {
         "chunk_index": 1,
         "chapter_title": "Chapter I",
-        "page_start": 2,
-        "page_end": 2,
         "text": "There was a rabbit.",
     },
     {
         "chunk_index": 2,
         "chapter_title": "Chapter II",
-        "page_start": 3,
-        "page_end": 3,
         "text": "The end.",
     },
 ]

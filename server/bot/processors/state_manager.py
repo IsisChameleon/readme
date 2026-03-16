@@ -83,24 +83,26 @@ class BookReadingStateManager(FrameProcessor):
         """Set up book selection state with available books in the system prompt."""
         await self._stop_idle_timer()
         self._state = State.BOOK_SELECTION
-        books = self._library.list_books()
+        books_with_progress = self._library.get_books_with_progress()
 
-        book_list = (
-            "\n".join(f'- id={b.id}, title="{b.title}"' for b in books) or "No books available."
-        )
-
-        resume_hint = ""
-        if self._library.book and self._library.current_chunk_index > 0:
-            chunk = self._library.current_chunk()
-            chapter = chunk.chapter_title if chunk else "the beginning"
-            resume_hint = (
-                f'\nThe child was previously reading "{self._library.book.title}" '
-                f'and left off near "{chapter}".'
-            )
+        if not books_with_progress:
+            book_list = "No books available."
+        else:
+            lines = []
+            for b in books_with_progress:
+                line = f'- id={b["id"]}, title="{b["title"]}"'
+                if "current_chunk_index" in b:
+                    line += (
+                        f' (in progress — chunk {b["current_chunk_index"]}'
+                        f', chapter: "{b.get("chapter_title", "unknown")}"'
+                        f', last passage: "{b.get("chunk_text", "")}")'
+                    )
+                lines.append(line)
+            book_list = "\n".join(lines)
 
         chapter_map = self._format_chapter_map()
         prompt = BOOK_SELECTION_SYSTEM.format(
-            book_list=book_list, resume_hint=resume_hint, chapter_map=chapter_map
+            book_list=book_list, chapter_map=chapter_map
         )
         self._replace_system_prompt(prompt)
 
@@ -109,7 +111,10 @@ class BookReadingStateManager(FrameProcessor):
                 messages=[
                     {
                         "role": "system",
-                        "content": "Greet the child warmly and tell them which books are available.",
+                        "content": (
+                            "Greet the child warmly and tell them"
+                            " which books are available."
+                        ),
                     }
                 ],
                 run_llm=True,

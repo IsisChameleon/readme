@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from enum import StrEnum
+
 from loguru import logger
 from pydantic import BaseModel
 
@@ -9,6 +11,8 @@ try:
     from .supabase_client import (
         get_book_chunks,
         get_book_metadata,
+        get_chunk_at,
+        get_kid_progress,
         get_reading_progress,
         list_books,
         save_reading_progress,
@@ -17,10 +21,17 @@ except ImportError:
     from supabase_client import (  # type: ignore[assignment]
         get_book_chunks,
         get_book_metadata,
+        get_chunk_at,
+        get_kid_progress,
         get_reading_progress,
         list_books,
         save_reading_progress,
     )
+
+
+class ChunkKind(StrEnum):
+    CONTENT = "content"
+    CHAPTER_TITLE = "chapter_title"
 
 
 class Book(BaseModel):
@@ -31,9 +42,9 @@ class Book(BaseModel):
 
 class BookChunk(BaseModel):
     chunk_index: int
+    chunk_kind: ChunkKind = ChunkKind.CONTENT
     chapter_title: str
-    page_start: int
-    page_end: int
+    chunk_hint: str = ""
     text: str
 
 
@@ -70,6 +81,25 @@ class Library:
     def list_books(self) -> list[Book]:
         rows = list_books()
         return [Book(**row) for row in rows]
+
+    def get_books_with_progress(self) -> list[dict]:
+        """Return books enriched with per-kid reading progress and chunk context."""
+        books = self.list_books()
+        progress_rows = get_kid_progress(self._kid_id)
+        progress_map = {r["book_id"]: r["current_chunk_index"] for r in progress_rows}
+
+        result = []
+        for b in books:
+            entry: dict = {"id": b.id, "title": b.title, "status": b.status}
+            chunk_index = progress_map.get(b.id, 0)
+            if chunk_index > 0:
+                entry["current_chunk_index"] = chunk_index
+                chunk = get_chunk_at(b.id, chunk_index)
+                if chunk:
+                    entry["chapter_title"] = chunk["chapter_title"]
+                    entry["chunk_text"] = chunk["text"]
+            result.append(entry)
+        return result
 
     def initialize_book(self, book_id: str) -> Book | None:
         meta = get_book_metadata(book_id)
