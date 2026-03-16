@@ -46,6 +46,27 @@
         }
       }
     },
+    "/start": {
+      "post": {
+        "tags": [
+          "voice"
+        ],
+        "summary": "Start Session",
+        "operationId": "start_session_start_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StartSessionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "summary": "Health",
@@ -96,6 +117,24 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "StartSessionResponse": {
+        "properties": {
+          "room_url": {
+            "type": "string",
+            "title": "Room Url"
+          },
+          "token": {
+            "type": "string",
+            "title": "Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "room_url",
+          "token"
+        ],
+        "title": "StartSessionResponse"
       },
       "UploadBookResponse": {
         "properties": {
