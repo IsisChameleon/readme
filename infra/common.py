@@ -80,6 +80,7 @@ secrets = [
     runtime_secret,
 ]
 
+
 def _make_image(dep_prefixes: list[str]) -> modal.Image:
     return (
         modal.Image.debian_slim(python_version="3.13")

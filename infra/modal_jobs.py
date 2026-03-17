@@ -2,8 +2,7 @@ from __future__ import annotations
 
 import modal
 
-from infra.common import app, bot_image, bootstrap_repo, config, secrets, worker_image
-
+from infra.common import app, bootstrap_repo, bot_image, config, secrets, worker_image
 
 # ── Bot (one voice call per container, with memory snapshot) ─────────
 
@@ -32,8 +31,8 @@ class BotSession:
 
     @modal.method()
     async def run(self, room_url: str, token: str) -> None:
-        from pipecat.runner.types import DailyRunnerArguments
         from bot.bot import bot
+        from pipecat.runner.types import DailyRunnerArguments
 
         await bot(DailyRunnerArguments(room_url=room_url, token=token, handle_sigint=False))
 
