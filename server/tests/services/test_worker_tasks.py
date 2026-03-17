@@ -48,12 +48,12 @@ def test_process_book_happy_path(mock_dl, mock_ext, mock_up, mock_chunk, mock_up
 @patch("worker.tasks.set_book_status")
 @patch("worker.tasks.download_pdf", side_effect=RuntimeError("storage error"))
 def test_process_book_sets_error_on_failure(mock_dl, mock_status):
-    from worker.tasks import _process_book_impl
+    from worker.tasks import process_book_job
 
-    # Note: _process_book_impl doesn't handle errors — the actor wrapper does.
-    # We test that the impl raises, and separately the actor catches and sets status.
     with pytest.raises(RuntimeError, match="storage error"):
-        _process_book_impl("book_001")
+        process_book_job("book_001")
+
+    mock_status.assert_called_once_with("book_001", "error")
 
 
 @patch("worker.tasks.upsert_chunks")
@@ -72,7 +72,9 @@ def test_rechunk_book_happy_path(mock_dl, mock_chunk, mock_upsert):
 @patch("worker.tasks.set_book_status")
 @patch("worker.tasks.download_manuscript", side_effect=RuntimeError("not found"))
 def test_rechunk_book_sets_error_on_failure(mock_dl, mock_status):
-    from worker.tasks import _rechunk_book_impl
+    from worker.tasks import rechunk_book_job
 
     with pytest.raises(RuntimeError, match="not found"):
-        _rechunk_book_impl("book_001")
+        rechunk_book_job("book_001")
+
+    mock_status.assert_called_once_with("book_001", "error")

@@ -1,11 +1,4 @@
-import dramatiq
-from dramatiq.brokers.redis import RedisBroker
 from loguru import logger
-
-try:
-    from shared.config import DRAMATIQ_BROKER_URL
-except ImportError:
-    from server.shared.config import DRAMATIQ_BROKER_URL  # type: ignore
 
 try:
     from services.pdf_pipeline import (
@@ -28,8 +21,6 @@ except ImportError:
         upsert_chunks,
     )
 
-dramatiq.set_broker(RedisBroker(url=DRAMATIQ_BROKER_URL))
-
 
 def _process_book_impl(book_id: str) -> None:
     """Core pipeline logic — testable without Dramatiq broker."""
@@ -40,8 +31,7 @@ def _process_book_impl(book_id: str) -> None:
     upsert_chunks(book_id, chunks)
 
 
-@dramatiq.actor
-def process_book(book_id: str) -> None:
+def process_book_job(book_id: str) -> None:
     logger.info("Starting book processing | book_id={}", book_id)
     try:
         _process_book_impl(book_id)
@@ -59,8 +49,7 @@ def _rechunk_book_impl(book_id: str) -> None:
     upsert_chunks(book_id, chunks)
 
 
-@dramatiq.actor
-def rechunk_book(book_id: str) -> None:
+def rechunk_book_job(book_id: str) -> None:
     logger.info("Starting rechunk | book_id={}", book_id)
     try:
         _rechunk_book_impl(book_id)
@@ -69,21 +58,3 @@ def rechunk_book(book_id: str) -> None:
         logger.exception("Rechunk failed | book_id={}", book_id)
         set_book_status(book_id, "error")
         raise
-
-
-def enqueue_process_book(book_id: str) -> bool:
-    try:
-        process_book.send(book_id)
-        return True
-    except Exception:
-        logger.exception("Failed to enqueue book processing | book_id={}", book_id)
-        return False
-
-
-def enqueue_rechunk_book(book_id: str) -> bool:
-    try:
-        rechunk_book.send(book_id)
-        return True
-    except Exception:
-        logger.exception("Failed to enqueue rechunk | book_id={}", book_id)
-        return False

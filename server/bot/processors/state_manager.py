@@ -93,7 +93,7 @@ class BookReadingStateManager(FrameProcessor):
                 line = f'- id={b["id"]}, title="{b["title"]}"'
                 if "current_chunk_index" in b:
                     line += (
-                        f' (in progress — chunk {b["current_chunk_index"]}'
+                        f" (in progress — chunk {b['current_chunk_index']}"
                         f', chapter: "{b.get("chapter_title", "unknown")}"'
                         f', last passage: "{b.get("chunk_text", "")}")'
                     )
@@ -101,9 +101,7 @@ class BookReadingStateManager(FrameProcessor):
             book_list = "\n".join(lines)
 
         chapter_map = self._format_chapter_map()
-        prompt = BOOK_SELECTION_SYSTEM.format(
-            book_list=book_list, chapter_map=chapter_map
-        )
+        prompt = BOOK_SELECTION_SYSTEM.format(book_list=book_list, chapter_map=chapter_map)
         self._replace_system_prompt(prompt)
 
         await self.push_frame(
@@ -112,8 +110,7 @@ class BookReadingStateManager(FrameProcessor):
                     {
                         "role": "system",
                         "content": (
-                            "Greet the child warmly and tell them"
-                            " which books are available."
+                            "Greet the child warmly and tell them which books are available."
                         ),
                     }
                 ],
