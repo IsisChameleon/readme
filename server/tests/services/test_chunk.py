@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-from services.pdf_pipeline.chunk import _assign_indices, chunk_manuscript
-from services.pdf_pipeline.models import Chunk, LLMChunk, Manuscript
+from workers.pdf_pipeline.chunk import _assign_indices, chunk_manuscript
+from workers.pdf_pipeline.models import Chunk, LLMChunk, Manuscript
 
 SAMPLE_MANUSCRIPT = Manuscript(
     book_id="book_001",
@@ -47,7 +47,7 @@ class TestAssignIndices:
 
 
 class TestChunkManuscript:
-    @patch("services.pdf_pipeline.chunk._gemini_chunk")
+    @patch("workers.pdf_pipeline.chunk._gemini_chunk")
     def test_returns_indexed_chunks(self, mock_gemini):
         mock_gemini.return_value = [
             LLMChunk(
@@ -72,7 +72,7 @@ class TestChunkManuscript:
         assert chunks[0].chunk_hint == "The rabbit sets out on an adventure."
         mock_gemini.assert_called_once()
 
-    @patch("services.pdf_pipeline.chunk._gemini_chunk")
+    @patch("workers.pdf_pipeline.chunk._gemini_chunk")
     def test_empty_manuscript_returns_empty(self, mock_gemini):
         mock_gemini.return_value = []
         empty = Manuscript(

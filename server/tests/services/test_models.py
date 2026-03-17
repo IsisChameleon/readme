@@ -1,6 +1,6 @@
 """Unit tests for pdf_pipeline models."""
 
-from services.pdf_pipeline.models import Chunk, LLMChunk, Manuscript, PageContent
+from workers.pdf_pipeline.models import Chunk, LLMChunk, Manuscript, PageContent
 
 
 class TestPageContent:

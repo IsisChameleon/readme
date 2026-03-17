@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/admin/books/upload": {
+    "/books/upload": {
         parameters: {
             query?: never;
             header?: never;
@@ -14,7 +14,24 @@ export interface paths {
         get?: never;
         put?: never;
         /** Upload Book */
-        post: operations["upload_book_admin_books_upload_post"];
+        post: operations["upload_book_books_upload_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start Session */
+        post: operations["start_session_start_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -42,8 +59,8 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** Body_upload_book_admin_books_upload_post */
-        Body_upload_book_admin_books_upload_post: {
+        /** Body_upload_book_books_upload_post */
+        Body_upload_book_books_upload_post: {
             /**
              * File
              * Format: binary
@@ -56,6 +73,13 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** StartSessionResponse */
+        StartSessionResponse: {
+            /** Room Url */
+            room_url: string;
+            /** Token */
+            token: string;
         };
         /** UploadBookResponse */
         UploadBookResponse: {
@@ -89,7 +113,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    upload_book_admin_books_upload_post: {
+    upload_book_books_upload_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -98,7 +122,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": components["schemas"]["Body_upload_book_admin_books_upload_post"];
+                "multipart/form-data": components["schemas"]["Body_upload_book_books_upload_post"];
             };
         };
         responses: {
@@ -118,6 +142,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_session_start_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StartSessionResponse"];
                 };
             };
         };

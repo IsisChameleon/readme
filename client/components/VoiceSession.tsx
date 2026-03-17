@@ -113,7 +113,7 @@ export const VoiceSession = () => {
   return (
     <PipecatAppBase
       transportType="daily"
-      connectParams={{ endpoint: '/api/start' }}
+      connectParams={{ endpoint: `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'}/start` }}
       initDevicesOnMount
       themeProps={{ defaultTheme: 'dark' }}
       clientOptions={{

@@ -5,18 +5,18 @@
     "version": "0.1.0"
   },
   "paths": {
-    "/admin/books/upload": {
+    "/books/upload": {
       "post": {
         "tags": [
-          "admin"
+          "books"
         ],
         "summary": "Upload Book",
-        "operationId": "upload_book_admin_books_upload_post",
+        "operationId": "upload_book_books_upload_post",
         "requestBody": {
           "content": {
             "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/Body_upload_book_admin_books_upload_post"
+                "$ref": "#/components/schemas/Body_upload_book_books_upload_post"
               }
             }
           },
@@ -46,6 +46,27 @@
         }
       }
     },
+    "/start": {
+      "post": {
+        "tags": [
+          "voice"
+        ],
+        "summary": "Start Session",
+        "operationId": "start_session_start_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StartSessionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "summary": "Health",
@@ -65,7 +86,7 @@
   },
   "components": {
     "schemas": {
-      "Body_upload_book_admin_books_upload_post": {
+      "Body_upload_book_books_upload_post": {
         "properties": {
           "file": {
             "type": "string",
@@ -82,7 +103,7 @@
           "file",
           "household_id"
         ],
-        "title": "Body_upload_book_admin_books_upload_post"
+        "title": "Body_upload_book_books_upload_post"
       },
       "HTTPValidationError": {
         "properties": {
@@ -96,6 +117,24 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "StartSessionResponse": {
+        "properties": {
+          "room_url": {
+            "type": "string",
+            "title": "Room Url"
+          },
+          "token": {
+            "type": "string",
+            "title": "Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "room_url",
+          "token"
+        ],
+        "title": "StartSessionResponse"
       },
       "UploadBookResponse": {
         "properties": {

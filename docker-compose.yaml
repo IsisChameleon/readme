@@ -21,8 +21,6 @@ services:
       - client_node_modules:/workspace/client/node_modules
     environment:
       NEXT_PUBLIC_API_BASE_URL: http://localhost:${API_PORT:-8000}
-      BOT_START_URL: http://bot:7860/start
-      BOT_START_PUBLIC_API_KEY: ${BOT_START_PUBLIC_API_KEY:-}
       SUPABASE_URL: http://supabase_kong_readme:8000
     ports:
       - "${CLIENT_PORT:-3000}:3000"
@@ -46,11 +44,9 @@ services:
       - ./server/.env
     environment:
       SUPABASE_URL: http://supabase_kong_readme:8000
-      DRAMATIQ_BROKER_URL: redis://redis:6379/0
-      APP_REDIS_URL: redis://redis:6379/0
     ports:
       - "${API_PORT:-8000}:8000"
-    command: sh -c "uv sync --frozen && uv run uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload"
+    command: sh -c "uv sync --frozen && uv run uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload --reload-include '*.toml'"
     networks:
       - default
       - supabase
@@ -67,44 +63,12 @@ services:
       - ./server/.env
     environment:
       SUPABASE_URL: http://supabase_kong_readme:8000
-      APP_REDIS_URL: redis://redis:6379/0
     ports:
       - "${BOT_PORT:-7860}:7860"
     command: sh -c "uv sync --frozen && uv run watchfiles --filter python 'uv run python -m pipecat.runner.run --host 0.0.0.0 --port 7860 --transport daily' ."
     networks:
       - default
       - supabase
-
-  worker:
-    profiles: ["worker"]
-    build:
-      context: .
-      dockerfile: server/dev.Dockerfile
-    working_dir: /workspace/server
-    volumes:
-      - ./server:/workspace/server
-      - worker_venv:/workspace/server/.venv
-    env_file:
-      - ./server/.env
-    environment:
-      SUPABASE_URL: http://supabase_kong_readme:8000
-      DRAMATIQ_BROKER_URL: redis://redis:6379/0
-      APP_REDIS_URL: redis://redis:6379/0
-    command: sh -c "uv sync --frozen && uv run python -m dramatiq worker.tasks"
-    depends_on:
-      - redis
-    networks:
-      - default
-      - supabase
-
-  redis:
-    profiles: ["worker"]
-    image: redis:7-alpine
-    command: redis-server --appendonly yes
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
-    volumes:
-      - redis_data:/data
 
 networks:
   supabase:
@@ -115,5 +79,3 @@ volumes:
   client_node_modules:
   api_venv:
   bot_venv:
-  worker_venv:
-  redis_data:

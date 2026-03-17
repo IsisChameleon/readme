@@ -1,0 +1,59 @@
+name: Deploy Modal
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "infra/**"
+      - "server/**"
+      - ".github/workflows/deploy-modal.yml"
+  workflow_dispatch:
+    inputs:
+      env:
+        description: "Modal app environment"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - prod
+
+concurrency:
+  group: deploy-modal-${{ github.event.inputs.env || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy Modal app
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      ENV: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.env || 'dev' }}
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install infra dependencies
+        run: uv sync --project infra
+
+      - name: Validate Modal credentials
+        run: |
+          test -n "${MODAL_TOKEN_ID}"
+          test -n "${MODAL_TOKEN_SECRET}"
+
+      - name: Deploy
+        run: uv run --project infra modal deploy infra/main.py

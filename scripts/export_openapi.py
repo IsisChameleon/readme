@@ -5,9 +5,9 @@ import sys
 
 def main() -> None:
     repo_root = Path(__file__).resolve().parent.parent
-    sys.path.insert(0, str(repo_root))
+    sys.path.insert(0, str(repo_root / "server"))
 
-    from server.api.main import app
+    from api.main import app
 
     output_path = repo_root / "client" / "openapi.json"
     output_path.write_text(json.dumps(app.openapi(), indent=2) + "\n", encoding="utf-8")

@@ -1,15 +1,9 @@
-import sys
-from pathlib import Path
 from unittest.mock import Mock, patch
 
 from fastapi.testclient import TestClient
 
-ROOT_DIR = Path(__file__).resolve().parents[3]
-if str(ROOT_DIR) not in sys.path:
-    sys.path.insert(0, str(ROOT_DIR))
-
-import server.api.admin as admin
-from server.api.main import app
+import api.routers.books as books
+from api.main import app
 
 
 def _post_upload(
@@ -23,7 +17,7 @@ def _post_upload(
     if household_id is not None:
         data["household_id"] = household_id
     return client.post(
-        "/admin/books/upload",
+        "/books/upload",
         data=data,
         files={"file": (filename, content, content_type)},
     )
@@ -43,8 +37,8 @@ def test_upload_success_returns_processing_status() -> None:
     mock_insert_builder.execute.return_value = {"data": []}
 
     with (
-        patch.object(admin, "_supabase_client", return_value=mock_client),
-        patch.object(admin, "enqueue_process_book") as enqueue_mock,
+        patch.object(books, "_supabase_client", return_value=mock_client),
+        patch.object(books, "_dispatch_process_book") as dispatch_mock,
     ):
         response = _post_upload(client=client, household_id=household_id)
 
@@ -56,7 +50,7 @@ def test_upload_success_returns_processing_status() -> None:
     assert f"/books/{payload['book_id']}/" in payload["storage_path"]
     assert payload["storage_path"].endswith(".pdf")
 
-    mock_client.storage.from_.assert_called_once_with(admin.SUPABASE_BOOKS_BUCKET)
+    mock_client.storage.from_.assert_called_once_with(books.settings.supabase.books_bucket)
     mock_bucket.upload.assert_called_once()
     upload_kwargs = mock_bucket.upload.call_args.kwargs
     assert upload_kwargs["file"] == b"dummy-pdf"
@@ -68,7 +62,9 @@ def test_upload_success_returns_processing_status() -> None:
     assert insert_payload["household_id"] == household_id
     assert insert_payload["status"] == "processing"
     assert insert_payload["storage_path"] == payload["storage_path"]
-    enqueue_mock.assert_called_once_with(payload["book_id"])
+    dispatch_mock.assert_called_once()
+    dispatch_args = dispatch_mock.call_args.args
+    assert dispatch_args[0] == payload["book_id"]
 
 
 def test_upload_requires_household_id() -> None:
@@ -91,8 +87,8 @@ def test_upload_accepts_non_uuid_household_id() -> None:
     mock_insert_builder.execute.return_value = {"data": []}
 
     with (
-        patch.object(admin, "_supabase_client", return_value=mock_client),
-        patch.object(admin, "enqueue_process_book"),
+        patch.object(books, "_supabase_client", return_value=mock_client),
+        patch.object(books, "_dispatch_process_book"),
     ):
         response = _post_upload(client=client, household_id=household_id)
 
@@ -155,12 +151,41 @@ def test_upload_returns_500_when_storage_or_db_fails() -> None:
     mock_bucket.upload.side_effect = RuntimeError("boom")
 
     with (
-        patch.object(admin, "_supabase_client", return_value=mock_client),
-        patch.object(admin, "enqueue_process_book") as enqueue_mock,
-        patch.object(admin.logger, "exception"),
+        patch.object(books, "_supabase_client", return_value=mock_client),
+        patch.object(books, "_dispatch_process_book") as dispatch_mock,
+        patch.object(books.logger, "exception"),
     ):
         response = _post_upload(client=client, household_id=household_id)
 
     assert response.status_code == 500
     assert "Upload failed" in response.json()["detail"]
-    enqueue_mock.assert_not_called()
+    dispatch_mock.assert_not_called()
+
+
+def test_upload_returns_500_when_background_dispatch_fails() -> None:
+    client = TestClient(app)
+    household_id = "household-123"
+
+    mock_client = Mock()
+    mock_bucket = Mock()
+    mock_client.storage.from_.return_value = mock_bucket
+    mock_insert_builder = Mock()
+    mock_table = Mock()
+    mock_client.table.return_value = mock_table
+    mock_table.insert.return_value = mock_insert_builder
+    mock_insert_builder.execute.return_value = {"data": []}
+
+    with (
+        patch.object(books, "_supabase_client", return_value=mock_client),
+        patch.object(books, "_dispatch_process_book", side_effect=RuntimeError("spawn failed")),
+        patch.object(books, "set_book_status") as status_mock,
+        patch.object(books.logger, "exception"),
+    ):
+        response = _post_upload(client=client, household_id=household_id)
+
+    assert response.status_code == 500
+    assert (
+        response.json()["detail"]
+        == "Upload succeeded but background processing could not be started."
+    )
+    status_mock.assert_called_once()

@@ -8,21 +8,14 @@ from pathlib import PurePosixPath
 from loguru import logger
 from supabase import Client, create_client
 
-try:
-    from shared.config import SUPABASE_BOOKS_BUCKET, SUPABASE_SECRET_KEY, SUPABASE_URL
-except ImportError:
-    from server.shared.config import (  # type: ignore
-        SUPABASE_BOOKS_BUCKET,
-        SUPABASE_SECRET_KEY,
-        SUPABASE_URL,
-    )
+from shared.config import settings
 
 from .models import Chunk, Manuscript
 
 
 @lru_cache(maxsize=1)
 def _get_client() -> Client:
-    return create_client(SUPABASE_URL, SUPABASE_SECRET_KEY)
+    return create_client(settings.supabase.url, settings.supabase.secret_key)
 
 
 def _get_book_row(book_id: str) -> dict:
@@ -42,7 +35,7 @@ def _manuscript_path(storage_path: str) -> str:
 
 
 def _bucket() -> str:
-    return SUPABASE_BOOKS_BUCKET
+    return settings.supabase.books_bucket
 
 
 def download_pdf(book_id: str) -> tuple[bytes, str]:
@@ -113,7 +106,4 @@ def upsert_chunks(book_id: str, chunks: list[Chunk]) -> None:
     logger.info("Upserted {} chunks, status=ready | book_id={}", len(chunks), book_id)
 
 
-def set_book_status(book_id: str, status: str) -> None:
-    """Update books.status (e.g. to 'error' on failure)."""
-    _get_client().table("books").update({"status": status}).eq("id", book_id).execute()
-    logger.info("Set book status={} | book_id={}", status, book_id)
+from shared.books import set_book_status as set_book_status  # re-export from shared

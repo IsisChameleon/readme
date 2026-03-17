@@ -2,24 +2,15 @@ from pathlib import Path
 from typing import Annotated, Literal
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, UploadFile
 from loguru import logger
 from pydantic import BaseModel
 from supabase import Client, create_client
 
-try:
-    from shared.config import SUPABASE_BOOKS_BUCKET, SUPABASE_SECRET_KEY, SUPABASE_URL
-    from worker.tasks import enqueue_process_book
-except ImportError:
-    from server.shared.config import (  # type: ignore
-        SUPABASE_BOOKS_BUCKET,
-        SUPABASE_SECRET_KEY,
-        SUPABASE_URL,
-    )
-    from server.worker.tasks import enqueue_process_book  # type: ignore
+from shared.books import set_book_status
+from shared.config import settings
 
-
-router = APIRouter(prefix="/admin", tags=["admin"])
+router = APIRouter(prefix="/books", tags=["books"])
 
 
 class UploadBookRequest(BaseModel):
@@ -44,16 +35,28 @@ UploadBookRequestForm = Annotated[UploadBookRequest, Depends(UploadBookRequest.a
 
 
 def _supabase_client() -> Client:
-    if not SUPABASE_URL or not SUPABASE_SECRET_KEY:
+    if not settings.supabase.url or not settings.supabase.secret_key:
         raise HTTPException(
             status_code=500,
             detail="Supabase is not configured. Set SUPABASE_URL and SUPABASE_SECRET_KEY.",
         )
-    return create_client(SUPABASE_URL, SUPABASE_SECRET_KEY)
+    return create_client(settings.supabase.url, settings.supabase.secret_key)
 
 
-@router.post("/books/upload", response_model=UploadBookResponse)
+def _dispatch_process_book(book_id: str, background_tasks: BackgroundTasks) -> None:
+    if settings.modal.app_name:
+        import modal  # type: ignore[import-untyped]
+
+        modal.Function.from_name(settings.modal.app_name, "process_book").spawn(book_id)
+        return
+    from workers.book_processor_jobs import process_book_job
+
+    background_tasks.add_task(process_book_job, book_id)
+
+
+@router.post("/upload", response_model=UploadBookResponse)
 async def upload_book(
+    background_tasks: BackgroundTasks,
     request: UploadBookRequestForm,
     file: UploadFile = File(...),
 ) -> UploadBookResponse:
@@ -70,6 +73,8 @@ async def upload_book(
     payload = await file.read()
     if not payload:
         raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+    if len(payload) > settings.upload.max_bytes:
+        raise HTTPException(status_code=400, detail="Uploaded file exceeds the size limit.")
 
     book_id = str(uuid4())
     storage_path = f"households/{request.household_id}/books/{book_id}/{filename}"
@@ -77,7 +82,7 @@ async def upload_book(
     client = _supabase_client()
 
     try:
-        client.storage.from_(SUPABASE_BOOKS_BUCKET).upload(
+        client.storage.from_(settings.supabase.books_bucket).upload(
             path=storage_path,
             file=payload,
             file_options={"content-type": "application/pdf", "upsert": "false"},
@@ -97,7 +102,16 @@ async def upload_book(
     finally:
         await file.close()
 
-    enqueue_process_book(book_id)
+    try:
+        _dispatch_process_book(book_id, background_tasks)
+    except Exception as exc:
+        logger.exception("Failed to start background book processing | book_id={}", book_id)
+        set_book_status(book_id, "error")
+        raise HTTPException(
+            status_code=500,
+            detail="Upload succeeded but background processing could not be started.",
+        ) from exc
+
     return UploadBookResponse(
         book_id=book_id,
         household_id=request.household_id,

@@ -6,8 +6,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from services.pdf_pipeline.models import Chunk, Manuscript
-from services.pdf_pipeline.storage import (
+from workers.pdf_pipeline.models import Chunk, Manuscript
+from workers.pdf_pipeline.storage import (
     download_manuscript,
     download_pdf,
     set_book_status,
@@ -33,7 +33,7 @@ def _mock_supabase():
 
 
 class TestDownloadPdf:
-    @patch("services.pdf_pipeline.storage._get_client")
+    @patch("workers.pdf_pipeline.storage._get_client")
     def test_returns_bytes_and_title(self, mock_get_client):
         client, table_mock, storage_mock = _mock_supabase()
         mock_get_client.return_value = client
@@ -46,7 +46,7 @@ class TestDownloadPdf:
         assert title == "Test Book"
         storage_mock.download.assert_called_once_with("households/hh1/books/book_001/mybook.pdf")
 
-    @patch("services.pdf_pipeline.storage._get_client")
+    @patch("workers.pdf_pipeline.storage._get_client")
     def test_raises_on_missing_book(self, mock_get_client):
         client, table_mock, _ = _mock_supabase()
         mock_get_client.return_value = client
@@ -57,7 +57,7 @@ class TestDownloadPdf:
 
 
 class TestUploadManuscript:
-    @patch("services.pdf_pipeline.storage._get_client")
+    @patch("workers.pdf_pipeline.storage._get_client")
     def test_uploads_json_to_correct_path(self, mock_get_client):
         client, table_mock, storage_mock = _mock_supabase()
         mock_get_client.return_value = client
@@ -79,7 +79,7 @@ class TestUploadManuscript:
 
 
 class TestDownloadManuscript:
-    @patch("services.pdf_pipeline.storage._get_client")
+    @patch("workers.pdf_pipeline.storage._get_client")
     def test_parses_json_to_manuscript(self, mock_get_client):
         client, table_mock, storage_mock = _mock_supabase()
         mock_get_client.return_value = client
@@ -101,7 +101,7 @@ class TestDownloadManuscript:
 
 
 class TestUpsertChunks:
-    @patch("services.pdf_pipeline.storage._get_client")
+    @patch("workers.pdf_pipeline.storage._get_client")
     def test_deletes_then_inserts_then_updates_status(self, mock_get_client):
         client, table_mock, _ = _mock_supabase()
         mock_get_client.return_value = client
@@ -122,7 +122,7 @@ class TestUpsertChunks:
 
 
 class TestSetBookStatus:
-    @patch("services.pdf_pipeline.storage._get_client")
+    @patch("workers.pdf_pipeline.storage._get_client")
     def test_updates_status(self, mock_get_client):
         client, table_mock, _ = _mock_supabase()
         mock_get_client.return_value = client
