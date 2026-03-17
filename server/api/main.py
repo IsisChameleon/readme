@@ -6,8 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from services.daily import DailyAPI
 from shared.config import settings
 
-from .admin import router as admin_router
-from .start import router as start_router
+from .routers.books import router as books_router
+from .routers.start import router as start_router
 
 
 @asynccontextmanager
@@ -27,7 +27,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(admin_router)
+app.include_router(books_router)
 app.include_router(start_router)
 
 

@@ -9,7 +9,7 @@ sys.modules.setdefault("modal", _mock_modal)
 
 from fastapi.testclient import TestClient
 
-import api.start as start
+import api.routers.start as start
 from api.main import app
 from services.daily import DailyRoomDetails
 
