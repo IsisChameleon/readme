@@ -22,19 +22,14 @@ except ImportError:
     )
 
 
-def _process_book_impl(book_id: str) -> None:
-    """Core pipeline logic — testable without Dramatiq broker."""
-    pdf_bytes, title = download_pdf(book_id)
-    manuscript = extract_manuscript(book_id, title, pdf_bytes)
-    upload_manuscript(book_id, manuscript)
-    chunks = chunk_manuscript(manuscript)
-    upsert_chunks(book_id, chunks)
-
-
 def process_book_job(book_id: str) -> None:
     logger.info("Starting book processing | book_id={}", book_id)
     try:
-        _process_book_impl(book_id)
+        pdf_bytes, title = download_pdf(book_id)
+        manuscript = extract_manuscript(book_id, title, pdf_bytes)
+        upload_manuscript(book_id, manuscript)
+        chunks = chunk_manuscript(manuscript)
+        upsert_chunks(book_id, chunks)
         logger.info("Book processing complete | book_id={}", book_id)
     except Exception:
         logger.exception("Book processing failed | book_id={}", book_id)
@@ -42,17 +37,12 @@ def process_book_job(book_id: str) -> None:
         raise
 
 
-def _rechunk_book_impl(book_id: str) -> None:
-    """Core rechunk logic — testable without Dramatiq broker."""
-    manuscript = download_manuscript(book_id)
-    chunks = chunk_manuscript(manuscript)
-    upsert_chunks(book_id, chunks)
-
-
 def rechunk_book_job(book_id: str) -> None:
     logger.info("Starting rechunk | book_id={}", book_id)
     try:
-        _rechunk_book_impl(book_id)
+        manuscript = download_manuscript(book_id)
+        chunks = chunk_manuscript(manuscript)
+        upsert_chunks(book_id, chunks)
         logger.info("Rechunk complete | book_id={}", book_id)
     except Exception:
         logger.exception("Rechunk failed | book_id={}", book_id)

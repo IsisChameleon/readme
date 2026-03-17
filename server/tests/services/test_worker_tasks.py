@@ -34,9 +34,9 @@ FAKE_CHUNKS = [
 @patch("workers.book_processor_jobs.extract_manuscript", return_value=FAKE_MANUSCRIPT)
 @patch("workers.book_processor_jobs.download_pdf", return_value=(b"%PDF", "Test Book"))
 def test_process_book_happy_path(mock_dl, mock_ext, mock_up, mock_chunk, mock_upsert):
-    from workers.book_processor_jobs import _process_book_impl
+    from workers.book_processor_jobs import process_book_job
 
-    _process_book_impl("book_001")
+    process_book_job("book_001")
 
     mock_dl.assert_called_once_with("book_001")
     mock_ext.assert_called_once_with("book_001", "Test Book", b"%PDF")
@@ -60,9 +60,9 @@ def test_process_book_sets_error_on_failure(mock_dl, mock_status):
 @patch("workers.book_processor_jobs.chunk_manuscript", return_value=FAKE_CHUNKS)
 @patch("workers.book_processor_jobs.download_manuscript", return_value=FAKE_MANUSCRIPT)
 def test_rechunk_book_happy_path(mock_dl, mock_chunk, mock_upsert):
-    from workers.book_processor_jobs import _rechunk_book_impl
+    from workers.book_processor_jobs import rechunk_book_job
 
-    _rechunk_book_impl("book_001")
+    rechunk_book_job("book_001")
 
     mock_dl.assert_called_once_with("book_001")
     mock_chunk.assert_called_once_with(FAKE_MANUSCRIPT)
