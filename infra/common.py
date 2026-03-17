@@ -8,7 +8,7 @@ from pathlib import Path
 import modal
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
-REMOTE_ROOT = "/root/readme"
+REMOTE_ROOT = "/root/readme/server"
 LOCAL_DIR_IGNORE = [
     ".venv/**",
     "__pycache__/**",
@@ -66,9 +66,8 @@ def bootstrap_repo() -> None:
     """Add the server directory to sys.path so imports match the local dev layout."""
     import sys
 
-    server_path = f"{REMOTE_ROOT}/server"
-    if server_path not in sys.path:
-        sys.path.insert(0, server_path)
+    if REMOTE_ROOT not in sys.path:
+        sys.path.insert(0, REMOTE_ROOT)
 
 
 ENV = os.getenv("ENV", "dev")
@@ -87,7 +86,7 @@ def _make_image(dep_prefixes: list[str]) -> modal.Image:
         .pip_install(*_filter_deps(dep_prefixes))
         .add_local_dir(
             str(ROOT_DIR / "server"),
-            remote_path=f"{REMOTE_ROOT}/server",
+            remote_path=REMOTE_ROOT,
             ignore=LOCAL_DIR_IGNORE,
         )
     )
