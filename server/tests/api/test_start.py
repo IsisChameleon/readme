@@ -1,16 +1,10 @@
-import sys
-from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
 from fastapi.testclient import TestClient
 
-ROOT_DIR = Path(__file__).resolve().parents[3]
-if str(ROOT_DIR) not in sys.path:
-    sys.path.insert(0, str(ROOT_DIR))
-
-import server.api.start as start
-from server.api.main import app
-from server.services.daily import DailyRoomDetails
+import api.start as start
+from api.main import app
+from services.daily import DailyRoomDetails
 
 # ── Local dev path (no MODAL_APP_NAME) ───────────────────────────────
 

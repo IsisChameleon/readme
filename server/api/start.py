@@ -5,15 +5,9 @@ from fastapi import APIRouter, HTTPException
 from loguru import logger
 from pydantic import BaseModel
 
-try:
-    from services.daily import DailyAPI, DailyAPIError
-    from services.spawn_modal_job import spawn_modal_job
-    from shared.config import settings
-except ImportError:
-    from server.services.daily import DailyAPI, DailyAPIError  # type: ignore
-    from server.services.spawn_modal_job import spawn_modal_job  # type: ignore
-    from server.shared.config import settings  # type: ignore
-
+from services.daily import DailyAPI, DailyAPIError
+from services.spawn_modal_job import spawn_modal_job
+from shared.config import settings
 
 router = APIRouter(tags=["voice"])
 

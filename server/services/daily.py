@@ -7,10 +7,7 @@ from uuid import uuid4
 import aiohttp
 from pydantic import BaseModel, HttpUrl
 
-try:
-    from shared.config import settings
-except ImportError:
-    from server.shared.config import settings  # type: ignore
+from shared.config import settings
 
 
 class DailyAPIError(RuntimeError):

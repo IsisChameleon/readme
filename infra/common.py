@@ -63,10 +63,12 @@ def bootstrap_infra_imports() -> None:
 
 
 def bootstrap_repo() -> None:
+    """Add the server directory to sys.path so imports match the local dev layout."""
     import sys
 
-    if REMOTE_ROOT not in sys.path:
-        sys.path.insert(0, REMOTE_ROOT)
+    server_path = f"{REMOTE_ROOT}/server"
+    if server_path not in sys.path:
+        sys.path.insert(0, server_path)
 
 
 ENV = os.getenv("ENV", "dev")

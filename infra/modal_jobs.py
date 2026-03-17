@@ -33,7 +33,7 @@ class BotSession:
     @modal.method()
     async def run(self, room_url: str, token: str) -> None:
         from pipecat.runner.types import DailyRunnerArguments
-        from server.bot.bot import bot
+        from bot.bot import bot
 
         await bot(DailyRunnerArguments(room_url=room_url, token=token, handle_sigint=False))
 
@@ -62,7 +62,7 @@ async def run_bot_session(room_url: str, token: str) -> None:
 def process_book(book_id: str) -> None:
     bootstrap_repo()
 
-    from server.workers.book_processor_jobs import process_book_job
+    from workers.book_processor_jobs import process_book_job
 
     process_book_job(book_id)
 
@@ -77,6 +77,6 @@ def process_book(book_id: str) -> None:
 def rechunk_book(book_id: str) -> None:
     bootstrap_repo()
 
-    from server.workers.book_processor_jobs import rechunk_book_job
+    from workers.book_processor_jobs import rechunk_book_job
 
     rechunk_book_job(book_id)

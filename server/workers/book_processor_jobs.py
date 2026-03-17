@@ -1,25 +1,14 @@
 from loguru import logger
 
-try:
-    from workers.pdf_pipeline import (
-        chunk_manuscript,
-        download_manuscript,
-        download_pdf,
-        extract_manuscript,
-        set_book_status,
-        upload_manuscript,
-        upsert_chunks,
-    )
-except ImportError:
-    from server.workers.pdf_pipeline import (  # type: ignore
-        chunk_manuscript,
-        download_manuscript,
-        download_pdf,
-        extract_manuscript,
-        set_book_status,
-        upload_manuscript,
-        upsert_chunks,
-    )
+from workers.pdf_pipeline import (
+    chunk_manuscript,
+    download_manuscript,
+    download_pdf,
+    extract_manuscript,
+    set_book_status,
+    upload_manuscript,
+    upsert_chunks,
+)
 
 
 def process_book_job(book_id: str) -> None:

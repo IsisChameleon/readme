@@ -15,6 +15,6 @@ from infra.common import api_image, app, bootstrap_repo, config, secrets
 @modal.asgi_app()
 def serve_api():
     bootstrap_repo()
-    from server.api.main import app as fastapi_app
+    from api.main import app as fastapi_app
 
     return fastapi_app

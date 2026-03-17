@@ -8,10 +8,7 @@ from pathlib import PurePosixPath
 from loguru import logger
 from supabase import Client, create_client
 
-try:
-    from shared.config import settings
-except ImportError:
-    from server.shared.config import settings  # type: ignore
+from shared.config import settings
 
 from .models import Chunk, Manuscript
 

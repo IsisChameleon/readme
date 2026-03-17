@@ -1,15 +1,9 @@
-import sys
-from pathlib import Path
 from unittest.mock import Mock, patch
 
 from fastapi.testclient import TestClient
 
-ROOT_DIR = Path(__file__).resolve().parents[3]
-if str(ROOT_DIR) not in sys.path:
-    sys.path.insert(0, str(ROOT_DIR))
-
-import server.api.admin as admin
-from server.api.main import app
+import api.admin as admin
+from api.main import app
 
 
 def _post_upload(

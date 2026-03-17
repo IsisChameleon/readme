@@ -9,10 +9,7 @@ from google.genai import Client, types
 from pydantic import BaseModel
 from tenacity import Retrying, retry_if_exception, stop_after_attempt, wait_exponential_jitter
 
-try:
-    from shared.config import settings
-except ImportError:
-    from server.shared.config import settings  # type: ignore
+from shared.config import settings
 
 LLM_MODEL = "gemini-2.5-flash"
 MAX_RETRIES = 6
