@@ -62,7 +62,7 @@ async def run_bot_session(room_url: str, token: str) -> None:
 def process_book(book_id: str) -> None:
     bootstrap_repo()
 
-    from server.worker.tasks import process_book_job
+    from server.workers.book_processor_jobs import process_book_job
 
     process_book_job(book_id)
 
@@ -77,6 +77,6 @@ def process_book(book_id: str) -> None:
 def rechunk_book(book_id: str) -> None:
     bootstrap_repo()
 
-    from server.worker.tasks import rechunk_book_job
+    from server.workers.book_processor_jobs import rechunk_book_job
 
     rechunk_book_job(book_id)

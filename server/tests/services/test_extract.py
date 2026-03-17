@@ -4,16 +4,16 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-from services.pdf_pipeline.extract import (
+from workers.pdf_pipeline.extract import (
     _clean_text_with_llm,
     _extract_pages,
     extract_manuscript,
 )
-from services.pdf_pipeline.models import Manuscript, PageContent
+from workers.pdf_pipeline.models import Manuscript, PageContent
 
 
 class TestExtractPages:
-    @patch("services.pdf_pipeline.extract.fitz")
+    @patch("workers.pdf_pipeline.extract.fitz")
     def test_text_page_no_image(self, mock_fitz):
         """Page with >= 25 words should not get image_bytes."""
         doc = MagicMock()
@@ -29,7 +29,7 @@ class TestExtractPages:
         assert pages[0].image_bytes is None
         assert "word" in pages[0].text
 
-    @patch("services.pdf_pipeline.extract.fitz")
+    @patch("workers.pdf_pipeline.extract.fitz")
     def test_sparse_page_gets_image(self, mock_fitz):
         """Page with < 25 words should get image_bytes from render."""
         doc = MagicMock()
@@ -49,7 +49,7 @@ class TestExtractPages:
 
 
 class TestCleanTextWithLLM:
-    @patch("services.pdf_pipeline.extract._gemini_generate")
+    @patch("workers.pdf_pipeline.extract._gemini_generate")
     def test_returns_cleaned_text(self, mock_gemini):
         mock_gemini.return_value = "Once upon a time there was a story."
         pages = [
@@ -62,8 +62,8 @@ class TestCleanTextWithLLM:
 
 
 class TestExtractManuscript:
-    @patch("services.pdf_pipeline.extract._clean_text_with_llm")
-    @patch("services.pdf_pipeline.extract._extract_pages")
+    @patch("workers.pdf_pipeline.extract._clean_text_with_llm")
+    @patch("workers.pdf_pipeline.extract._extract_pages")
     def test_returns_manuscript(self, mock_pages, mock_clean):
         mock_pages.return_value = [
             PageContent(page_number=1, text="Hello world " * 20),

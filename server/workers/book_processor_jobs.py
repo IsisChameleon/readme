@@ -1,7 +1,7 @@
 from loguru import logger
 
 try:
-    from services.pdf_pipeline import (
+    from workers.pdf_pipeline import (
         chunk_manuscript,
         download_manuscript,
         download_pdf,
@@ -11,7 +11,7 @@ try:
         upsert_chunks,
     )
 except ImportError:
-    from server.services.pdf_pipeline import (  # type: ignore
+    from server.workers.pdf_pipeline import (  # type: ignore
         chunk_manuscript,
         download_manuscript,
         download_pdf,

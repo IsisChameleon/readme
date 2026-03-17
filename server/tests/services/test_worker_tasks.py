@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-from services.pdf_pipeline.models import Chunk, Manuscript
+from workers.pdf_pipeline.models import Chunk, Manuscript
 
 FAKE_MANUSCRIPT = Manuscript(
     book_id="book_001",
@@ -28,13 +28,13 @@ FAKE_CHUNKS = [
 ]
 
 
-@patch("worker.tasks.upsert_chunks")
-@patch("worker.tasks.chunk_manuscript", return_value=FAKE_CHUNKS)
-@patch("worker.tasks.upload_manuscript")
-@patch("worker.tasks.extract_manuscript", return_value=FAKE_MANUSCRIPT)
-@patch("worker.tasks.download_pdf", return_value=(b"%PDF", "Test Book"))
+@patch("workers.book_processor_jobs.upsert_chunks")
+@patch("workers.book_processor_jobs.chunk_manuscript", return_value=FAKE_CHUNKS)
+@patch("workers.book_processor_jobs.upload_manuscript")
+@patch("workers.book_processor_jobs.extract_manuscript", return_value=FAKE_MANUSCRIPT)
+@patch("workers.book_processor_jobs.download_pdf", return_value=(b"%PDF", "Test Book"))
 def test_process_book_happy_path(mock_dl, mock_ext, mock_up, mock_chunk, mock_upsert):
-    from worker.tasks import _process_book_impl
+    from workers.book_processor_jobs import _process_book_impl
 
     _process_book_impl("book_001")
 
@@ -45,10 +45,10 @@ def test_process_book_happy_path(mock_dl, mock_ext, mock_up, mock_chunk, mock_up
     mock_upsert.assert_called_once_with("book_001", FAKE_CHUNKS)
 
 
-@patch("worker.tasks.set_book_status")
-@patch("worker.tasks.download_pdf", side_effect=RuntimeError("storage error"))
+@patch("workers.book_processor_jobs.set_book_status")
+@patch("workers.book_processor_jobs.download_pdf", side_effect=RuntimeError("storage error"))
 def test_process_book_sets_error_on_failure(mock_dl, mock_status):
-    from worker.tasks import process_book_job
+    from workers.book_processor_jobs import process_book_job
 
     with pytest.raises(RuntimeError, match="storage error"):
         process_book_job("book_001")
@@ -56,11 +56,11 @@ def test_process_book_sets_error_on_failure(mock_dl, mock_status):
     mock_status.assert_called_once_with("book_001", "error")
 
 
-@patch("worker.tasks.upsert_chunks")
-@patch("worker.tasks.chunk_manuscript", return_value=FAKE_CHUNKS)
-@patch("worker.tasks.download_manuscript", return_value=FAKE_MANUSCRIPT)
+@patch("workers.book_processor_jobs.upsert_chunks")
+@patch("workers.book_processor_jobs.chunk_manuscript", return_value=FAKE_CHUNKS)
+@patch("workers.book_processor_jobs.download_manuscript", return_value=FAKE_MANUSCRIPT)
 def test_rechunk_book_happy_path(mock_dl, mock_chunk, mock_upsert):
-    from worker.tasks import _rechunk_book_impl
+    from workers.book_processor_jobs import _rechunk_book_impl
 
     _rechunk_book_impl("book_001")
 
@@ -69,10 +69,10 @@ def test_rechunk_book_happy_path(mock_dl, mock_chunk, mock_upsert):
     mock_upsert.assert_called_once_with("book_001", FAKE_CHUNKS)
 
 
-@patch("worker.tasks.set_book_status")
-@patch("worker.tasks.download_manuscript", side_effect=RuntimeError("not found"))
+@patch("workers.book_processor_jobs.set_book_status")
+@patch("workers.book_processor_jobs.download_manuscript", side_effect=RuntimeError("not found"))
 def test_rechunk_book_sets_error_on_failure(mock_dl, mock_status):
-    from worker.tasks import rechunk_book_job
+    from workers.book_processor_jobs import rechunk_book_job
 
     with pytest.raises(RuntimeError, match="not found"):
         rechunk_book_job("book_001")

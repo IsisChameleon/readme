@@ -8,15 +8,15 @@ from pydantic import BaseModel
 from supabase import Client, create_client
 
 try:
-    from services.pdf_pipeline import set_book_status
     from services.spawn_modal_job import spawn_modal_job
     from shared.config import settings
-    from worker.tasks import process_book_job
+    from workers.book_processor_jobs import process_book_job
+    from workers.pdf_pipeline import set_book_status
 except ImportError:
-    from server.services.pdf_pipeline import set_book_status  # type: ignore
     from server.services.spawn_modal_job import spawn_modal_job  # type: ignore
     from server.shared.config import settings  # type: ignore
-    from server.worker.tasks import process_book_job  # type: ignore
+    from server.workers.book_processor_jobs import process_book_job  # type: ignore
+    from server.workers.pdf_pipeline import set_book_status  # type: ignore
 
 
 router = APIRouter(prefix="/admin", tags=["admin"])
