@@ -27,6 +27,7 @@ jobs:
   deploy:
     name: Deploy Modal app
     runs-on: ubuntu-latest
+    environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.env || 'dev' }}
     permissions:
       contents: read
     env:
