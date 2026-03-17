@@ -553,20 +553,6 @@ wheels = [
 ]
 
 [[package]]
-name = "dramatiq"
-version = "2.0.1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/fa/bb/56b5d615c32ec8e136beee243efc54afa099b384c057e896d16268e35e08/dramatiq-2.0.1.tar.gz", hash = "sha256:3caa0587057eee67bd3a0e6d439d78d6cf88b300b5185dad1f4044a0c5f57fc2", size = 104165, upload-time = "2026-01-18T11:31:09.807Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ca/28/4bfc19a3b12177febcb3d28767933c823c056727872a8792a87d6f68df67/dramatiq-2.0.1-py3-none-any.whl", hash = "sha256:0cdfe5fdd1028adf65c6f3b2f0c5e6909053d6e41cf6556ff4def991d2419c89", size = 124391, upload-time = "2026-01-18T11:31:08.803Z" },
-]
-
-[package.optional-dependencies]
-redis = [
-    { name = "redis" },
-]
-
-[[package]]
 name = "email-validator"
 version = "2.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2408,14 +2394,15 @@ name = "readme-server"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "aiohttp" },
     { name = "aiortc" },
-    { name = "dramatiq", extra = ["redis"] },
     { name = "fastapi" },
     { name = "google-genai" },
     { name = "loguru" },
     { name = "pipecat-ai", extra = ["cartesia", "daily", "deepgram", "google", "runner", "silero", "webrtc"] },
     { name = "pipecatcloud" },
     { name = "pydantic" },
+    { name = "pydantic-settings" },
     { name = "pymupdf" },
     { name = "python-dotenv" },
     { name = "supabase" },
@@ -2433,14 +2420,15 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "aiohttp", specifier = ">=3.12.0" },
     { name = "aiortc", specifier = ">=1.14.0" },
-    { name = "dramatiq", extras = ["redis"], specifier = ">=1.18.0" },
     { name = "fastapi", specifier = ">=0.115.0" },
     { name = "google-genai", specifier = ">=1.63.0" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "pipecat-ai", extras = ["daily", "webrtc", "deepgram", "google", "cartesia", "runner", "silero"], specifier = ">=0.0.104" },
     { name = "pipecatcloud", specifier = ">=0.2.6" },
     { name = "pydantic", specifier = ">=2.0.0" },
+    { name = "pydantic-settings", specifier = ">=2.12.0" },
     { name = "pymupdf", specifier = ">=1.24.0" },
     { name = "python-dotenv", specifier = ">=1.2.1" },
     { name = "supabase", specifier = ">=2.27.0" },
@@ -2468,15 +2456,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/d7/0c/a3f34afadd988a99b86b842b334ad1036ae32672e2e5ad89a0b450dc6926/realtime-2.28.0.tar.gz", hash = "sha256:d18cedcebd6a8f22fcd509bc767f639761eb218b7b2b6f14fc4205b6259b50fc", size = 18726, upload-time = "2026-02-10T13:17:02.755Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/3f/04/dd8409d015a872bc1763a87d5d4e82d82c3eac99e9045f2fceab7f38b4b2/realtime-2.28.0-py3-none-any.whl", hash = "sha256:db1bd59bab9b1fcc9f9d3b1a073bed35bf4994d720e6751f10031a58d57a3836", size = 22375, upload-time = "2026-02-10T13:17:01.412Z" },
-]
-
-[[package]]
-name = "redis"
-version = "6.4.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/0d/d6/e8b92798a5bd67d659d51a18170e91c16ac3b59738d91894651ee255ed49/redis-6.4.0.tar.gz", hash = "sha256:b01bc7282b8444e28ec36b261df5375183bb47a07eb9c603f284e89cbc5ef010", size = 4647399, upload-time = "2025-08-07T08:10:11.441Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/e8/02/89e2ed7e85db6c93dfa9e8f691c5087df4e3551ab39081a4d7c6d1f90e05/redis-6.4.0-py3-none-any.whl", hash = "sha256:f0544fa9604264e9464cdf4814e7d4830f74b165d52f2a330a760a88dd248b7f", size = 279847, upload-time = "2025-08-07T08:10:09.84Z" },
 ]
 
 [[package]]

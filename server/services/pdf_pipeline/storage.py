@@ -9,20 +9,16 @@ from loguru import logger
 from supabase import Client, create_client
 
 try:
-    from shared.config import SUPABASE_BOOKS_BUCKET, SUPABASE_SECRET_KEY, SUPABASE_URL
+    from shared.config import settings
 except ImportError:
-    from server.shared.config import (  # type: ignore
-        SUPABASE_BOOKS_BUCKET,
-        SUPABASE_SECRET_KEY,
-        SUPABASE_URL,
-    )
+    from server.shared.config import settings  # type: ignore
 
 from .models import Chunk, Manuscript
 
 
 @lru_cache(maxsize=1)
 def _get_client() -> Client:
-    return create_client(SUPABASE_URL, SUPABASE_SECRET_KEY)
+    return create_client(settings.supabase.url, settings.supabase.secret_key)
 
 
 def _get_book_row(book_id: str) -> dict:
@@ -42,7 +38,7 @@ def _manuscript_path(storage_path: str) -> str:
 
 
 def _bucket() -> str:
-    return SUPABASE_BOOKS_BUCKET
+    return settings.supabase.books_bucket
 
 
 def download_pdf(book_id: str) -> tuple[bytes, str]:

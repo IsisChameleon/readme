@@ -5,6 +5,7 @@ description = "Kid Reading Voice App – server (API + bot)"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "aiohttp>=3.12.0",
     "fastapi>=0.115.0",
     "uvicorn>=0.34.0",
     "loguru>=0.7.3",
@@ -13,11 +14,11 @@ dependencies = [
     "python-dotenv>=1.2.1",
     "supabase>=2.27.0",
     "aiortc>=1.14.0",
-    "dramatiq[redis]>=1.18.0",
     "PyMuPDF>=1.24.0",
     "google-genai>=1.63.0",
     "pydantic>=2.0.0",
     "tenacity>=9.0.0",
+    "pydantic-settings>=2.12.0",
 ]
 
 [dependency-groups]

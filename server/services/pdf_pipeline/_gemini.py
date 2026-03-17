@@ -10,9 +10,9 @@ from pydantic import BaseModel
 from tenacity import Retrying, retry_if_exception, stop_after_attempt, wait_exponential_jitter
 
 try:
-    from shared.config import GOOGLE_API_KEY
+    from shared.config import settings
 except ImportError:
-    from server.shared.config import GOOGLE_API_KEY  # type: ignore
+    from server.shared.config import settings  # type: ignore
 
 LLM_MODEL = "gemini-2.5-flash"
 MAX_RETRIES = 6
@@ -27,7 +27,7 @@ def is_quota_error(error: Exception) -> bool:
 
 @cache
 def get_client() -> Client:
-    return Client(api_key=GOOGLE_API_KEY)
+    return Client(api_key=settings.keys.google_api_key)
 
 
 def _make_retryer() -> Retrying:
