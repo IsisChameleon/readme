@@ -6,7 +6,6 @@ from loguru import logger
 from pydantic import BaseModel
 
 from services.daily import DailyAPI, DailyAPIError
-from services.spawn_modal_job import spawn_modal_job
 from shared.config import settings
 
 router = APIRouter(tags=["voice"])
@@ -51,8 +50,9 @@ async def start_session() -> StartSessionResponse:
         raise HTTPException(status_code=503, detail="Failed to start Daily session.") from exc
 
     try:
-        spawn_modal_job(
-            "run_bot_session",
+        import modal  # type: ignore[import-untyped]
+
+        modal.Function.from_name(settings.modal.app_name, "run_bot_session").spawn(
             room_url=str(details.url),
             token=details.bot_token,
         )

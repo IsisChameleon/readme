@@ -1,4 +1,11 @@
-from unittest.mock import AsyncMock, patch
+import sys
+from types import ModuleType
+from unittest.mock import AsyncMock, MagicMock, patch
+
+# Provide a fake modal module so `import modal` inside start_session works
+_mock_modal = ModuleType("modal")
+_mock_modal.Function = MagicMock()
+sys.modules.setdefault("modal", _mock_modal)
 
 from fastapi.testclient import TestClient
 
@@ -55,10 +62,11 @@ def test_start_modal_returns_room_url_and_user_token() -> None:
         user_token="user-token",
     )
 
+    mock_fn = MagicMock()
+    _mock_modal.Function.from_name.return_value = mock_fn
     with (
         _patch_modal(),
         patch.object(start.DailyAPI, "create_room_and_tokens", AsyncMock(return_value=details)),
-        patch.object(start, "spawn_modal_job") as spawn_mock,
     ):
         response = client.post("/start")
 
@@ -67,8 +75,7 @@ def test_start_modal_returns_room_url_and_user_token() -> None:
         "room_url": "https://daily.example/readme-room",
         "token": "user-token",
     }
-    spawn_mock.assert_called_once_with(
-        "run_bot_session",
+    mock_fn.spawn.assert_called_once_with(
         room_url="https://daily.example/readme-room",
         token="bot-token",
     )
@@ -101,11 +108,13 @@ def test_start_modal_returns_503_and_cleans_up_room_when_bot_launch_fails() -> N
         user_token="user-token",
     )
 
+    mock_fn = MagicMock()
+    mock_fn.spawn.side_effect = RuntimeError("spawn failed")
+    _mock_modal.Function.from_name.return_value = mock_fn
     with (
         _patch_modal(),
         patch.object(start.DailyAPI, "create_room_and_tokens", AsyncMock(return_value=details)),
         patch.object(start.DailyAPI, "delete_room", AsyncMock()) as delete_room_mock,
-        patch.object(start, "spawn_modal_job", side_effect=RuntimeError("spawn failed")),
         patch.object(start.logger, "exception"),
     ):
         response = client.post("/start")

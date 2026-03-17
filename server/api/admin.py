@@ -7,7 +7,6 @@ from loguru import logger
 from pydantic import BaseModel
 from supabase import Client, create_client
 
-from services.spawn_modal_job import spawn_modal_job
 from shared.config import settings
 from workers.book_processor_jobs import process_book_job
 from workers.pdf_pipeline import set_book_status
@@ -45,15 +44,11 @@ def _supabase_client() -> Client:
     return create_client(settings.supabase.url, settings.supabase.secret_key)
 
 
-def _dispatch_modal_job(function_name: str, *args: object) -> None:
-    if not settings.modal.app_name:
-        raise RuntimeError("MODAL_APP_NAME is required for remote background jobs.")
-    spawn_modal_job(function_name, *args)
-
-
 def _dispatch_process_book(book_id: str, background_tasks: BackgroundTasks) -> None:
     if settings.modal.app_name:
-        _dispatch_modal_job("process_book", book_id)
+        import modal  # type: ignore[import-untyped]
+
+        modal.Function.from_name(settings.modal.app_name, "process_book").spawn(book_id)
         return
     background_tasks.add_task(process_book_job, book_id)
 
