@@ -66,3 +66,42 @@ Funny way to query supabase:
    -H "apikey: $SUPABASE_SECRET_KEY" -H "Authorization: Bearer $SUPABASE_SECRET_KEY"
    "http://127.0.0.1:54321/rest/v1/books?select=id,title,status" 2>&1
 
+
+# Mon 16 Mar - Deployment on Modal
+
+## Actions done
+
+from root folder:
+
+uv run --project infra modal setup
+
+from infra folder: (I think not necessary to run from infra but....)
+
+uv run --project infra modal secret create readme-dev --force --from-dotenv ../server/.env.modal.dev
+
+From root:
+
+deploy the app
+ENV=dev uv run --project infra modal deploy infra/main.py --stream-logs
+
+```
+✓ Created objects.
+├── 🔨 Created mount 
+│   /Users/isabelleredactive/src/readme/infra/modal_jobs.py
+├── 🔨 Created mount 
+│   /Users/isabelleredactive/src/readme/infra/modal_api.py
+├── 🔨 Created mount /Users/isabelleredactive/src/readme
+├── 🔨 Created web function serve_api => 
+│   https://isischameleon--readme-dev-serve-api.modal.run
+├── 🔨 Created function run_bot_session.
+├── 🔨 Created function process_book.
+└── 🔨 Created function rechunk_book.
+✓ App deployed in 714.622s! 🎉
+
+View Deployment: 
+https://modal.com/apps/isischameleon/main/deployed/readme-de
+v
+```
+
+export API_URL="https://isischameleon--readme-dev-serve-api.modal.run"
+
