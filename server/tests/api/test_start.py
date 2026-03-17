@@ -63,6 +63,7 @@ def test_start_modal_returns_room_url_and_user_token() -> None:
     )
 
     mock_fn = MagicMock()
+    mock_fn.spawn.aio = AsyncMock()
     _mock_modal.Function.from_name.return_value = mock_fn
     with (
         _patch_modal(),
@@ -75,7 +76,7 @@ def test_start_modal_returns_room_url_and_user_token() -> None:
         "room_url": "https://daily.example/readme-room",
         "token": "user-token",
     }
-    mock_fn.spawn.assert_called_once_with(
+    mock_fn.spawn.aio.assert_called_once_with(
         room_url="https://daily.example/readme-room",
         token="bot-token",
     )
@@ -109,7 +110,7 @@ def test_start_modal_returns_503_and_cleans_up_room_when_bot_launch_fails() -> N
     )
 
     mock_fn = MagicMock()
-    mock_fn.spawn.side_effect = RuntimeError("spawn failed")
+    mock_fn.spawn.aio = AsyncMock(side_effect=RuntimeError("spawn failed"))
     _mock_modal.Function.from_name.return_value = mock_fn
     with (
         _patch_modal(),

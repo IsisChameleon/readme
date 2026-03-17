@@ -7,9 +7,8 @@ from loguru import logger
 from pydantic import BaseModel
 from supabase import Client, create_client
 
+from shared.books import set_book_status
 from shared.config import settings
-from workers.book_processor_jobs import process_book_job
-from workers.pdf_pipeline import set_book_status
 
 router = APIRouter(prefix="/books", tags=["books"])
 
@@ -50,6 +49,8 @@ def _dispatch_process_book(book_id: str, background_tasks: BackgroundTasks) -> N
 
         modal.Function.from_name(settings.modal.app_name, "process_book").spawn(book_id)
         return
+    from workers.book_processor_jobs import process_book_job
+
     background_tasks.add_task(process_book_job, book_id)
 
 

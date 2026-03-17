@@ -7,6 +7,7 @@ requires-python = ">=3.13"
 dependencies = [
     "aiohttp>=3.12.0",
     "fastapi>=0.115.0",
+    "python-multipart>=0.0.18",
     "uvicorn>=0.34.0",
     "loguru>=0.7.3",
     "pipecat-ai[daily,webrtc,deepgram,google,cartesia,runner,silero]>=0.0.104",
@@ -22,6 +23,30 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+common = [
+    "loguru>=0.7.3",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.12.0",
+    "python-dotenv>=1.2.1",
+    "supabase>=2.27.0",
+]
+api = [
+    "fastapi>=0.115.0",
+    "python-multipart>=0.0.18",
+    "uvicorn>=0.34.0",
+    "aiohttp>=3.12.0",
+    "tenacity>=9.0.0",
+]
+bot = [
+    "pipecat-ai[daily,webrtc,deepgram,google,cartesia,runner,silero]>=0.0.104",
+    "pipecatcloud>=0.2.6",
+    "aiortc>=1.14.0",
+]
+worker = [
+    "PyMuPDF>=1.24.0",
+    "google-genai>=1.63.0",
+    "tenacity>=9.0.0",
+]
 modal = ["modal>=1.1.4"]
 
 [dependency-groups]

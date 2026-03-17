@@ -7,8 +7,9 @@ from pathlib import Path
 
 import modal
 
-ROOT_DIR = Path(__file__).resolve().parents[1]
-REMOTE_ROOT = "/root/readme/server"
+LOCAL_INFRA_DIR = Path(__file__).resolve().parent
+LOCAL_SERVER_DIR = LOCAL_INFRA_DIR.parent / "server"
+REMOTE_SERVER_DIR = "/root/server"
 LOCAL_DIR_IGNORE = [
     ".venv/**",
     "__pycache__/**",
@@ -34,40 +35,29 @@ class ModalConfig:
         return f"readme-{self.env}"
 
 
-def _server_dependencies() -> list[str]:
-    pyproject = tomllib.loads((ROOT_DIR / "server" / "pyproject.toml").read_text())
-    return pyproject["project"]["dependencies"]
-
-
-def _filter_deps(prefixes: list[str]) -> list[str]:
-    """Return server dependencies matching any of the given prefixes."""
-    all_deps = _server_dependencies()
-    return [d for d in all_deps if any(d.lower().startswith(p) for p in prefixes)]
-
-
-_COMMON_PREFIXES = ["loguru", "pydantic", "python-dotenv", "supabase"]
-_API_PREFIXES = _COMMON_PREFIXES + ["fastapi", "uvicorn", "aiohttp", "tenacity"]
-_BOT_PREFIXES = _COMMON_PREFIXES + ["pipecat", "aiortc"]
-_WORKER_PREFIXES = _COMMON_PREFIXES + ["pymupdf", "google-genai", "tenacity"]
+def _image_dependencies(group: str) -> list[str]:
+    """Return common + group-specific deps from server/pyproject.toml optional-dependencies."""
+    pyproject = tomllib.loads((LOCAL_SERVER_DIR / "pyproject.toml").read_text())
+    extras = pyproject["project"]["optional-dependencies"]
+    return extras.get("common", []) + extras.get(group, [])
 
 
 def bootstrap_infra_imports() -> None:
-    """Ensure the repo root is on sys.path for both local and Modal containers."""
+    """Add the project root to sys.path so ``import infra.*`` works."""
     import sys
 
-    local_repo_root = Path(__file__).resolve().parent.parent
-    remote_repo_root = Path(REMOTE_ROOT)
-    for root in (local_repo_root, remote_repo_root):
-        if (root / "infra").exists() and str(root) not in sys.path:
-            sys.path.insert(0, str(root))
+    project_root = str(LOCAL_INFRA_DIR.parent)
+    if project_root not in sys.path:
+        sys.path.insert(0, project_root)
 
 
 def bootstrap_repo() -> None:
-    """Add the server directory to sys.path so imports match the local dev layout."""
+    """Add the server directory to sys.path so server-relative imports work."""
     import sys
 
-    if REMOTE_ROOT not in sys.path:
-        sys.path.insert(0, REMOTE_ROOT)
+    server_dir = str(LOCAL_SERVER_DIR)
+    if server_dir not in sys.path:
+        sys.path.insert(0, server_dir)
 
 
 ENV = os.getenv("ENV", "dev")
@@ -81,18 +71,18 @@ secrets = [
 ]
 
 
-def _make_image(dep_prefixes: list[str]) -> modal.Image:
+def _make_image(group: str) -> modal.Image:
     return (
         modal.Image.debian_slim(python_version="3.13")
-        .pip_install(*_filter_deps(dep_prefixes))
+        .pip_install(*_image_dependencies(group))
         .add_local_dir(
-            str(ROOT_DIR / "server"),
-            remote_path=REMOTE_ROOT,
+            str(LOCAL_SERVER_DIR),
+            remote_path=REMOTE_SERVER_DIR,
             ignore=LOCAL_DIR_IGNORE,
         )
     )
 
 
-api_image = _make_image(_API_PREFIXES)
-bot_image = _make_image(_BOT_PREFIXES)
-worker_image = _make_image(_WORKER_PREFIXES)
+api_image = _make_image("api")
+bot_image = _make_image("bot")
+worker_image = _make_image("worker")

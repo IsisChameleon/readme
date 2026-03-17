@@ -34,7 +34,7 @@ class BotSession:
         from bot.bot import bot
         from pipecat.runner.types import DailyRunnerArguments
 
-        await bot(DailyRunnerArguments(room_url=room_url, token=token, handle_sigint=False))
+        await bot(DailyRunnerArguments(room_url=room_url, token=token))
 
 
 @app.function(
@@ -45,7 +45,7 @@ class BotSession:
 )
 async def run_bot_session(room_url: str, token: str) -> None:
     """Spawnable entry point — delegates to BotSession for snapshot benefits."""
-    await BotSession().run.remote(room_url=room_url, token=token)
+    await BotSession().run.remote.aio(room_url=room_url, token=token)
 
 
 # ── Worker (PDF processing) ─────────────────────────────────────────

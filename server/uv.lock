@@ -2466,14 +2466,39 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "pymupdf" },
     { name = "python-dotenv" },
+    { name = "python-multipart" },
     { name = "supabase" },
     { name = "tenacity" },
     { name = "uvicorn" },
 ]
 
 [package.optional-dependencies]
+api = [
+    { name = "aiohttp" },
+    { name = "fastapi" },
+    { name = "python-multipart" },
+    { name = "tenacity" },
+    { name = "uvicorn" },
+]
+bot = [
+    { name = "aiortc" },
+    { name = "pipecat-ai", extra = ["cartesia", "daily", "deepgram", "google", "runner", "silero", "webrtc"] },
+    { name = "pipecatcloud" },
+]
+common = [
+    { name = "loguru" },
+    { name = "pydantic" },
+    { name = "pydantic-settings" },
+    { name = "python-dotenv" },
+    { name = "supabase" },
+]
 modal = [
     { name = "modal" },
+]
+worker = [
+    { name = "google-genai" },
+    { name = "pymupdf" },
+    { name = "tenacity" },
 ]
 
 [package.dev-dependencies]
@@ -2487,22 +2512,39 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "aiohttp", specifier = ">=3.12.0" },
+    { name = "aiohttp", marker = "extra == 'api'", specifier = ">=3.12.0" },
     { name = "aiortc", specifier = ">=1.14.0" },
+    { name = "aiortc", marker = "extra == 'bot'", specifier = ">=1.14.0" },
     { name = "fastapi", specifier = ">=0.115.0" },
+    { name = "fastapi", marker = "extra == 'api'", specifier = ">=0.115.0" },
     { name = "google-genai", specifier = ">=1.63.0" },
+    { name = "google-genai", marker = "extra == 'worker'", specifier = ">=1.63.0" },
     { name = "loguru", specifier = ">=0.7.3" },
+    { name = "loguru", marker = "extra == 'common'", specifier = ">=0.7.3" },
     { name = "modal", marker = "extra == 'modal'", specifier = ">=1.1.4" },
     { name = "pipecat-ai", extras = ["daily", "webrtc", "deepgram", "google", "cartesia", "runner", "silero"], specifier = ">=0.0.104" },
+    { name = "pipecat-ai", extras = ["daily", "webrtc", "deepgram", "google", "cartesia", "runner", "silero"], marker = "extra == 'bot'", specifier = ">=0.0.104" },
     { name = "pipecatcloud", specifier = ">=0.2.6" },
+    { name = "pipecatcloud", marker = "extra == 'bot'", specifier = ">=0.2.6" },
     { name = "pydantic", specifier = ">=2.0.0" },
+    { name = "pydantic", marker = "extra == 'common'", specifier = ">=2.0.0" },
     { name = "pydantic-settings", specifier = ">=2.12.0" },
+    { name = "pydantic-settings", marker = "extra == 'common'", specifier = ">=2.12.0" },
     { name = "pymupdf", specifier = ">=1.24.0" },
+    { name = "pymupdf", marker = "extra == 'worker'", specifier = ">=1.24.0" },
     { name = "python-dotenv", specifier = ">=1.2.1" },
+    { name = "python-dotenv", marker = "extra == 'common'", specifier = ">=1.2.1" },
+    { name = "python-multipart", specifier = ">=0.0.18" },
+    { name = "python-multipart", marker = "extra == 'api'", specifier = ">=0.0.18" },
     { name = "supabase", specifier = ">=2.27.0" },
+    { name = "supabase", marker = "extra == 'common'", specifier = ">=2.27.0" },
     { name = "tenacity", specifier = ">=9.0.0" },
+    { name = "tenacity", marker = "extra == 'api'", specifier = ">=9.0.0" },
+    { name = "tenacity", marker = "extra == 'worker'", specifier = ">=9.0.0" },
     { name = "uvicorn", specifier = ">=0.34.0" },
+    { name = "uvicorn", marker = "extra == 'api'", specifier = ">=0.34.0" },
 ]
-provides-extras = ["modal"]
+provides-extras = ["common", "api", "bot", "worker", "modal"]
 
 [package.metadata.requires-dev]
 dev = [

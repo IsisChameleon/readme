@@ -52,7 +52,7 @@ async def start_session() -> StartSessionResponse:
     try:
         import modal  # type: ignore[import-untyped]
 
-        modal.Function.from_name(settings.modal.app_name, "run_bot_session").spawn(
+        await modal.Function.from_name(settings.modal.app_name, "run_bot_session").spawn.aio(
             room_url=str(details.url),
             token=details.bot_token,
         )

@@ -106,7 +106,4 @@ def upsert_chunks(book_id: str, chunks: list[Chunk]) -> None:
     logger.info("Upserted {} chunks, status=ready | book_id={}", len(chunks), book_id)
 
 
-def set_book_status(book_id: str, status: str) -> None:
-    """Update books.status (e.g. to 'error' on failure)."""
-    _get_client().table("books").update({"status": status}).eq("id", book_id).execute()
-    logger.info("Set book status={} | book_id={}", status, book_id)
+from shared.books import set_book_status as set_book_status  # re-export from shared
