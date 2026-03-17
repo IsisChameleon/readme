@@ -105,3 +105,11 @@ v
 
 export API_URL="https://isischameleon--readme-dev-serve-api.modal.run"
 
+curl https://isischameleon--readme-dev-serve-api.modal.run
+{"detail":"Not Found"}%     
+
+curl https://isischameleon--readme-dev-serve-api.modal.run/health
+{"status":"ok"}% 3
+
+curl -X POST https://isischameleon--readme-dev-serve-api.modal.run/start
+{"room_url":"https://cloud-2d2cdb957c27416f941784a1e3912b1d.daily.co/readme-9053c950f5924768b1a173f202a668d7","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyIjoicmVhZG1lLTkwNTNjOTUwZjU5MjQ3NjhiMWExNzNmMjAyYTY2OGQ3IiwidSI6InJlYWRlciIsIm8iOmZhbHNlLCJlanQiOnRydWUsImV4cCI6MTc3MzczOTYyNywiZCI6ImJjNWEzM2FmLTUyNmItNGVjOS1hNDRjLTI3ZjEyZGIzNGYzNiIsImlhdCI6MTc3MzczNzgyN30.t1wqw75qC_1ZzLiXc-jur5X3S1AbxFmaVlTGE3HcAn0"}%
