@@ -11,7 +11,7 @@ from shared.config import settings
 from workers.book_processor_jobs import process_book_job
 from workers.pdf_pipeline import set_book_status
 
-router = APIRouter(prefix="/admin", tags=["admin"])
+router = APIRouter(prefix="/books", tags=["books"])
 
 
 class UploadBookRequest(BaseModel):
@@ -53,7 +53,7 @@ def _dispatch_process_book(book_id: str, background_tasks: BackgroundTasks) -> N
     background_tasks.add_task(process_book_job, book_id)
 
 
-@router.post("/books/upload", response_model=UploadBookResponse)
+@router.post("/upload", response_model=UploadBookResponse)
 async def upload_book(
     background_tasks: BackgroundTasks,
     request: UploadBookRequestForm,

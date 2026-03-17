@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException
 from loguru import logger
 from pydantic import BaseModel
 
-from services.daily import DailyAPI, DailyAPIError
+from api.services.daily import DailyAPI, DailyAPIError
 from shared.config import settings
 
 router = APIRouter(tags=["voice"])

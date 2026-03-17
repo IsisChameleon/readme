@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from services.daily import DailyAPI
+from api.services.daily import DailyAPI
 from shared.config import settings
 
 from .routers.books import router as books_router

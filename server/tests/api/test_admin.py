@@ -17,7 +17,7 @@ def _post_upload(
     if household_id is not None:
         data["household_id"] = household_id
     return client.post(
-        "/admin/books/upload",
+        "/books/upload",
         data=data,
         files={"file": (filename, content, content_type)},
     )

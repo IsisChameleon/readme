@@ -11,7 +11,7 @@ from fastapi.testclient import TestClient
 
 import api.routers.start as start
 from api.main import app
-from services.daily import DailyRoomDetails
+from api.services.daily import DailyRoomDetails
 
 # ── Local dev path (no MODAL_APP_NAME) ───────────────────────────────
 

@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/admin/books/upload": {
+    "/books/upload": {
         parameters: {
             query?: never;
             header?: never;
@@ -14,7 +14,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Upload Book */
-        post: operations["upload_book_admin_books_upload_post"];
+        post: operations["upload_book_books_upload_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -59,8 +59,8 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** Body_upload_book_admin_books_upload_post */
-        Body_upload_book_admin_books_upload_post: {
+        /** Body_upload_book_books_upload_post */
+        Body_upload_book_books_upload_post: {
             /**
              * File
              * Format: binary
@@ -113,7 +113,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    upload_book_admin_books_upload_post: {
+    upload_book_books_upload_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -122,7 +122,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": components["schemas"]["Body_upload_book_admin_books_upload_post"];
+                "multipart/form-data": components["schemas"]["Body_upload_book_books_upload_post"];
             };
         };
         responses: {
