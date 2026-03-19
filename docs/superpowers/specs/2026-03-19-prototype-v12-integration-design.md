@@ -219,10 +219,10 @@ The current `POST /start` endpoint accepts no parameters. It needs to accept `bo
 
 ---
 
-## Open Questions for Implementation
+## Resolved Questions
 
-1. **Book cover images** — Do we add `cover_color` / `cover_image_url` columns to the `books` table now, or use generated colors based on book title hash?
-2. **Stars/XP system** — What drives the XP counter on kid home? Placeholder for now, but what's the future plan?
-3. **Theme persistence** — Where to store theme preference? Cookie, Supabase user settings, or localStorage?
-4. **Kid avatar options** — Just a letter + color, or do we want emoji/image avatars?
-5. **Dark mode** — The prototype has dark mode tokens. Do we support it or keep light-only for now?
+1. **Book cover images** — Add `cover_image_url` column to `books` table. For books without a cover, pick a random color from a preselected palette.
+2. **Stars/XP system** — Not implemented for now. Remove the counter from kid home UI.
+3. **Theme persistence** — No persistence for now. Theme resets on page reload (default to `ember`).
+4. **Kid avatar options** — Letter + color only. Keep it simple.
+5. **Dark mode** — No dark mode. Two light themes only (`ember` + `classic`).
