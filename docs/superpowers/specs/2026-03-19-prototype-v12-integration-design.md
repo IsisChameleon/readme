@@ -39,7 +39,8 @@ Integrate the v0 prototype (EmberTales UI) into the existing readme codebase, re
   - `ember`: teal primary `oklch(0.6 0.14 180)`, coral accent `oklch(0.72 0.16 35)`, cream background `oklch(0.98 0.01 85)`
   - `classic`: current warm palette converted to OKLCH (`#FDFAF5` background, `#FF6B6B` coral, `#7DC4A6` sage, etc.)
 - Themes are orthogonal to light/dark mode
-- Fonts: Nunito (body) + Baloo 2 (display), loaded via `next/font/google`
+- Drop existing `.dashboard-dark` CSS class and hardcoded dark colors in `VoiceSession.tsx` — replace with theme-aware tokens
+- Fonts: Nunito (body) + Baloo 2 (display), loaded via `next/font/google` — update `layout.tsx` to swap Caveat → Baloo 2
 
 ### Database Migration
 ```sql
@@ -53,7 +54,8 @@ CREATE TABLE kids (
 );
 CREATE INDEX idx_kids_household_id ON kids(household_id);
 ```
-- RLS policy: `household_id = auth.uid()::text` for SELECT
+- RLS policy on `kids`: `household_id = auth.uid()::text` for SELECT
+- RLS policy on `reading_progress`: add policy restricting reads to kids belonging to the authenticated household (join through `kids` table or denormalize `household_id` onto `reading_progress`)
 - Frontend reads kids directly from Supabase (anon key + RLS)
 
 ### API Models
@@ -80,10 +82,21 @@ app/
       call/page.tsx                       → voice session
 ```
 
+### Mode Selector (`/h/[householdId]/page.tsx`)
+- Server component: fetches kids from Supabase, validates household ownership
+- Displays kid avatars (from `kids` table) — clicking one navigates to `/h/{householdId}/kid/{kidId}`
+- "Parent Dashboard" button → `/h/{householdId}/dashboard`
+- "Add Kid" shortcut if no kids exist yet
+- Matches the prototype's landing page layout (EmberDragon greeting, kid avatar row, parent button)
+
+### Files to Remove
+- `client/app/LandingPage.tsx` — replaced by mode selector
+- `client/components/ReadingOrb.tsx` — replaced by new dashboard/dragon
+
 ### Route Protection
-- Update `proxy.ts` to protect `/h/*` routes (require auth)
-- Validate `householdId` belongs to authenticated user (or user is admin)
-- Validate `kidId` belongs to that household
+- `proxy.ts`: protect `/h/*` routes (require auth only — check session exists)
+- Authorization (householdId belongs to user, kidId belongs to household) happens in page-level server components, not the proxy — avoids extra DB queries on every request at the edge
+- Admin users bypass household ownership check (future)
 
 ### Backward Compatibility
 - `/` → redirect to `/h/{user's household_id}`
@@ -170,8 +183,11 @@ Setting or button to switch between Plasma orb and AnimatedOrb + Dragon. Both us
 - Voice session works immediately with current bot (orb mode)
 - Gains text display when bot changes land
 
+### Backend Change Required
+The current `POST /start` endpoint accepts no parameters. It needs to accept `bookId` (and `kidId`) so the bot can load the correct book and track progress for the right kid. This is a small backend change scoped to Stage 5 — add request body params to `POST /start` and forward them to the bot runner.
+
 ### Query Params
-`?bookId={id}` passed to session creation. Bot uses this to load the book.
+`?bookId={id}` in the URL for deep-linking. The call page reads this and passes it to `POST /start`.
 
 ---
 
@@ -193,6 +209,13 @@ Setting or button to switch between Plasma orb and AnimatedOrb + Dragon. Both us
 - All `simulate*` functions and setTimeout-based behaviors
 - Prototype's suggested Daily.co direct integration (we use Pipecat)
 - Prototype's suggested Next.js API routes (we use FastAPI)
+- `client/app/LandingPage.tsx` — replaced by mode selector
+- `client/components/ReadingOrb.tsx` — replaced by new dashboard/dragon
+
+### Cross-Cutting Concerns
+- **Loading states:** Each page uses a loading skeleton or spinner while Supabase reads resolve (consistent pattern across stages)
+- **Error boundaries:** Each route gets an `error.tsx` for graceful failures
+- **Upload endpoint note:** Current `POST /books/upload` takes `household_id` as a form field. This stays as-is for now (the "no household_id in API paths" principle applies to URL path segments, not request bodies)
 
 ---
 
