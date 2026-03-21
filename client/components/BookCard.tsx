@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { BookOpen, Mic, Trash2, CheckCircle2, PencilLine, MoreVertical } from 'lucide-react';
+import { BookOpen, Mic, Trash2, PencilLine, MoreVertical } from 'lucide-react';
 import { getCoverColor } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
 
@@ -43,9 +43,10 @@ export const BookCard = ({
       <motion.div
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        className="rounded-2xl border border-border bg-card overflow-hidden cursor-pointer touch-manipulation"
+        className="flex flex-col gap-6 rounded-xl border-2 border-transparent hover:border-primary bg-card py-6 shadow-sm overflow-hidden cursor-pointer touch-manipulation transition-all duration-300 hover:shadow-xl"
         onClick={() => book.status === 'ready' && onStartReading?.(book.id)}
       >
+        {/* Book cover */}
         <div
           className="relative h-44 md:h-52 flex items-center justify-center"
           style={{ backgroundColor: book.coverImageUrl ? undefined : coverColor }}
@@ -53,31 +54,34 @@ export const BookCard = ({
           {book.coverImageUrl ? (
             <img src={book.coverImageUrl} className="w-full h-full object-cover" alt="" />
           ) : (
-            <BookOpen className="w-16 h-16 text-white/80" />
+            <BookOpen className="w-16 h-16 md:w-20 md:h-20 text-white/80" />
           )}
-          {progress === 100 && (
-            <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
-              <CheckCircle2 className="w-3 h-3" /> Done!
+          {progress > 0 && (
+            <div className="absolute bottom-3 left-3 right-3">
+              <div className="h-2.5 md:h-3 bg-white/30 rounded-full overflow-hidden">
+                <div className="h-full bg-white rounded-full" style={{ width: `${progress}%` }} />
+              </div>
             </div>
           )}
-          {progress > 0 && progress < 100 && (
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
-              <div className="h-full bg-white" style={{ width: `${progress}%` }} />
+          {progress === 100 && (
+            <div className="absolute top-3 right-3 bg-white/90 text-green-600 px-3 py-1 rounded-full text-sm font-bold">
+              Done!
             </div>
           )}
         </div>
 
-        <div className="p-3">
-          <h3 className="font-bold text-sm truncate">{book.title}</h3>
+        {/* Content */}
+        <div className="p-4 md:p-5">
+          <h3 className="font-display text-lg md:text-xl font-bold leading-tight line-clamp-2">{book.title}</h3>
           {book.author && (
-            <p className="text-xs text-muted-foreground truncate">{book.author}</p>
+            <p className="text-sm md:text-base text-muted-foreground truncate mt-1">{book.author}</p>
           )}
           {book.status === 'ready' ? (
             <button
-              className="mt-2 w-full h-12 rounded-xl bg-primary text-primary-foreground font-bold text-sm flex items-center justify-center gap-2"
+              className="mt-4 w-full h-12 md:h-14 rounded-xl bg-primary text-primary-foreground font-bold text-base md:text-lg flex items-center justify-center gap-2"
               onClick={(e) => { e.stopPropagation(); onStartReading?.(book.id); }}
             >
-              <Mic className="w-4 h-4" />
+              <Mic className="w-5 h-5 md:w-6 md:h-6" />
               {buttonLabel}
             </button>
           ) : (
@@ -166,85 +170,90 @@ const ParentBookCard = ({
   };
 
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
+    <div className="flex rounded-xl border border-border bg-card overflow-hidden">
       <div
-        className="w-16 h-20 rounded-lg flex items-center justify-center shrink-0"
+        className="w-24 h-32 flex items-center justify-center shrink-0"
         style={{ backgroundColor: book.coverImageUrl ? undefined : coverColor }}
       >
         {book.coverImageUrl ? (
-          <img src={book.coverImageUrl} className="w-full h-full object-cover rounded-lg" alt="" />
+          <img src={book.coverImageUrl} className="w-full h-full object-cover" alt="" />
         ) : (
-          <BookOpen className="w-8 h-8 text-white/80" />
+          <BookOpen className="w-10 h-10 text-white/80" />
         )}
       </div>
-      <div className="flex-1 min-w-0">
-        {editing ? (
-          <div className="space-y-1">
-            <input
-              ref={inputRef}
-              value={editTitle}
-              onChange={(e) => setEditTitle(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleSave();
-                if (e.key === 'Escape') { setEditing(false); setEditTitle(book.title); setEditAuthor(book.author ?? 'Unknown'); }
-              }}
-              disabled={saving}
-              placeholder="Title"
-              className="w-full text-sm font-bold bg-transparent border-b border-primary outline-none"
-            />
-            <input
-              value={editAuthor}
-              onChange={(e) => setEditAuthor(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleSave();
-                if (e.key === 'Escape') { setEditing(false); setEditTitle(book.title); setEditAuthor(book.author ?? 'Unknown'); }
-              }}
-              onBlur={handleSave}
-              disabled={saving}
-              placeholder="Author"
-              className="w-full text-xs bg-transparent border-b border-muted-foreground/30 outline-none text-muted-foreground"
-            />
-          </div>
-        ) : (
-          <>
-            <h3 className="font-bold text-sm truncate">{book.title}</h3>
-            <p className="text-xs text-muted-foreground truncate">{book.author}</p>
-          </>
-        )}
-        <span className="text-xs text-muted-foreground capitalize">{book.status}</span>
-        {progress > 0 && (
-          <div className="mt-1 h-1.5 rounded-full bg-muted overflow-hidden">
-            <div className="h-full bg-primary rounded-full" style={{ width: `${progress}%` }} />
-          </div>
-        )}
-      </div>
-
-      {/* Menu */}
-      <div className="relative" ref={menuRef}>
-        <button
-          onClick={() => setMenuOpen(!menuOpen)}
-          className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-        >
-          <MoreVertical className="w-4 h-4" />
-        </button>
-        {menuOpen && (
-          <div className="absolute right-0 top-full mt-1 bg-card border border-border rounded-lg shadow-lg py-1 z-10 min-w-[140px]">
-            <button
-              onClick={() => { setMenuOpen(false); setEditing(true); }}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted transition-colors"
-            >
-              <PencilLine className="w-4 h-4" />
-              Edit
-            </button>
-            {onDelete && (
+      <div className="flex-1 p-4 flex flex-col justify-between min-w-0">
+        <div>
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              {editing ? (
+                <div className="space-y-1">
+                  <input
+                    ref={inputRef}
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleSave();
+                      if (e.key === 'Escape') { setEditing(false); setEditTitle(book.title); setEditAuthor(book.author ?? 'Unknown'); }
+                    }}
+                    disabled={saving}
+                    placeholder="Title"
+                    className="w-full text-sm font-bold bg-transparent border-b border-primary outline-none"
+                  />
+                  <input
+                    value={editAuthor}
+                    onChange={(e) => setEditAuthor(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleSave();
+                      if (e.key === 'Escape') { setEditing(false); setEditTitle(book.title); setEditAuthor(book.author ?? 'Unknown'); }
+                    }}
+                    onBlur={handleSave}
+                    disabled={saving}
+                    placeholder="Author"
+                    className="w-full text-xs bg-transparent border-b border-muted-foreground/30 outline-none text-muted-foreground"
+                  />
+                </div>
+              ) : (
+                <>
+                  <h3 className="font-semibold text-foreground truncate">{book.title}</h3>
+                  <p className="text-sm text-muted-foreground truncate">{book.author}</p>
+                </>
+              )}
+            </div>
+            {/* Menu */}
+            <div className="relative shrink-0" ref={menuRef}>
               <button
-                onClick={() => { setMenuOpen(false); onDelete(book.id); }}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               >
-                <Trash2 className="w-4 h-4" />
-                Delete
+                <MoreVertical className="w-4 h-4" />
               </button>
-            )}
+              {menuOpen && (
+                <div className="absolute right-0 top-full mt-1 bg-card border border-border rounded-lg shadow-lg py-1 z-10 min-w-[140px]">
+                  <button
+                    onClick={() => { setMenuOpen(false); setEditing(true); }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted transition-colors"
+                  >
+                    <PencilLine className="w-4 h-4" />
+                    Edit
+                  </button>
+                  {onDelete && (
+                    <button
+                      onClick={() => { setMenuOpen(false); onDelete(book.id); }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Delete
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+          <span className="text-xs text-muted-foreground capitalize mt-1">{book.status}</span>
+        </div>
+        {progress > 0 && (
+          <div className="mt-3 h-2 rounded-full bg-muted overflow-hidden">
+            <div className="h-full bg-primary rounded-full" style={{ width: `${progress}%` }} />
           </div>
         )}
       </div>
