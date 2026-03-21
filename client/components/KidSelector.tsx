@@ -47,12 +47,15 @@ export const KidSelector = ({ kids, selectedKidId, onSelectKid, onAddKid }: KidS
       ))}
 
       {onAddKid && (
-        <button
-          onClick={onAddKid}
-          className="w-16 h-16 rounded-full border-2 border-dashed border-border flex items-center justify-center hover:border-primary transition-colors"
-        >
-          <Plus className="w-6 h-6 text-muted-foreground" />
-        </button>
+        <div className="flex flex-col items-center gap-2 min-w-fit">
+          <button
+            onClick={onAddKid}
+            className="w-16 h-16 rounded-full border-2 border-dashed border-border flex items-center justify-center hover:border-primary transition-colors"
+          >
+            <Plus className="w-6 h-6 text-muted-foreground" />
+          </button>
+          <span className="text-sm font-medium text-muted-foreground">Add</span>
+        </div>
       )}
     </div>
   );
