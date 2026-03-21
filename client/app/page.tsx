@@ -1,6 +1,9 @@
 import { redirect } from 'next/navigation';
+import { createClient } from '@/lib/supabase/server';
 
-// DEV: bypass login — redirect straight to dashboard
-export default async function Home() {
-  redirect('/dashboard');
+export default async function RootPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const householdId = user?.id ?? 'dev';
+  redirect(`/h/${householdId}`);
 }
