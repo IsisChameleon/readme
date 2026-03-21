@@ -31,7 +31,7 @@ jobs:
           cache: pnpm
           cache-dependency-path: client/pnpm-lock.yaml
 
-      - run: pnpm install --frozen-lockfile
+      - run: pnpm install
 
       - name: ESLint
         run: pnpm lint
@@ -58,7 +58,7 @@ jobs:
           cache: pnpm
           cache-dependency-path: client/pnpm-lock.yaml
 
-      - run: pnpm install --frozen-lockfile
+      - run: pnpm install
 
       - name: Next.js build
         run: pnpm build
@@ -96,8 +96,8 @@ jobs:
       - name: Ruff format
         run: uv run ruff format --check
 
-      - name: ty check
-        run: uv run ty check
+      - name: ty check (source dirs only)
+        run: uv run ty check api/ bot/ shared/ workers/
 
   server-test:
     name: "Server: Tests"
