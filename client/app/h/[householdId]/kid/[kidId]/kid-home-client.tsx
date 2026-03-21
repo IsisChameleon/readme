@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, BookOpen, Sparkles } from 'lucide-react';
 import { EmberDragon } from '@/components/EmberDragon';
 import { BookCard } from '@/components/BookCard';
 
@@ -39,47 +39,96 @@ export const KidHomeClient = ({ householdId, kid, books }: KidHomeClientProps) =
   return (
     <div className="min-h-dvh bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur border-b border-border px-4 py-3 flex items-center justify-between">
-        <button
-          onClick={() => router.push(`/h/${householdId}`)}
-          className="p-2 rounded-lg hover:bg-muted transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <h1 className="text-xl font-display font-bold text-primary">EmberTales</h1>
-        <div className="w-9" />
+      <header className="sticky top-0 z-10 border-b border-border bg-card">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => router.push(`/h/${householdId}`)}
+                className="p-2 rounded-lg hover:bg-muted transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
+                <BookOpen className="w-5 h-5 text-primary-foreground" />
+              </div>
+              <h1 className="font-display text-xl font-bold text-foreground">EmberTales</h1>
+            </div>
+          </div>
+        </div>
       </header>
 
-      <div className="max-w-4xl mx-auto px-4 py-6 space-y-8">
-        {/* Welcome section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col items-center text-center gap-4"
-        >
+      <section className="container mx-auto px-4 py-8">
+        <div className="flex flex-col md:flex-row items-center gap-6 mb-8">
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ type: 'spring', stiffness: 260, damping: 20, delay: 0.1 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
           >
             <EmberDragon size="md" />
           </motion.div>
-          <div>
-            <h2 className="text-2xl md:text-3xl font-display font-bold">
+          <div className="text-center md:text-left">
+            <motion.h2
+              className="font-display text-3xl md:text-4xl font-bold text-foreground mb-2"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
               Hi, {kid.name}!
-            </h2>
-            <p className="text-muted-foreground mt-1">Ready for a reading adventure?</p>
+            </motion.h2>
+            <motion.p
+              className="text-lg text-muted-foreground flex items-center justify-center md:justify-start gap-2"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <Sparkles className="w-5 h-5 text-accent" />
+              Ready for a reading adventure?
+            </motion.p>
           </div>
-        </motion.div>
+        </div>
 
         {/* Continue Reading */}
         {inProgress.length > 0 && (
-          <section>
-            <h3 className="text-lg font-display font-bold mb-3">Continue Reading</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {inProgress.map((book) => (
-                <BookCard
+          <div className="mb-8">
+            <h3 className="font-display text-xl font-bold text-foreground mb-4">Continue Reading</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {inProgress.map((book, index) => (
+                <motion.div
                   key={book.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 * index }}
+                >
+                  <BookCard
+                    book={{
+                      id: book.id,
+                      title: book.title,
+                      status: book.status,
+                      coverImageUrl: book.cover_image_url,
+                      progress: book.progress,
+                    }}
+                    variant="kid"
+                    onStartReading={handleStartReading}
+                  />
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* My Books */}
+        <div>
+          <h3 className="font-display text-xl font-bold text-foreground mb-4">My Books</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {books.map((book, index) => (
+              <motion.div
+                key={book.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.05 * index }}
+              >
+                <BookCard
                   book={{
                     id: book.id,
                     title: book.title,
@@ -90,28 +139,7 @@ export const KidHomeClient = ({ householdId, kid, books }: KidHomeClientProps) =
                   variant="kid"
                   onStartReading={handleStartReading}
                 />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* My Books */}
-        <section>
-          <h3 className="text-lg font-display font-bold mb-3">My Books</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {books.map((book) => (
-              <BookCard
-                key={book.id}
-                book={{
-                  id: book.id,
-                  title: book.title,
-                  status: book.status,
-                  coverImageUrl: book.cover_image_url,
-                  progress: book.progress,
-                }}
-                variant="kid"
-                onStartReading={handleStartReading}
-              />
+              </motion.div>
             ))}
             {books.length === 0 && (
               <p className="col-span-full text-center text-muted-foreground py-8">
@@ -119,8 +147,8 @@ export const KidHomeClient = ({ householdId, kid, books }: KidHomeClientProps) =
               </p>
             )}
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
     </div>
   );
 };
