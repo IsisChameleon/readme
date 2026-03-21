@@ -55,6 +55,8 @@ def _patch_supabase(progress: int = 0):
         get_book_metadata=MagicMock(return_value=FAKE_META),
         get_book_chunks=MagicMock(return_value=FAKE_CHUNKS),
         get_reading_progress=MagicMock(return_value=progress),
+        get_kid_progress=MagicMock(return_value=[]),
+        get_chunk_at=MagicMock(return_value=None),
         save_reading_progress=MagicMock(),
     )
 

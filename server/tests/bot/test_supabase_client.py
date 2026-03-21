@@ -33,7 +33,7 @@ def _mock_query_chain(client, table_name, data):
     return table
 
 
-@patch("bot.supabase_client._get_client")
+@patch("bot.supabase_client.get_client")
 def test_get_book_metadata_found(mock_get):
     client = _mock_client()
     mock_get.return_value = client
@@ -43,7 +43,7 @@ def test_get_book_metadata_found(mock_get):
     assert result == {"id": "b1", "title": "Alice", "status": "ready"}
 
 
-@patch("bot.supabase_client._get_client")
+@patch("bot.supabase_client.get_client")
 def test_get_book_metadata_not_found(mock_get):
     client = _mock_client()
     mock_get.return_value = client
@@ -53,7 +53,7 @@ def test_get_book_metadata_not_found(mock_get):
     assert result is None
 
 
-@patch("bot.supabase_client._get_client")
+@patch("bot.supabase_client.get_client")
 def test_get_book_chunks(mock_get):
     client = _mock_client()
     mock_get.return_value = client
@@ -68,7 +68,7 @@ def test_get_book_chunks(mock_get):
     assert result[0]["text"] == "Hello"
 
 
-@patch("bot.supabase_client._get_client")
+@patch("bot.supabase_client.get_client")
 def test_get_reading_progress_default(mock_get):
     client = _mock_client()
     mock_get.return_value = client
@@ -78,7 +78,7 @@ def test_get_reading_progress_default(mock_get):
     assert result == 0
 
 
-@patch("bot.supabase_client._get_client")
+@patch("bot.supabase_client.get_client")
 def test_get_reading_progress_existing(mock_get):
     client = _mock_client()
     mock_get.return_value = client
@@ -88,7 +88,7 @@ def test_get_reading_progress_existing(mock_get):
     assert result == 7
 
 
-@patch("bot.supabase_client._get_client")
+@patch("bot.supabase_client.get_client")
 def test_save_reading_progress(mock_get):
     client = _mock_client()
     mock_get.return_value = client

@@ -79,6 +79,8 @@ def test_start_modal_returns_room_url_and_user_token() -> None:
     mock_fn.spawn.aio.assert_called_once_with(
         room_url="https://daily.example/readme-room",
         token="bot-token",
+        book_id=None,
+        kid_id=None,
     )
 
 
