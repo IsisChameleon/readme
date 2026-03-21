@@ -54,8 +54,8 @@ jobs:
         if: env.MODAL_TOKEN_ID != ''
         run: |
           uv sync --project infra
-          echo "Running: modal token verify"
-          uv run --project infra modal token verify && echo "TOKEN VALID" || echo "TOKEN INVALID"
+          echo "Running: modal token info"
+          uv run --project infra modal token info && echo "TOKEN VALID" || echo "TOKEN INVALID"
 
   verify-env-space:
     name: "Verify token: readme / dev"
@@ -89,8 +89,8 @@ jobs:
         if: env.MODAL_TOKEN_ID != ''
         run: |
           uv sync --project infra
-          echo "Running: modal token verify"
-          uv run --project infra modal token verify && echo "TOKEN VALID" || echo "TOKEN INVALID"
+          echo "Running: modal token info"
+          uv run --project infra modal token info && echo "TOKEN VALID" || echo "TOKEN INVALID"
 
   deploy:
     name: Deploy Modal app
@@ -133,7 +133,7 @@ jobs:
           echo "MODAL_TOKEN_ID length: ${#MODAL_TOKEN_ID}"
 
       - name: Verify Modal token
-        run: uv run --project infra modal token verify
+        run: uv run --project infra modal token info
 
       - name: Deploy
         run: uv run --project infra modal deploy infra/main.py
