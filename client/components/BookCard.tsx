@@ -1,29 +1,119 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
-import { DotsThreeVertical, PencilSimple, Trash } from '@phosphor-icons/react';
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
+import { BookOpen, Mic, Trash2, PencilLine, MoreVertical } from 'lucide-react';
+import { getCoverColor } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
 
-interface BookCardProps {
-  bookId: string;
+interface Book {
+  id: string;
   title: string;
+  author?: string | null;
   status: string;
+  coverImageUrl?: string | null;
+  progress?: number;
 }
 
-const statusConfig: Record<string, { color: string; label: string }> = {
-  ready: { color: 'var(--db-status-ready)', label: 'Ready' },
-  processing: { color: 'var(--db-status-processing)', label: 'Processing' },
-  error: { color: 'var(--db-status-error)', label: 'Error' },
+interface BookCardProps {
+  book: Book;
+  variant?: 'parent' | 'kid';
+  onStartReading?: (bookId: string) => void;
+  onDelete?: (bookId: string) => void;
+}
+
+export const BookCard = ({
+  book,
+  variant = 'kid',
+  onStartReading,
+  onDelete,
+}: BookCardProps) => {
+  const progress = book.progress ?? 0;
+  const coverColor = getCoverColor(book.id);
+
+  const buttonLabel = progress === 100
+    ? 'Read Again'
+    : progress > 0
+      ? 'Continue'
+      : 'Start Reading';
+
+  if (variant === 'kid') {
+    return (
+      <motion.div
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        className="flex flex-col gap-6 rounded-xl border-2 border-transparent hover:border-primary bg-card py-6 shadow-sm overflow-hidden cursor-pointer touch-manipulation transition-all duration-300 hover:shadow-xl"
+        onClick={() => book.status === 'ready' && onStartReading?.(book.id)}
+      >
+        {/* Book cover */}
+        <div
+          className="relative h-44 md:h-52 flex items-center justify-center"
+          style={{ backgroundColor: book.coverImageUrl ? undefined : coverColor }}
+        >
+          {book.coverImageUrl ? (
+            <img src={book.coverImageUrl} className="w-full h-full object-cover" alt="" />
+          ) : (
+            <BookOpen className="w-16 h-16 md:w-20 md:h-20 text-white/80" />
+          )}
+          {progress > 0 && (
+            <div className="absolute bottom-3 left-3 right-3">
+              <div className="h-2.5 md:h-3 bg-white/30 rounded-full overflow-hidden">
+                <div className="h-full bg-white rounded-full" style={{ width: `${progress}%` }} />
+              </div>
+            </div>
+          )}
+          {progress === 100 && (
+            <div className="absolute top-3 right-3 bg-white/90 text-green-600 px-3 py-1 rounded-full text-sm font-bold">
+              Done!
+            </div>
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="p-4 md:p-5">
+          <h3 className="font-display text-lg md:text-xl font-bold leading-tight line-clamp-2">{book.title}</h3>
+          {book.author && (
+            <p className="text-sm md:text-base text-muted-foreground truncate mt-1">{book.author}</p>
+          )}
+          {book.status === 'ready' ? (
+            <button
+              className="mt-4 w-full h-12 md:h-14 rounded-xl bg-primary text-primary-foreground font-bold text-base md:text-lg flex items-center justify-center gap-2"
+              onClick={(e) => { e.stopPropagation(); onStartReading?.(book.id); }}
+            >
+              <Mic className="w-5 h-5 md:w-6 md:h-6" />
+              {buttonLabel}
+            </button>
+          ) : (
+            <span className="mt-2 block text-xs text-muted-foreground capitalize">
+              {book.status}…
+            </span>
+          )}
+        </div>
+      </motion.div>
+    );
+  }
+
+  // Parent variant with rename + delete
+  return <ParentBookCard book={book} coverColor={coverColor} progress={progress} onDelete={onDelete} />;
 };
 
-export const BookCard = ({ bookId, title, status }: BookCardProps) => {
-  const statusInfo = statusConfig[status] ?? statusConfig.processing;
+const ParentBookCard = ({
+  book,
+  coverColor,
+  progress,
+  onDelete,
+}: {
+  book: Book;
+  coverColor: string;
+  progress: number;
+  onDelete?: (bookId: string) => void;
+}) => {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [editTitle, setEditTitle] = useState(title);
+  const [editTitle, setEditTitle] = useState(book.title);
+  const [editAuthor, setEditAuthor] = useState(book.author ?? 'Unknown');
   const [saving, setSaving] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -46,174 +136,127 @@ export const BookCard = ({ bookId, title, status }: BookCardProps) => {
     return () => document.removeEventListener('mousedown', handleClick);
   }, [menuOpen]);
 
-  const handleRename = async () => {
-    const trimmed = editTitle.trim();
-    if (!trimmed || trimmed === title) {
+  const handleSave = async () => {
+    const trimmedTitle = editTitle.trim();
+    const trimmedAuthor = editAuthor.trim();
+    if (!trimmedTitle) {
       setEditing(false);
-      setEditTitle(title);
+      setEditTitle(book.title);
+      setEditAuthor(book.author ?? 'Unknown');
+      return;
+    }
+
+    const updates: Record<string, string> = {};
+    if (trimmedTitle !== book.title) updates.title = trimmedTitle;
+    if (trimmedAuthor !== (book.author ?? 'Unknown')) updates.author = trimmedAuthor;
+
+    if (Object.keys(updates).length === 0) {
+      setEditing(false);
       return;
     }
 
     setSaving(true);
     try {
       const supabase = createClient();
-      const { error } = await supabase
-        .from('books')
-        .update({ title: trimmed })
-        .eq('id', bookId);
-
-      if (error) throw error;
+      await supabase.from('books').update(updates).eq('id', book.id);
       router.refresh();
     } catch {
-      setEditTitle(title);
+      setEditTitle(book.title);
+      setEditAuthor(book.author ?? 'Unknown');
     } finally {
       setSaving(false);
       setEditing(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    setSaving(true);
-    try {
-      const supabase = createClient();
-      const { error } = await supabase
-        .from('books')
-        .update({ status: 'deleted' })
-        .eq('id', bookId);
-
-      if (error) throw error;
-      router.refresh();
-    } catch {
-      // Silently fail — book stays visible
-    } finally {
-      setSaving(false);
-      setMenuOpen(false);
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') handleRename();
-    if (e.key === 'Escape') {
-      setEditing(false);
-      setEditTitle(title);
     }
   };
 
   return (
-    <motion.div
-      className="relative rounded-2xl overflow-hidden select-none"
-      style={{
-        background: 'var(--db-card)',
-        border: '1px solid var(--db-card-border)',
-        opacity: saving ? 0.6 : 1,
-      }}
-      whileHover={{
-        scale: 1.03,
-        y: -2,
-        boxShadow: '0 4px 20px var(--db-glow)',
-      }}
-      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-    >
-      {/* Cover placeholder */}
+    <div className="flex rounded-xl border border-border bg-card overflow-hidden">
       <div
-        className="flex items-center justify-center"
-        style={{
-          height: 130,
-          background: 'linear-gradient(145deg, var(--db-muted), var(--db-card))',
-        }}
+        className="w-24 h-32 flex items-center justify-center shrink-0"
+        style={{ backgroundColor: book.coverImageUrl ? undefined : coverColor }}
       >
-        <span className="text-4xl opacity-40">📖</span>
-      </div>
-
-      {/* Three-dot menu button */}
-      <div className="absolute top-2 right-2" ref={menuRef}>
-        <button
-          onClick={(e) => { e.stopPropagation(); setMenuOpen(!menuOpen); }}
-          className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors"
-          style={{ background: menuOpen ? 'var(--db-muted)' : 'transparent' }}
-          aria-label="Book actions"
-        >
-          <DotsThreeVertical size={18} weight="bold" color="var(--db-muted-fg)" />
-        </button>
-
-        {/* Dropdown menu */}
-        <AnimatePresence>
-          {menuOpen && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: -4 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: -4 }}
-              transition={{ duration: 0.1 }}
-              className="absolute right-0 mt-1 rounded-xl overflow-hidden z-10"
-              style={{
-                background: 'var(--db-card)',
-                border: '1px solid var(--db-border)',
-                minWidth: 140,
-                boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
-              }}
-            >
-              <button
-                onClick={() => { setMenuOpen(false); setEditing(true); }}
-                className="w-full flex items-center gap-2 px-3 py-2 text-xs transition-colors"
-                style={{ color: 'var(--db-fg)', fontFamily: 'var(--font-nunito)' }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--db-muted)')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-              >
-                <PencilSimple size={14} weight="bold" />
-                Rename
-              </button>
-              <button
-                onClick={handleDelete}
-                className="w-full flex items-center gap-2 px-3 py-2 text-xs transition-colors"
-                style={{ color: 'var(--coral)', fontFamily: 'var(--font-nunito)' }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--db-muted)')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-              >
-                <Trash size={14} weight="bold" />
-                Delete
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* Text area */}
-      <div className="p-3">
-        {editing ? (
-          <input
-            ref={inputRef}
-            value={editTitle}
-            onChange={(e) => setEditTitle(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onBlur={handleRename}
-            className="text-sm font-semibold leading-snug w-full bg-transparent outline-none rounded px-1"
-            style={{
-              color: 'var(--db-fg)',
-              fontFamily: 'var(--font-nunito)',
-              border: '1px solid var(--db-border)',
-            }}
-          />
+        {book.coverImageUrl ? (
+          <img src={book.coverImageUrl} className="w-full h-full object-cover" alt="" />
         ) : (
-          <p
-            className="text-sm font-semibold leading-snug line-clamp-2"
-            style={{ color: 'var(--db-fg)', fontFamily: 'var(--font-nunito)' }}
-          >
-            {title}
-          </p>
+          <BookOpen className="w-10 h-10 text-white/80" />
         )}
-        <div className="flex items-center gap-1.5 mt-1.5">
-          <span
-            className="w-1.5 h-1.5 rounded-full inline-block"
-            style={{ background: statusInfo.color }}
-          />
-          <span
-            className="text-xs"
-            style={{ color: 'var(--db-muted-fg)' }}
-          >
-            {statusInfo.label}
-          </span>
-        </div>
       </div>
-    </motion.div>
+      <div className="flex-1 p-4 flex flex-col justify-between min-w-0">
+        <div>
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              {editing ? (
+                <div className="space-y-1">
+                  <input
+                    ref={inputRef}
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleSave();
+                      if (e.key === 'Escape') { setEditing(false); setEditTitle(book.title); setEditAuthor(book.author ?? 'Unknown'); }
+                    }}
+                    disabled={saving}
+                    placeholder="Title"
+                    className="w-full text-sm font-bold bg-transparent border-b border-primary outline-none"
+                  />
+                  <input
+                    value={editAuthor}
+                    onChange={(e) => setEditAuthor(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleSave();
+                      if (e.key === 'Escape') { setEditing(false); setEditTitle(book.title); setEditAuthor(book.author ?? 'Unknown'); }
+                    }}
+                    onBlur={handleSave}
+                    disabled={saving}
+                    placeholder="Author"
+                    className="w-full text-xs bg-transparent border-b border-muted-foreground/30 outline-none text-muted-foreground"
+                  />
+                </div>
+              ) : (
+                <>
+                  <h3 className="font-semibold text-foreground truncate">{book.title}</h3>
+                  <p className="text-sm text-muted-foreground truncate">{book.author}</p>
+                </>
+              )}
+            </div>
+            {/* Menu */}
+            <div className="relative shrink-0" ref={menuRef}>
+              <button
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              >
+                <MoreVertical className="w-4 h-4" />
+              </button>
+              {menuOpen && (
+                <div className="absolute right-0 top-full mt-1 bg-card border border-border rounded-lg shadow-lg py-1 z-10 min-w-[140px]">
+                  <button
+                    onClick={() => { setMenuOpen(false); setEditing(true); }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted transition-colors"
+                  >
+                    <PencilLine className="w-4 h-4" />
+                    Edit
+                  </button>
+                  {onDelete && (
+                    <button
+                      onClick={() => { setMenuOpen(false); onDelete(book.id); }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Delete
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+          <span className="text-xs text-muted-foreground capitalize mt-1">{book.status}</span>
+        </div>
+        {progress > 0 && (
+          <div className="mt-3 h-2 rounded-full bg-muted overflow-hidden">
+            <div className="h-full bg-primary rounded-full" style={{ width: `${progress}%` }} />
+          </div>
+        )}
+      </div>
+    </div>
   );
 };

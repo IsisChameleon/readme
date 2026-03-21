@@ -21,7 +21,7 @@ class LazySecretsSettings(BaseModel):
 class SupabaseSettings(LazySecretsSettings):
     url: str = ""
     secret_key: str = "${SUPABASE_SECRET_KEY}"
-    books_bucket: str = "books"
+    books_bucket: str = "readme_dev"
 
 
 class DailySettings(LazySecretsSettings):

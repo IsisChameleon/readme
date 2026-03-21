@@ -1,176 +1,155 @@
 @import "tailwindcss";
 
-:root {
-  --background: #FDFAF5;
-  --foreground: #1e1e1e;
+/* ── Ember theme (default) ── */
+:root,
+[data-theme="ember"] {
+  --background: oklch(0.98 0.01 85);
+  --foreground: oklch(0.25 0.04 45);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.25 0.04 45);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.25 0.04 45);
+  --primary: oklch(0.6 0.14 180);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.93 0.04 55);
+  --secondary-foreground: oklch(0.35 0.04 45);
+  --muted: oklch(0.95 0.02 85);
+  --muted-foreground: oklch(0.5 0.02 45);
+  --accent: oklch(0.72 0.16 35);
+  --accent-foreground: oklch(1 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.9 0.02 85);
+  --input: oklch(0.95 0.01 85);
+  --ring: oklch(0.6 0.14 180);
+  --radius: 1rem;
 
-  --coral: #FF6B6B;
-  --sage: #7DC4A6;
-  --lavender: #A78BDA;
-  --amber: #F5A623;
+  /* Cover color palette for books without images */
+  --cover-1: oklch(0.65 0.18 25);
+  --cover-2: oklch(0.6 0.14 180);
+  --cover-3: oklch(0.7 0.14 290);
+  --cover-4: oklch(0.78 0.14 95);
+  --cover-5: oklch(0.65 0.16 330);
+  --cover-6: oklch(0.72 0.16 35);
+}
 
-  --muted: #6b7280;
-  --muted-bg: #f3f0eb;
-  --border: #e5e0d8;
-
+/* ── Classic theme (original palette) ── */
+[data-theme="classic"] {
+  --background: oklch(0.98 0.01 75);
+  --foreground: oklch(0.18 0.01 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.01 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.01 0);
+  --primary: oklch(0.65 0.18 25);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.73 0.1 160);
+  --secondary-foreground: oklch(0.25 0.04 45);
+  --muted: oklch(0.95 0.01 75);
+  --muted-foreground: oklch(0.5 0.02 0);
+  --accent: oklch(0.7 0.14 290);
+  --accent-foreground: oklch(1 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.91 0.01 75);
+  --input: oklch(0.95 0.01 75);
+  --ring: oklch(0.65 0.18 25);
   --radius: 0.75rem;
+
+  --cover-1: oklch(0.65 0.18 25);
+  --cover-2: oklch(0.73 0.1 160);
+  --cover-3: oklch(0.7 0.14 290);
+  --cover-4: oklch(0.75 0.15 85);
+  --cover-5: oklch(0.6 0.14 180);
+  --cover-6: oklch(0.65 0.16 330);
 }
 
-.dashboard-dark {
-  --db-bg: #150f20;
-  --db-card: #1e1730;
-  --db-fg: #d4c8ee;
-  --db-primary: #CAB8EB;
-  --db-muted: #2a2040;
-  --db-muted-fg: rgba(202, 184, 235, 0.45);
-  --db-border: rgba(167, 139, 218, 0.25);
-  --db-accent: #A78BDA;
-  --db-card-border: rgba(167, 139, 218, 0.1);
-  --db-glow: rgba(167, 139, 218, 0.12);
-  --db-border-dashed: rgba(167, 139, 218, 0.25);
-  --db-status-ready: var(--sage);
-  --db-status-processing: var(--amber);
-  --db-status-error: var(--coral);
-}
-
-/* Dashboard header height — used for scroll-padding offsets */
-.dashboard-header {
-  height: 56px;
-}
-
-/* Dashboard two-panel layout */
-.dashboard-panels {
-  min-height: 100dvh;
-}
-
-.dashboard-panel {
-  display: flex;
-  flex-direction: column;
-}
-
-.dashboard-panel--orb {
-  align-items: center;
-  justify-content: center;
-  min-height: 40vh;
-  padding-top: 24px;
-  padding-bottom: 16px;
-}
-
-/* Orb responsive sizing */
-.reading-orb {
-  width: 240px;
-  height: 240px;
-}
-
-@media (min-width: 1025px) {
-  .reading-orb {
-    width: 320px;
-    height: 320px;
-  }
-}
-
-
-/* Tablet landscape: horizontal snap scroll */
-@media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
-  .dashboard-panels {
-    display: flex;
-    height: 100dvh;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-  }
-  .dashboard-panel {
-    min-width: 100vw;
-    height: 100dvh;
-    scroll-snap-align: start;
-  }
-  .dashboard-panel--library {
-    overflow-y: auto;
-    padding-top: 56px;
-  }
-}
-
-/* Mobile + tablet portrait: vertical snap scroll */
-@media (max-width: 767px), (max-width: 1024px) and (orientation: portrait) {
-  .dashboard-panels {
-    height: 100dvh;
-    overflow-y: auto;
-    scroll-snap-type: y mandatory;
-    scroll-padding-top: 56px;
-  }
-  .dashboard-panel {
-    min-height: 100dvh;
-    scroll-snap-align: start;
-  }
-  .dashboard-panel--library {
-    overflow-y: auto;
-    max-height: 100dvh;
-    padding-top: 56px;
-  }
+/* ── Voice session dark background ── */
+.voice-session-bg {
+  --vs-bg: oklch(0.15 0.02 290);
+  --vs-card: oklch(0.2 0.02 290);
+  --vs-fg: oklch(0.88 0.02 290);
+  --vs-primary: oklch(0.8 0.06 290);
+  --vs-muted: oklch(0.3 0.02 290);
+  --vs-muted-fg: oklch(0.65 0.03 290);
+  --vs-border: oklch(0.35 0.04 290);
 }
 
 @theme inline {
+  --font-sans: var(--font-nunito), 'Nunito', sans-serif;
+  --font-display: var(--font-baloo), 'Baloo 2', cursive;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-coral: var(--coral);
-  --color-sage: var(--sage);
-  --color-lavender: var(--lavender);
-  --color-amber: var(--amber);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
-  --color-muted-bg: var(--muted-bg);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
-  --font-sans: var(--font-nunito);
-  --font-display: var(--font-caveat);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-nunito), Arial, Helvetica, sans-serif;
-}
-
-/* Retheme voice-ui-kit on the call page:
-   lavender palette — harmonises with the orb's pink/purple tones.
-   @layer base prevents Tailwind v4 from stripping --color-* vars
-   that collide with its theme namespace. */
 @layer base {
-  .vkui-root.dark {
-    --color-active: #B89AE0;
-    --color-active-foreground: #CAB8EB;
-    --color-active-accent: rgba(167, 139, 218, 0.12);
-    --color-active-ring: rgba(167, 139, 218, 0.2);
-    --color-primary: #CAB8EB;
-    --color-primary-foreground: #1a1425;
-    --color-destructive: #E07A8A;
-    --color-destructive-foreground: #fff;
-    --color-secondary: rgba(167, 139, 218, 0.15);
-    --color-secondary-foreground: #CAB8EB;
-    --color-inactive: rgba(167, 139, 218, 0.45);
-    --color-inactive-foreground: #B89AE0;
-    --color-border: rgba(167, 139, 218, 0.25);
-    --color-input: rgba(167, 139, 218, 0.15);
-    --color-popover: #1e1730;
-    --color-popover-foreground: #d4c8ee;
-    --color-card: #1e1730;
-    --color-card-foreground: #d4c8ee;
-    --color-accent: rgba(167, 139, 218, 0.12);
-    --color-accent-foreground: #CAB8EB;
-    --color-muted: #2a2040;
-    --color-muted-foreground: rgba(202, 184, 235, 0.6);
-    --color-foreground: #d4c8ee;
-    --color-background: #150f20;
-    --color-ring: rgba(167, 139, 218, 0.3);
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
   }
 }
 
-/* Connect/Disconnect button: transparent fill, lavender border */
+/* Retheme voice-ui-kit — use voice session dark tokens */
+@layer base {
+  .vkui-root.dark {
+    --color-active: var(--vs-primary);
+    --color-active-foreground: var(--vs-fg);
+    --color-active-accent: oklch(from var(--vs-primary) l c h / 0.12);
+    --color-active-ring: oklch(from var(--vs-primary) l c h / 0.2);
+    --color-primary: var(--vs-primary);
+    --color-primary-foreground: var(--vs-bg);
+    --color-destructive: oklch(0.65 0.18 25);
+    --color-destructive-foreground: oklch(1 0 0);
+    --color-secondary: oklch(from var(--vs-primary) l c h / 0.15);
+    --color-secondary-foreground: var(--vs-primary);
+    --color-inactive: var(--vs-muted-fg);
+    --color-inactive-foreground: var(--vs-primary);
+    --color-border: var(--vs-border);
+    --color-input: oklch(from var(--vs-primary) l c h / 0.15);
+    --color-popover: var(--vs-card);
+    --color-popover-foreground: var(--vs-fg);
+    --color-card: var(--vs-card);
+    --color-card-foreground: var(--vs-fg);
+    --color-accent: oklch(from var(--vs-primary) l c h / 0.12);
+    --color-accent-foreground: var(--vs-primary);
+    --color-muted: var(--vs-muted);
+    --color-muted-foreground: var(--vs-muted-fg);
+    --color-foreground: var(--vs-fg);
+    --color-background: var(--vs-bg);
+    --color-ring: oklch(from var(--vs-primary) l c h / 0.3);
+  }
+}
+
 .voice-ui-kit [data-slot="button"] {
   background: transparent;
-  border: 1.5px solid rgba(184, 154, 224, 0.6);
-  color: #CAB8EB;
+  border: 1.5px solid oklch(from var(--vs-primary) l c h / 0.6);
+  color: var(--vs-primary);
 }
 
 .voice-ui-kit [data-slot="button"]:hover {
-  background: rgba(167, 139, 218, 0.1);
-  border-color: rgba(184, 154, 224, 0.85);
+  background: oklch(from var(--vs-primary) l c h / 0.1);
+  border-color: oklch(from var(--vs-primary) l c h / 0.85);
 }
-

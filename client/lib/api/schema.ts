@@ -21,6 +21,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/kids": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Kid */
+        post: operations["create_kid_kids_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/start": {
         parameters: {
             query?: never;
@@ -69,10 +86,41 @@ export interface components {
             /** Household Id */
             household_id: string;
         };
+        /** CreateKidRequest */
+        CreateKidRequest: {
+            /** Household Id */
+            household_id: string;
+            /** Name */
+            name: string;
+            /** Avatar */
+            avatar?: string | null;
+            /** Color */
+            color?: string | null;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** KidResponse */
+        KidResponse: {
+            /** Id */
+            id: string;
+            /** Household Id */
+            household_id: string;
+            /** Name */
+            name: string;
+            /** Avatar */
+            avatar?: string | null;
+            /** Color */
+            color?: string | null;
+        };
+        /** StartSessionRequest */
+        StartSessionRequest: {
+            /** Book Id */
+            book_id?: string | null;
+            /** Kid Id */
+            kid_id?: string | null;
         };
         /** StartSessionResponse */
         StartSessionResponse: {
@@ -146,6 +194,39 @@ export interface operations {
             };
         };
     };
+    create_kid_kids_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateKidRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KidResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     start_session_start_post: {
         parameters: {
             query?: never;
@@ -153,7 +234,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["StartSessionRequest"] | null;
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -162,6 +247,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StartSessionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

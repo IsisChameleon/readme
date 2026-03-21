@@ -17,6 +17,23 @@ MAX_RETRIES = 6
 T = TypeVar("T")
 
 
+def _dereference_schema(schema: dict) -> dict:
+    """Inline all $defs/$ref so Gemini gets a flat schema it can understand."""
+    defs = schema.pop("$defs", {})
+
+    def _resolve(obj: object) -> object:
+        if isinstance(obj, dict):
+            if "$ref" in obj:
+                ref_name = obj["$ref"].rsplit("/", 1)[-1]
+                return _resolve(defs[ref_name])
+            return {k: _resolve(v) for k, v in obj.items()}
+        if isinstance(obj, list):
+            return [_resolve(item) for item in obj]
+        return obj
+
+    return _resolve(schema)
+
+
 def is_quota_error(error: Exception) -> bool:
     message = str(error).upper()
     return "429" in message or "RESOURCE_EXHAUSTED" in message
@@ -58,6 +75,12 @@ def generate_structured(
     """Call Gemini with structured JSON output. Retries on quota errors."""
     client = get_client()
     contents = [prompt] if isinstance(prompt, str) else prompt
+
+    # Build a flat JSON schema (no $ref) for Gemini's response_schema parameter
+    schema = None
+    if issubclass(result_type, BaseModel):
+        schema = _dereference_schema(result_type.model_json_schema())
+
     for attempt in _make_retryer():
         with attempt:
             response = client.models.generate_content(
@@ -66,12 +89,11 @@ def generate_structured(
                 config=types.GenerateContentConfig(
                     temperature=0.0,
                     response_mime_type="application/json",
-                    response_schema=result_type,
+                    response_schema=schema if schema else result_type,
+                    max_output_tokens=65536,
+                    thinking_config=types.ThinkingConfig(thinking_budget=0),
                 ),
             )
-            if response.parsed is not None and isinstance(response.parsed, result_type):
-                return cast(T, response.parsed)
-            # Gemini may return a raw dict; validate through Pydantic
             raw = response.text or ""
             if not raw:
                 raise RuntimeError("Gemini returned empty response")

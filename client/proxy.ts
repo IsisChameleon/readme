@@ -30,7 +30,7 @@ export const proxy = async (request: NextRequest) => {
   // DEV: auth check bypassed — uncomment to enforce protected routes
   // const { data: { user } } = await supabase.auth.getUser();
   // const { pathname } = request.nextUrl;
-  // const isProtected = pathname.startsWith('/dashboard') || pathname.startsWith('/call');
+  // const isProtected = pathname.startsWith('/h/');
   // if (!user && isProtected) {
   //   const url = request.nextUrl.clone();
   //   url.pathname = '/';
@@ -41,5 +41,5 @@ export const proxy = async (request: NextRequest) => {
 };
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/call/:path*'],
+  matcher: ['/h/:path*'],
 };

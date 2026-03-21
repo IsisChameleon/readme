@@ -46,6 +46,47 @@
         }
       }
     },
+    "/kids": {
+      "post": {
+        "tags": [
+          "kids"
+        ],
+        "summary": "Create Kid",
+        "operationId": "create_kid_kids_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateKidRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KidResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/start": {
       "post": {
         "tags": [
@@ -53,6 +94,23 @@
         ],
         "summary": "Start Session",
         "operationId": "start_session_start_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/StartSessionRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Request"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -60,6 +118,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/StartSessionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -105,6 +173,46 @@
         ],
         "title": "Body_upload_book_books_upload_post"
       },
+      "CreateKidRequest": {
+        "properties": {
+          "household_id": {
+            "type": "string",
+            "title": "Household Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "avatar": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avatar"
+          },
+          "color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color"
+          }
+        },
+        "type": "object",
+        "required": [
+          "household_id",
+          "name"
+        ],
+        "title": "CreateKidRequest"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -117,6 +225,79 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "KidResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "household_id": {
+            "type": "string",
+            "title": "Household Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "avatar": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avatar"
+          },
+          "color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "household_id",
+          "name"
+        ],
+        "title": "KidResponse"
+      },
+      "StartSessionRequest": {
+        "properties": {
+          "book_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Book Id"
+          },
+          "kid_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kid Id"
+          }
+        },
+        "type": "object",
+        "title": "StartSessionRequest"
       },
       "StartSessionResponse": {
         "properties": {

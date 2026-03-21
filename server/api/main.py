@@ -7,6 +7,7 @@ from api.services.daily import DailyAPI
 from shared.config import settings
 
 from .routers.books import router as books_router
+from .routers.kids import router as kids_router
 from .routers.start import router as start_router
 
 
@@ -28,6 +29,7 @@ app.add_middleware(
 )
 
 app.include_router(books_router)
+app.include_router(kids_router)
 app.include_router(start_router)
 
 
