@@ -55,3 +55,4 @@ scripts/output/*.json
 .claude/plan/
 .cursor/
 scripts/input/*.pdf
+temp/
