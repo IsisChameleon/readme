@@ -24,15 +24,18 @@ export const proxy = async (request: NextRequest) => {
     }
   );
 
-  const { data: { user } } = await supabase.auth.getUser();
-  const { pathname } = request.nextUrl;
-  const isProtected = pathname.startsWith('/h/');
+  // Refresh session cookies (required by Supabase SSR)
+  await supabase.auth.getUser();
 
-  if (!user && isProtected) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/';
-    return NextResponse.redirect(url);
-  }
+  // DEV: auth check bypassed — uncomment to enforce protected routes
+  // const { data: { user } } = await supabase.auth.getUser();
+  // const { pathname } = request.nextUrl;
+  // const isProtected = pathname.startsWith('/h/');
+  // if (!user && isProtected) {
+  //   const url = request.nextUrl.clone();
+  //   url.pathname = '/';
+  //   return NextResponse.redirect(url);
+  // }
 
   return supabaseResponse;
 };
