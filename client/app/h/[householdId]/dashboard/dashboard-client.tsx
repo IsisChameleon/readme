@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, Upload, BarChart3, ArrowLeft } from 'lucide-react';
 import { KidSelector } from '@/components/KidSelector';
+import { AddKidDialog } from '@/components/AddKidDialog';
 import { BookCardNew } from '@/components/BookCardNew';
 import { BookUpload } from '@/components/BookUpload';
 import { SignOutButton } from '@/components/SignOutButton';
@@ -41,6 +42,7 @@ export const ParentDashboardClient = ({
   const router = useRouter();
   const [selectedKidId, setSelectedKidId] = useState<string | undefined>(kids[0]?.id);
   const [activeTab, setActiveTab] = useState<Tab>('library');
+  const [showAddKid, setShowAddKid] = useState(false);
 
   const handleDeleteBook = async (bookId: string) => {
     const supabase = createClient();
@@ -48,9 +50,7 @@ export const ParentDashboardClient = ({
     router.refresh();
   };
 
-  const handleAddKid = () => {
-    // TODO: Open add-kid dialog — Task 3.4
-  };
+  const handleAddKid = () => setShowAddKid(true);
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: 'library', label: 'Library', icon: <BookOpen className="w-4 h-4" /> },
@@ -172,6 +172,7 @@ export const ParentDashboardClient = ({
           )}
         </AnimatePresence>
       </div>
+      <AddKidDialog householdId={householdId} open={showAddKid} onClose={() => setShowAddKid(false)} />
     </div>
   );
 };
