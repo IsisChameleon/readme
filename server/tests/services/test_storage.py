@@ -33,7 +33,7 @@ def _mock_supabase():
 
 
 class TestDownloadPdf:
-    @patch("workers.pdf_pipeline.storage._get_client")
+    @patch("workers.pdf_pipeline.storage.get_client")
     def test_returns_bytes_and_title(self, mock_get_client):
         client, table_mock, storage_mock = _mock_supabase()
         mock_get_client.return_value = client
@@ -46,7 +46,7 @@ class TestDownloadPdf:
         assert title == "Test Book"
         storage_mock.download.assert_called_once_with("households/hh1/books/book_001/mybook.pdf")
 
-    @patch("workers.pdf_pipeline.storage._get_client")
+    @patch("workers.pdf_pipeline.storage.get_client")
     def test_raises_on_missing_book(self, mock_get_client):
         client, table_mock, _ = _mock_supabase()
         mock_get_client.return_value = client
@@ -57,7 +57,7 @@ class TestDownloadPdf:
 
 
 class TestUploadManuscript:
-    @patch("workers.pdf_pipeline.storage._get_client")
+    @patch("workers.pdf_pipeline.storage.get_client")
     def test_uploads_json_to_correct_path(self, mock_get_client):
         client, table_mock, storage_mock = _mock_supabase()
         mock_get_client.return_value = client
@@ -79,7 +79,7 @@ class TestUploadManuscript:
 
 
 class TestDownloadManuscript:
-    @patch("workers.pdf_pipeline.storage._get_client")
+    @patch("workers.pdf_pipeline.storage.get_client")
     def test_parses_json_to_manuscript(self, mock_get_client):
         client, table_mock, storage_mock = _mock_supabase()
         mock_get_client.return_value = client
@@ -101,7 +101,7 @@ class TestDownloadManuscript:
 
 
 class TestUpsertChunks:
-    @patch("workers.pdf_pipeline.storage._get_client")
+    @patch("workers.pdf_pipeline.storage.get_client")
     def test_deletes_then_inserts_then_updates_status(self, mock_get_client):
         client, table_mock, _ = _mock_supabase()
         mock_get_client.return_value = client
@@ -122,7 +122,7 @@ class TestUpsertChunks:
 
 
 class TestSetBookStatus:
-    @patch("shared.books._get_client")
+    @patch("shared.books.get_client")
     def test_updates_status(self, mock_get_client):
         client, table_mock, _ = _mock_supabase()
         mock_get_client.return_value = client

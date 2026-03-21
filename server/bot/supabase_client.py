@@ -2,28 +2,20 @@
 
 from __future__ import annotations
 
-from functools import lru_cache
-
 from loguru import logger
-from supabase import Client, create_client
 
-from shared.config import settings
-
-
-@lru_cache(maxsize=1)
-def _get_client() -> Client:
-    return create_client(settings.supabase.url, settings.supabase.secret_key)
+from shared.supabase import get_client
 
 
 def list_books() -> list[dict]:
     """Return all books where status='ready'."""
-    resp = _get_client().table("books").select("id, title, status").eq("status", "ready").execute()
+    resp = get_client().table("books").select("id, title, status").eq("status", "ready").execute()
     return resp.data or []
 
 
 def get_book_metadata(book_id: str) -> dict | None:
     """Return {id, title, status} or None."""
-    resp = _get_client().table("books").select("id, title, status").eq("id", book_id).execute()
+    resp = get_client().table("books").select("id, title, status").eq("id", book_id).execute()
     if not resp.data:
         return None
     return resp.data[0]
@@ -32,7 +24,7 @@ def get_book_metadata(book_id: str) -> dict | None:
 def get_book_chunks(book_id: str) -> list[dict]:
     """Fetch all chunks ordered by chunk_index."""
     resp = (
-        _get_client()
+        get_client()
         .table("book_chunks")
         .select("chunk_index, chunk_kind, chapter_title, chunk_hint, text")
         .eq("book_id", book_id)
@@ -45,7 +37,7 @@ def get_book_chunks(book_id: str) -> list[dict]:
 def get_reading_progress(book_id: str, kid_id: str) -> int:
     """Return current_chunk_index, default 0."""
     resp = (
-        _get_client()
+        get_client()
         .table("reading_progress")
         .select("current_chunk_index")
         .eq("book_id", book_id)
@@ -60,7 +52,7 @@ def get_reading_progress(book_id: str, kid_id: str) -> int:
 def get_kid_progress(kid_id: str) -> list[dict]:
     """Return all reading progress rows for a kid: [{book_id, current_chunk_index}, ...]."""
     resp = (
-        _get_client()
+        get_client()
         .table("reading_progress")
         .select("book_id, current_chunk_index")
         .eq("kid_id", kid_id)
@@ -72,7 +64,7 @@ def get_kid_progress(kid_id: str) -> list[dict]:
 def get_chunk_at(book_id: str, chunk_index: int) -> dict | None:
     """Fetch a single chunk from book_chunks by book_id and chunk_index."""
     resp = (
-        _get_client()
+        get_client()
         .table("book_chunks")
         .select("chapter_title, chunk_hint, text")
         .eq("book_id", book_id)
@@ -86,7 +78,7 @@ def get_chunk_at(book_id: str, chunk_index: int) -> dict | None:
 
 def save_reading_progress(book_id: str, kid_id: str, chunk_index: int) -> None:
     """Upsert reading_progress row."""
-    _get_client().table("reading_progress").upsert(
+    get_client().table("reading_progress").upsert(
         {
             "book_id": book_id,
             "kid_id": kid_id,
