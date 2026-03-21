@@ -122,7 +122,7 @@ class TestUpsertChunks:
 
 
 class TestSetBookStatus:
-    @patch("workers.pdf_pipeline.storage._get_client")
+    @patch("shared.books._get_client")
     def test_updates_status(self, mock_get_client):
         client, table_mock, _ = _mock_supabase()
         mock_get_client.return_value = client
