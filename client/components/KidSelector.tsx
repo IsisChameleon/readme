@@ -1,25 +1,23 @@
-"use client"
+'use client';
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { Plus } from "lucide-react"
-import { motion } from "framer-motion"
+import { Plus } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface Kid {
-  id: string
-  name: string
-  avatar: string | null
-  color: string | null
+  id: string;
+  name: string;
+  avatar: string | null;
+  color: string | null;
 }
 
 interface KidSelectorProps {
-  kids: Kid[]
-  selectedKidId?: string
-  onSelectKid: (kidId: string) => void
-  onAddKid?: () => void
+  kids: Kid[];
+  selectedKidId?: string;
+  onSelectKid: (kidId: string) => void;
+  onAddKid?: () => void;
 }
 
-export function KidSelector({ kids, selectedKidId, onSelectKid, onAddKid }: KidSelectorProps) {
+export const KidSelector = ({ kids, selectedKidId, onSelectKid, onAddKid }: KidSelectorProps) => {
   return (
     <div className="flex items-center gap-3 overflow-x-auto pb-2">
       {kids.map((kid) => (
@@ -30,19 +28,16 @@ export function KidSelector({ kids, selectedKidId, onSelectKid, onAddKid }: KidS
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          <Avatar
-            className={`w-16 h-16 border-4 transition-colors ${
+          <div
+            className={`w-16 h-16 rounded-full flex items-center justify-center border-4 transition-colors ${
               selectedKidId === kid.id ? 'border-primary shadow-lg' : 'border-transparent'
             }`}
             style={{ backgroundColor: kid.color ?? '#60A5FA' }}
           >
-            <AvatarFallback
-              className="text-2xl font-display text-white"
-              style={{ backgroundColor: kid.color ?? '#60A5FA' }}
-            >
+            <span className="text-2xl font-display text-white">
               {kid.avatar ?? kid.name[0]?.toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+            </span>
+          </div>
           <span className={`text-sm font-medium transition-colors ${
             selectedKidId === kid.id ? 'text-primary' : 'text-muted-foreground'
           }`}>
@@ -52,15 +47,13 @@ export function KidSelector({ kids, selectedKidId, onSelectKid, onAddKid }: KidS
       ))}
 
       {onAddKid && (
-        <Button
-          variant="outline"
-          size="icon"
-          className="w-16 h-16 rounded-full border-dashed"
+        <button
           onClick={onAddKid}
+          className="w-16 h-16 rounded-full border-2 border-dashed border-border flex items-center justify-center hover:border-primary transition-colors"
         >
-          <Plus className="w-6 h-6" />
-        </Button>
+          <Plus className="w-6 h-6 text-muted-foreground" />
+        </button>
       )}
     </div>
-  )
-}
+  );
+};
