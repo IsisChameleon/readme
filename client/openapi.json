@@ -94,6 +94,23 @@
         ],
         "summary": "Start Session",
         "operationId": "start_session_start_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/StartSessionRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Request"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -101,6 +118,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/StartSessionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -243,6 +270,34 @@
           "name"
         ],
         "title": "KidResponse"
+      },
+      "StartSessionRequest": {
+        "properties": {
+          "book_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Book Id"
+          },
+          "kid_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kid Id"
+          }
+        },
+        "type": "object",
+        "title": "StartSessionRequest"
       },
       "StartSessionResponse": {
         "properties": {

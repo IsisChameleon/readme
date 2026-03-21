@@ -115,6 +115,13 @@ export interface components {
             /** Color */
             color?: string | null;
         };
+        /** StartSessionRequest */
+        StartSessionRequest: {
+            /** Book Id */
+            book_id?: string | null;
+            /** Kid Id */
+            kid_id?: string | null;
+        };
         /** StartSessionResponse */
         StartSessionResponse: {
             /** Room Url */
@@ -227,7 +234,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["StartSessionRequest"] | null;
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -236,6 +247,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StartSessionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

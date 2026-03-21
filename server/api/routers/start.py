@@ -16,27 +16,45 @@ class StartSessionResponse(BaseModel):
     token: str
 
 
-async def _start_via_bot_runner(bot_url: str) -> dict:
+class StartSessionRequest(BaseModel):
+    book_id: str | None = None
+    kid_id: str | None = None
+
+
+async def _start_via_bot_runner(
+    bot_url: str, book_id: str | None = None, kid_id: str | None = None
+) -> dict:
     """Forward to the Pipecat bot runner, which creates the Daily room and runs the bot."""
+    body: dict = {"createDailyRoom": True}
+    if book_id:
+        body["book_id"] = book_id
+    if kid_id:
+        body["kid_id"] = kid_id
+
     async with aiohttp.ClientSession() as session:
         async with session.post(
             bot_url,
-            json={"createDailyRoom": True},
+            json=body,
             headers={"Content-Type": "application/json"},
         ) as resp:
             if resp.status >= 400:
-                body = await resp.text()
-                raise HTTPException(status_code=resp.status, detail=f"Bot /start failed: {body}")
+                body_text = await resp.text()
+                raise HTTPException(
+                    status_code=resp.status, detail=f"Bot /start failed: {body_text}"
+                )
             return await resp.json()
 
 
 @router.post("/start", response_model=StartSessionResponse)
-async def start_session() -> StartSessionResponse:
+async def start_session(request: StartSessionRequest | None = None) -> StartSessionResponse:
+    book_id = request.book_id if request else None
+    kid_id = request.kid_id if request else None
+
     if not settings.modal.app_name:
         # No Modal configured — use the bot runner directly
         bot_url = settings.bot.start_url
         try:
-            data = await _start_via_bot_runner(bot_url)
+            data = await _start_via_bot_runner(bot_url, book_id, kid_id)
         except aiohttp.ClientError as exc:
             logger.exception("Failed to reach bot at {}", bot_url)
             raise HTTPException(status_code=503, detail="Bot service unavailable.") from exc
@@ -55,6 +73,8 @@ async def start_session() -> StartSessionResponse:
         await modal.Function.from_name(settings.modal.app_name, "run_bot_session").spawn.aio(
             room_url=str(details.url),
             token=details.bot_token,
+            book_id=book_id,
+            kid_id=kid_id,
         )
     except Exception as exc:
         logger.exception("Failed to launch Modal bot session")
