@@ -22,6 +22,15 @@ from pipecat.frames.frames import (
 from pipecat.processors.aggregators.llm_context import LLMContext
 from pipecat.processors.frame_processor import FrameDirection  # noqa: I001
 
+from bot.processors.book_reader import (
+    INTENT_AFFIRM,
+    INTENT_ANSWER,
+    INTENT_WAIT_LONG,
+    INTENT_WAIT_SHORT,
+    BookReaderProcessor,
+    State,
+)
+
 FAKE_CHUNKS = [
     {
         "chunk_index": 0,
@@ -66,6 +75,11 @@ class _FrameCollector:
 
     def clear(self):
         self.frames.clear()
+
+
+def _make_processor() -> BookReaderProcessor:
+    context = LLMContext()
+    return BookReaderProcessor(kid_id="test_kid", context=context)
 
 
 @pytest.fixture

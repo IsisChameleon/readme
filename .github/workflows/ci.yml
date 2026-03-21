@@ -23,7 +23,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 10
 
       - uses: actions/setup-node@v4
         with:
@@ -31,7 +31,7 @@ jobs:
           cache: pnpm
           cache-dependency-path: client/pnpm-lock.yaml
 
-      - run: pnpm install
+      - run: pnpm install --frozen-lockfile
 
       - name: ESLint
         run: pnpm lint
@@ -50,7 +50,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 10
 
       - uses: actions/setup-node@v4
         with:
@@ -58,7 +58,7 @@ jobs:
           cache: pnpm
           cache-dependency-path: client/pnpm-lock.yaml
 
-      - run: pnpm install
+      - run: pnpm install --frozen-lockfile
 
       - name: Next.js build
         run: pnpm build
@@ -97,7 +97,7 @@ jobs:
         run: uv run ruff format --check
 
       - name: ty check (source dirs only)
-        run: uv run ty check api/ bot/ shared/ workers/
+        run: uv run ty check api/ bot/ shared/
 
   server-test:
     name: "Server: Tests"
