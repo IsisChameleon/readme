@@ -21,6 +21,7 @@ interface Kid {
 interface Book {
   id: string;
   title: string;
+  author: string;
   status: string;
   cover_image_url: string | null;
   created_at: string;
@@ -131,6 +132,7 @@ export const ParentDashboardClient = ({
                   book={{
                     id: book.id,
                     title: book.title,
+                    author: book.author,
                     status: book.status,
                     coverImageUrl: book.cover_image_url,
                   }}

@@ -11,7 +11,7 @@ export default async function ParentDashboardPage({
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  const actualHouseholdId = user?.id ?? 'dev';
+  const actualHouseholdId = user?.id ?? 'test_household';
   if (householdId !== actualHouseholdId) {
     redirect(`/h/${actualHouseholdId}/dashboard`);
   }
@@ -24,7 +24,7 @@ export default async function ParentDashboardPage({
       .order('created_at', { ascending: true }),
     supabase
       .from('books')
-      .select('id, title, status, cover_image_url, created_at')
+      .select('id, title, author, status, cover_image_url, created_at')
       .eq('household_id', householdId)
       .neq('status', 'deleted')
       .order('created_at', { ascending: false }),

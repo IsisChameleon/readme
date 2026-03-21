@@ -109,6 +109,7 @@ const ParentBookCard = ({
   const [menuOpen, setMenuOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(book.title);
+  const [editAuthor, setEditAuthor] = useState(book.author ?? 'Unknown');
   const [saving, setSaving] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -131,21 +132,33 @@ const ParentBookCard = ({
     return () => document.removeEventListener('mousedown', handleClick);
   }, [menuOpen]);
 
-  const handleRename = async () => {
-    const trimmed = editTitle.trim();
-    if (!trimmed || trimmed === book.title) {
+  const handleSave = async () => {
+    const trimmedTitle = editTitle.trim();
+    const trimmedAuthor = editAuthor.trim();
+    if (!trimmedTitle) {
       setEditing(false);
       setEditTitle(book.title);
+      setEditAuthor(book.author ?? 'Unknown');
+      return;
+    }
+
+    const updates: Record<string, string> = {};
+    if (trimmedTitle !== book.title) updates.title = trimmedTitle;
+    if (trimmedAuthor !== (book.author ?? 'Unknown')) updates.author = trimmedAuthor;
+
+    if (Object.keys(updates).length === 0) {
+      setEditing(false);
       return;
     }
 
     setSaving(true);
     try {
       const supabase = createClient();
-      await supabase.from('books').update({ title: trimmed }).eq('id', book.id);
+      await supabase.from('books').update(updates).eq('id', book.id);
       router.refresh();
     } catch {
       setEditTitle(book.title);
+      setEditAuthor(book.author ?? 'Unknown');
     } finally {
       setSaving(false);
       setEditing(false);
@@ -166,23 +179,37 @@ const ParentBookCard = ({
       </div>
       <div className="flex-1 min-w-0">
         {editing ? (
-          <input
-            ref={inputRef}
-            value={editTitle}
-            onChange={(e) => setEditTitle(e.target.value)}
-            onBlur={handleRename}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleRename();
-              if (e.key === 'Escape') { setEditing(false); setEditTitle(book.title); }
-            }}
-            disabled={saving}
-            className="w-full text-sm font-bold bg-transparent border-b border-primary outline-none"
-          />
+          <div className="space-y-1">
+            <input
+              ref={inputRef}
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSave();
+                if (e.key === 'Escape') { setEditing(false); setEditTitle(book.title); setEditAuthor(book.author ?? 'Unknown'); }
+              }}
+              disabled={saving}
+              placeholder="Title"
+              className="w-full text-sm font-bold bg-transparent border-b border-primary outline-none"
+            />
+            <input
+              value={editAuthor}
+              onChange={(e) => setEditAuthor(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSave();
+                if (e.key === 'Escape') { setEditing(false); setEditTitle(book.title); setEditAuthor(book.author ?? 'Unknown'); }
+              }}
+              onBlur={handleSave}
+              disabled={saving}
+              placeholder="Author"
+              className="w-full text-xs bg-transparent border-b border-muted-foreground/30 outline-none text-muted-foreground"
+            />
+          </div>
         ) : (
-          <h3 className="font-bold text-sm truncate">{book.title}</h3>
-        )}
-        {book.author && (
-          <p className="text-xs text-muted-foreground truncate">{book.author}</p>
+          <>
+            <h3 className="font-bold text-sm truncate">{book.title}</h3>
+            <p className="text-xs text-muted-foreground truncate">{book.author}</p>
+          </>
         )}
         <span className="text-xs text-muted-foreground capitalize">{book.status}</span>
         {progress > 0 && (
@@ -207,7 +234,7 @@ const ParentBookCard = ({
               className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted transition-colors"
             >
               <PencilLine className="w-4 h-4" />
-              Rename
+              Edit
             </button>
             {onDelete && (
               <button
