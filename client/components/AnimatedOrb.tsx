@@ -1,6 +1,5 @@
 'use client';
 
-import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { EmberDragon } from '@/components/EmberDragon';
 
