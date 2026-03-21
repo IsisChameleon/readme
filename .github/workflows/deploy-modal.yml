@@ -24,8 +24,78 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  verify-env-nospace:
+    name: "Verify token: readme/dev"
+    runs-on: ubuntu-latest
+    environment: ${{ github.event_name == 'workflow_dispatch' && format('readme/{0}', github.event.inputs.env) || 'readme/dev' }}
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - name: Check secrets from readme/dev
+        run: |
+          echo "=== Environment: readme/dev ==="
+          echo "MODAL_TOKEN_ID is set: $([ -n "$MODAL_TOKEN_ID" ] && echo 'YES' || echo 'NO')"
+          echo "MODAL_TOKEN_ID length: ${#MODAL_TOKEN_ID}"
+          echo "MODAL_TOKEN_SECRET is set: $([ -n "$MODAL_TOKEN_SECRET" ] && echo 'YES' || echo 'NO')"
+          echo "MODAL_TOKEN_SECRET length: ${#MODAL_TOKEN_SECRET}"
+
+      - uses: actions/checkout@v4
+        if: env.MODAL_TOKEN_ID != ''
+      - uses: actions/setup-python@v5
+        if: env.MODAL_TOKEN_ID != ''
+        with:
+          python-version: "3.13"
+      - uses: astral-sh/setup-uv@v6
+        if: env.MODAL_TOKEN_ID != ''
+        with:
+          enable-cache: true
+      - name: Install & verify token
+        if: env.MODAL_TOKEN_ID != ''
+        run: |
+          uv sync --project infra
+          echo "Running: modal token verify"
+          uv run --project infra modal token verify && echo "TOKEN VALID" || echo "TOKEN INVALID"
+
+  verify-env-space:
+    name: "Verify token: readme / dev"
+    needs: verify-env-nospace
+    if: always()
+    runs-on: ubuntu-latest
+    environment: ${{ github.event_name == 'workflow_dispatch' && format('readme / {0}', github.event.inputs.env) || 'readme / dev' }}
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - name: Check secrets from readme / dev
+        run: |
+          echo "=== Environment: readme / dev ==="
+          echo "MODAL_TOKEN_ID is set: $([ -n "$MODAL_TOKEN_ID" ] && echo 'YES' || echo 'NO')"
+          echo "MODAL_TOKEN_ID length: ${#MODAL_TOKEN_ID}"
+          echo "MODAL_TOKEN_SECRET is set: $([ -n "$MODAL_TOKEN_SECRET" ] && echo 'YES' || echo 'NO')"
+          echo "MODAL_TOKEN_SECRET length: ${#MODAL_TOKEN_SECRET}"
+
+      - uses: actions/checkout@v4
+        if: env.MODAL_TOKEN_ID != ''
+      - uses: actions/setup-python@v5
+        if: env.MODAL_TOKEN_ID != ''
+        with:
+          python-version: "3.13"
+      - uses: astral-sh/setup-uv@v6
+        if: env.MODAL_TOKEN_ID != ''
+        with:
+          enable-cache: true
+      - name: Install & verify token
+        if: env.MODAL_TOKEN_ID != ''
+        run: |
+          uv sync --project infra
+          echo "Running: modal token verify"
+          uv run --project infra modal token verify && echo "TOKEN VALID" || echo "TOKEN INVALID"
+
   deploy:
     name: Deploy Modal app
+    needs: [verify-env-nospace, verify-env-space]
+    if: always()
     runs-on: ubuntu-latest
     environment: ${{ github.event_name == 'workflow_dispatch' && format('readme / {0}', github.event.inputs.env) || 'readme / dev' }}
     permissions:
@@ -51,10 +121,19 @@ jobs:
       - name: Install infra dependencies
         run: uv sync --project infra
 
-      - name: Validate Modal credentials
+      - name: Debug info
         run: |
-          test -n "${MODAL_TOKEN_ID}"
-          test -n "${MODAL_TOKEN_SECRET}"
+          echo "ENV: $ENV"
+          echo "GitHub event: ${{ github.event_name }}"
+          echo "GitHub ref: ${{ github.ref }}"
+          echo "Python: $(python --version)"
+          echo "uv: $(uv --version)"
+          echo "Modal: $(uv run --project infra python -c 'import modal; print(modal.__version__)')"
+          echo "MODAL_TOKEN_ID is set: $([ -n "$MODAL_TOKEN_ID" ] && echo 'YES' || echo 'NO')"
+          echo "MODAL_TOKEN_ID length: ${#MODAL_TOKEN_ID}"
+
+      - name: Verify Modal token
+        run: uv run --project infra modal token verify
 
       - name: Deploy
         run: uv run --project infra modal deploy infra/main.py
