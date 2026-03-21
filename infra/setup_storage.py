@@ -21,7 +21,7 @@ load_dotenv(repo_root / ".env")
 
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_SECRET_KEY = os.getenv("SUPABASE_SECRET_KEY") or os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
-BUCKET_NAME = os.getenv("SUPABASE_BOOKS_BUCKET", "books")
+BUCKET_NAME = os.getenv("SUPABASE_BOOKS_BUCKET", "readme_dev")
 
 
 def main() -> None:

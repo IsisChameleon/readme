@@ -1,7 +1,7 @@
 [supabase]
 url = "${SUPABASE_URL}"
 secret_key = "${SUPABASE_SECRET_KEY}"
-books_bucket = "books"
+books_bucket = "readme_dev"
 
 [daily]
 api_key = "${DAILY_API_KEY}"

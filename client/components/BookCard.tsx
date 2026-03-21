@@ -16,19 +16,19 @@ interface Book {
   progress?: number;
 }
 
-interface BookCardNewProps {
+interface BookCardProps {
   book: Book;
   variant?: 'parent' | 'kid';
   onStartReading?: (bookId: string) => void;
   onDelete?: (bookId: string) => void;
 }
 
-export const BookCardNew = ({
+export const BookCard = ({
   book,
   variant = 'kid',
   onStartReading,
   onDelete,
-}: BookCardNewProps) => {
+}: BookCardProps) => {
   const progress = book.progress ?? 0;
   const coverColor = getCoverColor(book.id);
 

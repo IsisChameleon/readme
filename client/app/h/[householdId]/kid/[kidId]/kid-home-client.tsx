@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import { EmberDragon } from '@/components/EmberDragon';
-import { BookCardNew } from '@/components/BookCardNew';
+import { BookCard } from '@/components/BookCard';
 
 interface Kid {
   id: string;
@@ -78,7 +78,7 @@ export const KidHomeClient = ({ householdId, kid, books }: KidHomeClientProps) =
             <h3 className="text-lg font-display font-bold mb-3">Continue Reading</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {inProgress.map((book) => (
-                <BookCardNew
+                <BookCard
                   key={book.id}
                   book={{
                     id: book.id,
@@ -100,7 +100,7 @@ export const KidHomeClient = ({ householdId, kid, books }: KidHomeClientProps) =
           <h3 className="text-lg font-display font-bold mb-3">My Books</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {books.map((book) => (
-              <BookCardNew
+              <BookCard
                 key={book.id}
                 book={{
                   id: book.id,

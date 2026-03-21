@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, Upload, BarChart3, ArrowLeft } from 'lucide-react';
 import { KidSelector } from '@/components/KidSelector';
 import { AddKidDialog } from '@/components/AddKidDialog';
-import { BookCardNew } from '@/components/BookCardNew';
+import { BookCard } from '@/components/BookCard';
 import { BookUpload } from '@/components/BookUpload';
 import { SignOutButton } from '@/components/SignOutButton';
 import { createClient } from '@/lib/supabase/client';
@@ -127,7 +127,7 @@ export const ParentDashboardClient = ({
               className="space-y-3"
             >
               {books.map((book) => (
-                <BookCardNew
+                <BookCard
                   key={book.id}
                   book={{
                     id: book.id,

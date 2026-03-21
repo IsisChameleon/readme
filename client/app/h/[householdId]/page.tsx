@@ -12,7 +12,7 @@ export default async function HouseholdPage({
   const { data: { user } } = await supabase.auth.getUser();
 
   // Validate household ownership
-  const actualHouseholdId = user?.id ?? 'dev';
+  const actualHouseholdId = user?.id ?? 'test_household';
   if (householdId !== actualHouseholdId) {
     redirect(`/h/${actualHouseholdId}`);
   }
