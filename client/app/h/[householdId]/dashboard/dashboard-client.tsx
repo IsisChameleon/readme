@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, Upload, BarChart3, ArrowLeft } from 'lucide-react';
+import { BookOpen, Upload, BarChart3, ArrowLeft, Clock, BookMarked } from 'lucide-react';
 import { KidSelector } from '@/components/KidSelector';
 import { AddKidDialog } from '@/components/AddKidDialog';
 import { BookCard } from '@/components/BookCard';
@@ -62,39 +62,71 @@ export const ParentDashboardClient = ({
   return (
     <div className="min-h-dvh bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur border-b border-border px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => router.push(`/h/${householdId}`)}
-            className="p-2 rounded-lg hover:bg-muted transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <h1 className="text-xl font-display font-bold text-primary">EmberTales</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <SignOutButton />
+      <header className="sticky top-0 z-10 border-b border-border bg-card">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => router.push(`/h/${householdId}`)}
+                className="p-2 rounded-lg hover:bg-muted transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
+                <BookOpen className="w-5 h-5 text-primary-foreground" />
+              </div>
+              <div>
+                <h1 className="font-display text-xl font-bold text-foreground">EmberTales</h1>
+                <p className="text-sm text-muted-foreground">Parent Dashboard</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <SignOutButton />
+            </div>
+          </div>
         </div>
       </header>
 
-      <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+      <div className="container mx-auto px-4 py-6 space-y-6">
         {/* Kid selector */}
-        <KidSelector
+        <section>
+          <h2 className="text-sm font-medium text-muted-foreground mb-3">Select Child</h2>
+          <KidSelector
           kids={kids}
           selectedKidId={selectedKidId}
           onSelectKid={setSelectedKidId}
           onAddKid={handleAddKid}
         />
+        </section>
 
         {/* Stats grid */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="rounded-xl border border-border bg-card p-4">
-            <p className="text-2xl font-bold">{books.filter((b) => b.status === 'ready').length}</p>
-            <p className="text-sm text-muted-foreground">Books Ready</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="rounded-xl border border-border bg-card p-4 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+              <BookOpen className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{books.filter((b) => b.status === 'ready').length}</p>
+              <p className="text-sm text-muted-foreground">Books Read</p>
+            </div>
           </div>
-          <div className="rounded-xl border border-border bg-card p-4">
-            <p className="text-2xl font-bold">{books.filter((b) => b.status === 'processing').length}</p>
-            <p className="text-sm text-muted-foreground">Processing</p>
+          <div className="rounded-xl border border-border bg-card p-4 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center">
+              <Clock className="w-5 h-5 text-accent" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">&mdash;</p>
+              <p className="text-sm text-muted-foreground">Reading Time</p>
+            </div>
+          </div>
+          <div className="rounded-xl border border-border bg-card p-4 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center">
+              <BookMarked className="w-5 h-5 text-amber-500" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{books.length}</p>
+              <p className="text-sm text-muted-foreground">Total Books</p>
+            </div>
           </div>
         </div>
 
@@ -124,7 +156,7 @@ export const ParentDashboardClient = ({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="space-y-3"
+              className="grid grid-cols-1 lg:grid-cols-2 gap-4"
             >
               {books.map((book) => (
                 <BookCard
@@ -155,7 +187,9 @@ export const ParentDashboardClient = ({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
             >
-              <BookUpload householdId={householdId} />
+              <div className="max-w-2xl">
+                <BookUpload householdId={householdId} />
+              </div>
             </motion.div>
           )}
 
