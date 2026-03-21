@@ -56,3 +56,4 @@ scripts/output/*.json
 .cursor/
 scripts/input/*.pdf
 temp/
+server/scripts/manuscript*.json
