@@ -12,16 +12,8 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
   return (
     <html lang="en" data-theme="ember">
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `window.__NEXT_PUBLIC_API_BASE_URL__ = ${JSON.stringify(apiBaseUrl)};`,
-          }}
-        />
-      </head>
       <body className={`${baloo.variable} ${nunito.variable} antialiased`}>
         {children}
         <Toaster />
