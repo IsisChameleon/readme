@@ -1,1 +1,0 @@
-ALTER TABLE books ADD COLUMN author TEXT NOT NULL DEFAULT 'Unknown';

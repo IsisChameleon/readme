@@ -1,0 +1,49 @@
+name: Deploy Supabase Migrations
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "supabase/migrations/**"
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      env:
+        description: "Target environment"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - prod
+
+concurrency:
+  group: supabase-migrate-${{ github.event.inputs.env || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    name: Push migrations (${{ github.event_name == 'release' && 'prod' || github.event.inputs.env || 'dev' }})
+    runs-on: ubuntu-latest
+    environment: ${{ github.event_name == 'release' && 'readme / prod' || format('readme / {0}', github.event.inputs.env || 'dev') }}
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Verify DB URL is set
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then
+            echo "::error::SUPABASE_DB_URL secret is not set for this environment"
+            exit 1
+          fi
+          echo "Target: ${{ github.event_name == 'release' && 'prod' || github.event.inputs.env || 'dev' }}"
+
+      - name: Push migrations
+        run: supabase db push --db-url "$SUPABASE_DB_URL"
