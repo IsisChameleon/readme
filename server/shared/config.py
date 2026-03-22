@@ -51,6 +51,7 @@ class UploadSettings(BaseModel):
 
 class CorsSettings(BaseModel):
     allowed_origins: list[str] = ["http://localhost:3000"]
+    allowed_origin_regex: str = ""
 
 
 _TOML_PATH = Path(__file__).resolve().parent.parent / "settings.toml"
