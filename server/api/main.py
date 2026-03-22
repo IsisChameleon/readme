@@ -24,6 +24,7 @@ app = FastAPI(title="Readme API", version="0.1.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,  # type: ignore[arg-type]
     allow_origins=settings.cors.allowed_origins,
+    allow_origin_regex=settings.cors.allowed_origin_regex or None,
     allow_methods=["*"],
     allow_headers=["*"],
 )

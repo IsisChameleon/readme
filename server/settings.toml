@@ -25,3 +25,4 @@ max_bytes = 26214400
 
 [cors]
 allowed_origins = ["http://localhost:3000"]
+allowed_origin_regex = 'https://.*\.vusercontent\.net'
