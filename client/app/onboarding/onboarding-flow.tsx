@@ -8,6 +8,7 @@ import { apiClient } from '@/lib/api/client';
 import { toast } from '@/hooks/use-toast';
 import { BookUploadOnboarding } from './book-upload-onboarding';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 
 const COLOR_OPTIONS = [
   '#F472B6', '#60A5FA', '#34D399', '#FBBF24', '#A78BFA', '#FB923C',
@@ -54,7 +55,14 @@ export function OnboardingFlow({ householdId }: OnboardingFlowProps) {
     }
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
+    // Mark onboarding as completed
+    const supabase = createClient();
+    await supabase
+      .from('households')
+      .update({ onboarding_completed: true })
+      .eq('id', householdId);
+
     router.push(`/h/${householdId}`);
     router.refresh();
   };

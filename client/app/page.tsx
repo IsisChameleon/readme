@@ -10,18 +10,18 @@ export default async function RootPage() {
     redirect('/auth/login');
   }
 
-  // Check if user has completed onboarding (has at least one kid)
-  const { data: kids } = await supabase
-    .from('kids')
-    .select('id')
-    .eq('household_id', user.id)
-    .limit(1);
+  // Check if user has completed onboarding
+  const { data: household } = await supabase
+    .from('households')
+    .select('onboarding_completed')
+    .eq('id', user.id)
+    .single();
 
-  // No kids = needs onboarding
-  if (!kids || kids.length === 0) {
+  // No household or onboarding not complete = needs onboarding
+  if (!household?.onboarding_completed) {
     redirect('/onboarding');
   }
 
-  // Has kids = go to household page
+  // Onboarding complete = go to household page
   redirect(`/h/${user.id}`);
 }

@@ -38,15 +38,25 @@ export const GET = async (request: NextRequest) => {
   const { data: { user } } = await supabase.auth.getUser();
   
   if (user) {
-    // Check if user has any kids (first-time user check)
-    const { data: kids } = await supabase
-      .from('kids')
-      .select('id')
-      .eq('household_id', user.id)
-      .limit(1);
+    // Check if household exists (should be auto-created by trigger, but handle edge cases)
+    const { data: household } = await supabase
+      .from('households')
+      .select('id, onboarding_completed')
+      .eq('id', user.id)
+      .single();
 
-    // If no kids, redirect to onboarding
-    if (!kids || kids.length === 0) {
+    // If no household exists (trigger didn't fire or edge case), create one
+    if (!household) {
+      await supabase.from('households').insert({
+        id: user.id,
+        name: user.user_metadata?.full_name || user.email,
+        onboarding_completed: false,
+      });
+      return NextResponse.redirect(`${origin}/onboarding`);
+    }
+
+    // If onboarding not completed, redirect to onboarding
+    if (!household.onboarding_completed) {
       return NextResponse.redirect(`${origin}/onboarding`);
     }
   }

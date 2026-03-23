@@ -10,15 +10,25 @@ export default async function OnboardingPage() {
     redirect('/auth/login');
   }
 
-  // Check if user already has kids (already onboarded)
-  const { data: kids } = await supabase
-    .from('kids')
-    .select('id')
-    .eq('household_id', user.id)
-    .limit(1);
+  // Check if user has completed onboarding
+  const { data: household } = await supabase
+    .from('households')
+    .select('onboarding_completed')
+    .eq('id', user.id)
+    .single();
 
-  if (kids && kids.length > 0) {
+  // If already completed onboarding, go to dashboard
+  if (household?.onboarding_completed) {
     redirect(`/h/${user.id}`);
+  }
+
+  // If no household exists, create one (edge case)
+  if (!household) {
+    await supabase.from('households').insert({
+      id: user.id,
+      name: user.user_metadata?.full_name || user.email,
+      onboarding_completed: false,
+    });
   }
 
   return <OnboardingFlow householdId={user.id} />;

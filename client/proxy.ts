@@ -31,6 +31,7 @@ export const proxy = async (request: NextRequest) => {
   // Public routes that don't require authentication
   const publicRoutes = ['/auth/login', '/auth/signup', '/auth/verify', '/auth/callback'];
   const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route));
+  const isOnboardingRoute = pathname.startsWith('/onboarding');
 
   // If not logged in and trying to access protected route, redirect to login
   if (!user && !isPublicRoute) {
@@ -39,11 +40,38 @@ export const proxy = async (request: NextRequest) => {
     return NextResponse.redirect(url);
   }
 
-  // If logged in and trying to access auth pages (except callback), redirect to home
+  // If logged in and trying to access auth pages (except callback), redirect appropriately
   if (user && isPublicRoute && pathname !== '/auth/callback') {
+    // Check if onboarding is complete
+    const { data: household } = await supabase
+      .from('households')
+      .select('onboarding_completed')
+      .eq('id', user.id)
+      .single();
+
     const url = request.nextUrl.clone();
-    url.pathname = '/';
+    if (!household?.onboarding_completed) {
+      url.pathname = '/onboarding';
+    } else {
+      url.pathname = '/';
+    }
     return NextResponse.redirect(url);
+  }
+
+  // If logged in, not on auth pages, and not on onboarding - check onboarding status
+  if (user && !isPublicRoute && !isOnboardingRoute) {
+    const { data: household } = await supabase
+      .from('households')
+      .select('onboarding_completed')
+      .eq('id', user.id)
+      .single();
+
+    // If no household or onboarding not completed, redirect to onboarding
+    if (!household?.onboarding_completed) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/onboarding';
+      return NextResponse.redirect(url);
+    }
   }
 
   return supabaseResponse;
