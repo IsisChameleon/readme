@@ -7,7 +7,7 @@ export const GET = async (request: NextRequest) => {
   const code = searchParams.get('code');
 
   if (!code) {
-    return NextResponse.redirect(`${origin}/`);
+    return NextResponse.redirect(`${origin}/auth/login`);
   }
 
   const cookieStore = await cookies();
@@ -31,8 +31,26 @@ export const GET = async (request: NextRequest) => {
 
   if (error) {
     console.error('[auth/callback] exchangeCodeForSession error:', error.message, error);
-    return NextResponse.redirect(`${origin}/`);
+    return NextResponse.redirect(`${origin}/auth/login?error=auth_failed`);
   }
 
-  return NextResponse.redirect(`${origin}/dashboard`);
+  // Get user to check if they need onboarding
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (user) {
+    // Check if user has any kids (first-time user check)
+    const { data: kids } = await supabase
+      .from('kids')
+      .select('id')
+      .eq('household_id', user.id)
+      .limit(1);
+
+    // If no kids, redirect to onboarding
+    if (!kids || kids.length === 0) {
+      return NextResponse.redirect(`${origin}/onboarding`);
+    }
+  }
+
+  // Redirect to home (which will redirect to household page)
+  return NextResponse.redirect(`${origin}/`);
 };
