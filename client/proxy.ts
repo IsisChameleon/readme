@@ -25,6 +25,20 @@ export const proxy = async (request: NextRequest) => {
     }
   );
 
+  // If any page receives a ?code= param, forward to the auth callback
+  // (Supabase password reset emails may land on site_url instead of redirectTo)
+  const code = request.nextUrl.searchParams.get('code');
+  if (code && pathname !== '/auth/callback') {
+    const url = request.nextUrl.clone();
+    url.pathname = '/auth/callback';
+    url.searchParams.set('code', code);
+    // Preserve the source path so callback knows where to redirect after
+    if (pathname === '/auth/login' || pathname === '/auth/forgot-password') {
+      url.searchParams.set('next', '/auth/reset-password');
+    }
+    return NextResponse.redirect(url);
+  }
+
   // Refresh session and get user
   const { data: { user } } = await supabase.auth.getUser();
 
