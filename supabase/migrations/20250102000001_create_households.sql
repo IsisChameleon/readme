@@ -47,8 +47,14 @@ create trigger on_auth_user_created
     execute function public.handle_new_user();
 
 -- Update kids and books to reference households
+-- Drop all policies that depend on household_id before type change
+drop policy if exists "kids_dev_bypass" on kids;
+drop policy if exists "kids_select_own_household" on kids;
+drop policy if exists "reading_progress_dev_bypass" on reading_progress;
+drop policy if exists "reading_progress_select_own_household" on reading_progress;
+
 -- First, alter kids table to use uuid for household_id
-alter table kids 
+alter table kids
     alter column household_id type uuid using household_id::uuid;
 
 alter table kids
@@ -96,3 +102,7 @@ create policy "books_update_own_household" on books
 
 create policy "books_delete_own_household" on books
     for delete using (household_id = auth.uid());
+
+-- Re-create reading_progress policy with uuid comparison (was using ::text cast)
+create policy "reading_progress_select_own_household" on reading_progress
+    for select using (kid_id in (select id from kids where household_id = auth.uid()));
