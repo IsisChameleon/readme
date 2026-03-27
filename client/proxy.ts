@@ -55,7 +55,7 @@ export const proxy = async (request: NextRequest) => {
   }
 
   // If logged in and trying to access auth pages (except callback), redirect appropriately
-  if (user && isPublicRoute && pathname !== '/auth/callback') {
+  if (user && isPublicRoute && pathname !== '/auth/callback' && pathname !== '/auth/reset-password') {
     // Check if onboarding is complete
     const { data: household } = await supabase
       .from('households')
