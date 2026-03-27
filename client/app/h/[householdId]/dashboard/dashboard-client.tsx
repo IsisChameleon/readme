@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, Upload, BarChart3, ArrowLeft, Clock, BookMarked } from 'lucide-react';
 import { KidSelector } from '@/components/KidSelector';
 import { AddKidDialog } from '@/components/AddKidDialog';
+import { EditKidDialog } from '@/components/EditKidDialog';
 import { BookCard } from '@/components/BookCard';
 import { BookUpload } from '@/components/BookUpload';
 import { SignOutButton } from '@/components/SignOutButton';
@@ -44,6 +45,7 @@ export const ParentDashboardClient = ({
   const [selectedKidId, setSelectedKidId] = useState<string | undefined>(kids[0]?.id);
   const [activeTab, setActiveTab] = useState<Tab>('library');
   const [showAddKid, setShowAddKid] = useState(false);
+  const [editingKid, setEditingKid] = useState<Kid | null>(null);
 
   const handleDeleteBook = async (bookId: string) => {
     const supabase = createClient();
@@ -96,6 +98,7 @@ export const ParentDashboardClient = ({
           selectedKidId={selectedKidId}
           onSelectKid={setSelectedKidId}
           onAddKid={handleAddKid}
+          onEditKid={(kid) => setEditingKid(kid)}
         />
         </section>
 
@@ -209,6 +212,13 @@ export const ParentDashboardClient = ({
         </AnimatePresence>
       </div>
       <AddKidDialog householdId={householdId} open={showAddKid} onClose={() => setShowAddKid(false)} />
+      {editingKid && (
+        <EditKidDialog
+          kid={editingKid}
+          open={!!editingKid}
+          onClose={() => setEditingKid(null)}
+        />
+      )}
     </div>
   );
 };
