@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, Upload, BarChart3, ArrowLeft, Clock, BookMarked } from 'lucide-react';
+import { BookOpen, BarChart3, ArrowLeft, Clock, BookMarked } from 'lucide-react';
 import { KidSelector } from '@/components/KidSelector';
 import { AddKidDialog } from '@/components/AddKidDialog';
 import { EditKidDialog } from '@/components/EditKidDialog';
@@ -28,7 +28,7 @@ interface Book {
   created_at: string;
 }
 
-type Tab = 'library' | 'upload' | 'progress';
+type Tab = 'library' | 'progress';
 
 interface ParentDashboardClientProps {
   householdId: string;
@@ -57,7 +57,6 @@ export const ParentDashboardClient = ({
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: 'library', label: 'Library', icon: <BookOpen className="w-4 h-4" /> },
-    { id: 'upload', label: 'Upload', icon: <Upload className="w-4 h-4" /> },
     { id: 'progress', label: 'Progress', icon: <BarChart3 className="w-4 h-4" /> },
   ];
 
@@ -159,39 +158,34 @@ export const ParentDashboardClient = ({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="grid grid-cols-1 lg:grid-cols-2 gap-4"
+              className="space-y-6"
             >
-              {books.map((book) => (
-                <BookCard
-                  key={book.id}
-                  book={{
-                    id: book.id,
-                    title: book.title,
-                    author: book.author,
-                    status: book.status,
-                    coverImageUrl: book.cover_image_url,
-                  }}
-                  variant="parent"
-                  onDelete={handleDeleteBook}
-                />
-              ))}
-              {books.length === 0 && (
-                <p className="text-center text-muted-foreground py-8">
-                  No books yet. Upload one to get started!
-                </p>
-              )}
-            </motion.div>
-          )}
-
-          {activeTab === 'upload' && (
-            <motion.div
-              key="upload"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-            >
+              {/* Upload zone at top of library */}
               <div className="max-w-2xl">
                 <BookUpload householdId={householdId} />
+              </div>
+
+              {/* Book grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {books.map((book) => (
+                  <BookCard
+                    key={book.id}
+                    book={{
+                      id: book.id,
+                      title: book.title,
+                      author: book.author,
+                      status: book.status,
+                      coverImageUrl: book.cover_image_url,
+                    }}
+                    variant="parent"
+                    onDelete={handleDeleteBook}
+                  />
+                ))}
+                {books.length === 0 && (
+                  <p className="col-span-full text-center text-muted-foreground py-8">
+                    No books yet. Drop a PDF above to get started.
+                  </p>
+                )}
               </div>
             </motion.div>
           )}
