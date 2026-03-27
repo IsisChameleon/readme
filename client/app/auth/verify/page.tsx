@@ -31,9 +31,11 @@ export default function VerifyPage() {
           </p>
 
           <div className="space-y-3">
-            <Button asChild variant="outline" className="w-full">
-              <Link href="/auth/login">Back to Sign In</Link>
-            </Button>
+            <Link href="/auth/login">
+              <Button variant="outline" className="w-full">
+                Back to Sign In
+              </Button>
+            </Link>
           </div>
 
           <p className="text-xs text-muted-foreground mt-6">

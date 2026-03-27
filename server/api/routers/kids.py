@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import Response
 from loguru import logger
 from pydantic import BaseModel, field_validator
 from supabase import Client, create_client
@@ -80,3 +81,61 @@ async def create_kid(request: CreateKidRequest) -> KidResponse:
         avatar=row.get("avatar"),
         color=row.get("color"),
     )
+
+
+class UpdateKidRequest(BaseModel):
+    name: str | None = None
+    color: str | None = None
+
+    @field_validator("name")
+    @classmethod
+    def name_not_empty(cls, v: str | None) -> str | None:
+        if v is not None and not v.strip():
+            raise ValueError("name must not be empty")
+        return v.strip() if v else v
+
+
+@router.patch("/{kid_id}", response_model=KidResponse)
+async def update_kid(kid_id: str, request: UpdateKidRequest) -> KidResponse:
+    updates = request.model_dump(exclude_none=True)
+    if not updates:
+        raise HTTPException(status_code=400, detail="No fields to update")
+
+    if "name" in updates:
+        updates["avatar"] = updates["name"][0].upper()
+
+    client = _supabase_client()
+    try:
+        result = client.table("kids").update(updates).eq("id", kid_id).execute()
+    except Exception as exc:
+        logger.exception("Failed to update kid")
+        raise HTTPException(status_code=500, detail="Failed to update kid.") from exc
+
+    if not result.data:
+        raise HTTPException(status_code=404, detail="Kid not found")
+
+    row = result.data[0]
+    return KidResponse(
+        id=row["id"],
+        household_id=row["household_id"],
+        name=row["name"],
+        avatar=row.get("avatar"),
+        color=row.get("color"),
+    )
+
+
+@router.delete("/{kid_id}", status_code=204)
+async def delete_kid(kid_id: str) -> Response:
+    client = _supabase_client()
+    try:
+        # Delete reading progress first (foreign key)
+        client.table("reading_progress").delete().eq("kid_id", kid_id).execute()
+        result = client.table("kids").delete().eq("id", kid_id).execute()
+    except Exception as exc:
+        logger.exception("Failed to delete kid")
+        raise HTTPException(status_code=500, detail="Failed to delete kid.") from exc
+
+    if not result.data:
+        raise HTTPException(status_code=404, detail="Kid not found")
+
+    return Response(status_code=204)
