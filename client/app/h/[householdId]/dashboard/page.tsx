@@ -30,11 +30,43 @@ export default async function ParentDashboardPage({
       .order('created_at', { ascending: false }),
   ]);
 
+  // Fetch reading progress for all kids
+  const kidIds = (kids ?? []).map((k) => k.id);
+  const { data: progressRows } = kidIds.length > 0
+    ? await supabase
+        .from('reading_progress')
+        .select('kid_id, book_id, current_chunk_index')
+        .in('kid_id', kidIds)
+    : { data: [] };
+
+  // Get total chunk counts per book
+  const bookIds = (books ?? []).map((b) => b.id);
+  const { data: chunkRows } = bookIds.length > 0
+    ? await supabase.from('book_chunks').select('book_id').in('book_id', bookIds)
+    : { data: [] };
+
+  const totalChunksMap: Record<string, number> = {};
+  (chunkRows ?? []).forEach((row) => {
+    totalChunksMap[row.book_id] = (totalChunksMap[row.book_id] ?? 0) + 1;
+  });
+
+  // Build per-book, per-kid progress
+  const bookProgress: Record<string, { kidId: string; progress: number }[]> = {};
+  (progressRows ?? []).forEach((row) => {
+    const total = totalChunksMap[row.book_id] ?? 1;
+    const pct = Math.round((row.current_chunk_index / total) * 100);
+    if (!bookProgress[row.book_id]) bookProgress[row.book_id] = [];
+    bookProgress[row.book_id].push({ kidId: row.kid_id, progress: pct });
+  });
+
   return (
     <ParentDashboardClient
       householdId={householdId}
       kids={kids ?? []}
-      books={books ?? []}
+      books={(books ?? []).map((b) => ({
+        ...b,
+        kidProgress: bookProgress[b.id] ?? [],
+      }))}
     />
   );
 }
