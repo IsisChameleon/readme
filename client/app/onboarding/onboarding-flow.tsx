@@ -99,21 +99,21 @@ export function OnboardingFlow({ householdId }: OnboardingFlowProps) {
                     Welcome to EmberTales!
                   </h1>
                   <p className="text-muted-foreground">
-                    Let&apos;s set up a reading profile for your child
+                    Add a reader
                   </p>
                 </div>
 
                 <div className="bg-card rounded-2xl border border-border p-6 space-y-6">
                   <div>
                     <label className="block text-sm font-semibold mb-2">
-                      Child&apos;s Name
+                      Name
                     </label>
                     <input
                       type="text"
                       value={kidName}
                       onChange={(e) => setKidName(e.target.value)}
                       className="w-full rounded-lg border border-input bg-background px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-ring"
-                      placeholder="Enter your child's name"
+                      placeholder="Enter their name"
                       autoFocus
                     />
                   </div>
@@ -151,7 +151,7 @@ export function OnboardingFlow({ householdId }: OnboardingFlowProps) {
                       <div>
                         <p className="font-semibold text-lg">{kidName.trim()}</p>
                         <p className="text-sm text-muted-foreground">
-                          Ready to start reading!
+                          Ready to read
                         </p>
                       </div>
                     </div>
@@ -188,7 +188,7 @@ export function OnboardingFlow({ householdId }: OnboardingFlowProps) {
                     Add Your First Book
                   </h1>
                   <p className="text-muted-foreground">
-                    Upload a PDF book to start reading with {kidName}
+                    Upload a PDF for {kidName}
                   </p>
                 </div>
 
