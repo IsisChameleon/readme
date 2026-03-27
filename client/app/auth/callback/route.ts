@@ -34,6 +34,12 @@ export const GET = async (request: NextRequest) => {
     return NextResponse.redirect(`${origin}/auth/login?error=auth_failed`);
   }
 
+  // If this is a password recovery flow, redirect to reset page
+  const next = searchParams.get('next');
+  if (next === '/auth/reset-password') {
+    return NextResponse.redirect(`${origin}/auth/reset-password`);
+  }
+
   // Get user to check if they need onboarding
   const { data: { user } } = await supabase.auth.getUser();
   
