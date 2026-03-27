@@ -83,7 +83,7 @@ export const KidHomeClient = ({ householdId, kid, books }: KidHomeClientProps) =
               transition={{ delay: 0.3 }}
             >
               <Sparkles className="w-5 h-5 text-accent" />
-              Ready for a reading adventure?
+              Ready to read?
             </motion.p>
           </div>
         </div>
@@ -142,9 +142,12 @@ export const KidHomeClient = ({ householdId, kid, books }: KidHomeClientProps) =
               </motion.div>
             ))}
             {books.length === 0 && (
-              <p className="col-span-full text-center text-muted-foreground py-8">
-                No books yet! Ask a parent to add some.
-              </p>
+              <div className="col-span-full flex flex-col items-center py-12 gap-4">
+                <EmberDragon size="sm" />
+                <p className="text-center text-muted-foreground text-lg">
+                  No books here yet
+                </p>
+              </div>
             )}
           </div>
         </div>
