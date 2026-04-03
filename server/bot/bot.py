@@ -80,6 +80,9 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
     """Pipeline: input -> STT -> user_agg -> LLM -> StateManager -> assistant_agg -> TTS -> output."""
     logger.info(f"run_bot started with transport={type(transport).__name__}")
 
+    # TODO: Wire kid_id from /start request body through runner_args instead of hardcoding.
+    # The API already validates kid ownership — this just needs plumbing through Pipecat's
+    # runner config so the bot reads the correct kid's progress.
     kid_id = "demo_kid"
 
     stt = DeepgramSTTService(
