@@ -1,14 +1,19 @@
 from __future__ import annotations
 
 import aiohttp
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from loguru import logger
 from pydantic import BaseModel
+from supabase import create_client
 
+from api.deps import get_authenticated_user_id
 from api.services.daily import DailyAPI, DailyAPIError
 from shared.config import settings
 
-router = APIRouter(tags=["voice"])
+router = APIRouter(
+    tags=["voice"],
+    dependencies=[Depends(get_authenticated_user_id)],
+)
 
 
 class StartSessionResponse(BaseModel):
@@ -46,9 +51,18 @@ async def _start_via_bot_runner(
 
 
 @router.post("/start", response_model=StartSessionResponse)
-async def start_session(request: StartSessionRequest | None = None) -> StartSessionResponse:
+async def start_session(
+    request: StartSessionRequest | None = None,
+    user_id: str = Depends(get_authenticated_user_id),
+) -> StartSessionResponse:
     book_id = request.book_id if request else None
     kid_id = request.kid_id if request else None
+
+    if kid_id:
+        client = create_client(settings.supabase.url, settings.supabase.secret_key)
+        kid = client.table("kids").select("household_id").eq("id", kid_id).single().execute()
+        if not kid.data or kid.data["household_id"] != user_id:
+            raise HTTPException(status_code=403, detail="Kid does not belong to your household")
 
     if not settings.modal.app_name:
         # No Modal configured — use the bot runner directly

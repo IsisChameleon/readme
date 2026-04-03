@@ -1,8 +1,9 @@
 'use client';
 
-import { Suspense, useState, useRef, useEffect } from 'react';
+import { Suspense, useState, useRef, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { X, Eye, EyeOff } from 'lucide-react';
+import { getAccessToken } from '@/lib/api/client';
 import { usePipecatClientMediaTrack } from '@pipecat-ai/client-react';
 import {
   ConnectButton,
@@ -127,12 +128,23 @@ const SessionInner = ({
 const CallPageInner = () => {
   const handleDisconnectRef = useRef<(() => void | Promise<void>) | undefined>(undefined);
   const [visualMode, setVisualMode] = useState<VisualMode>('dragon');
+  const [authToken, setAuthToken] = useState<string | undefined>(undefined);
   const searchParams = useSearchParams();
   const bookId = searchParams.get('bookId');
   const params = useParams<{ kidId: string }>();
 
+  useEffect(() => {
+    getAccessToken().then(setAuthToken);
+  }, []);
+
   const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
   const connectEndpoint = `${baseUrl}/start`;
+
+  const connectHeaders = useMemo(() => {
+    const h = new Headers();
+    if (authToken) h.set('Authorization', `Bearer ${authToken}`);
+    return h;
+  }, [authToken]);
 
   return (
     <div className="vkui-root dark voice-ui-kit" style={{ width: '100%', height: '100dvh' }}>
@@ -159,6 +171,7 @@ const CallPageInner = () => {
         transportType="daily"
         connectParams={{
           endpoint: connectEndpoint,
+          headers: connectHeaders,
           body: JSON.stringify({
             book_id: bookId ?? undefined,
             kid_id: params.kidId ?? undefined,

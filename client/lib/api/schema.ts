@@ -38,6 +38,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/kids/{kid_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Kid */
+        delete: operations["delete_kid_kids__kid_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Kid */
+        patch: operations["update_kid_kids__kid_id__patch"];
+        trace?: never;
+    };
     "/start": {
         parameters: {
             query?: never;
@@ -129,6 +147,13 @@ export interface components {
             /** Token */
             token: string;
         };
+        /** UpdateKidRequest */
+        UpdateKidRequest: {
+            /** Name */
+            name?: string | null;
+            /** Color */
+            color?: string | null;
+        };
         /** UploadBookResponse */
         UploadBookResponse: {
             /** Book Id */
@@ -164,7 +189,10 @@ export interface operations {
     upload_book_books_upload_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                /** @description Bearer <supabase_access_token> */
+                authorization: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -197,7 +225,10 @@ export interface operations {
     create_kid_kids_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                /** @description Bearer <supabase_access_token> */
+                authorization: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -227,10 +258,83 @@ export interface operations {
             };
         };
     };
+    delete_kid_kids__kid_id__delete: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Bearer <supabase_access_token> */
+                authorization: string;
+            };
+            path: {
+                kid_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_kid_kids__kid_id__patch: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Bearer <supabase_access_token> */
+                authorization: string;
+            };
+            path: {
+                kid_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateKidRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KidResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     start_session_start_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                /** @description Bearer <supabase_access_token> */
+                authorization: string;
+            };
             path?: never;
             cookie?: never;
         };

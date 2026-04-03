@@ -3,6 +3,8 @@
 
 Usage:
     python infra/setup_storage.py
+
+DEPRECATED: It's part of the supabase migrations now.
 """
 
 from __future__ import annotations

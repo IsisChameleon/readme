@@ -2,51 +2,64 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { apiClient, getAccessToken } from '@/lib/api/client';
 import { toast } from '@/hooks/use-toast';
+import { getAuthHeaders } from '@/lib/api/client';
 
 const COLOR_OPTIONS = [
   '#F472B6', '#60A5FA', '#34D399', '#FBBF24', '#A78BFA', '#FB923C',
 ];
 
-interface AddKidDialogProps {
-  householdId: string;
+interface EditKidDialogProps {
+  kid: { id: string; name: string; color: string | null };
   open: boolean;
   onClose: () => void;
 }
 
-export const AddKidDialog = ({ householdId, open, onClose }: AddKidDialogProps) => {
-  const [name, setName] = useState('');
-  const [color, setColor] = useState(COLOR_OPTIONS[0]);
+export const EditKidDialog = ({ kid, open, onClose }: EditKidDialogProps) => {
+  const [name, setName] = useState(kid.name);
+  const [color, setColor] = useState(kid.color ?? COLOR_OPTIONS[0]);
   const [submitting, setSubmitting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const router = useRouter();
 
   if (!open) return null;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
-
     setSubmitting(true);
     try {
-      const token = await getAccessToken();
-      const { error } = await apiClient.POST('/kids', {
-        params: { header: { authorization: `Bearer ${token}` } },
-        body: {
-          household_id: householdId,
-          name: name.trim(),
-          avatar: name.trim()[0].toUpperCase(),
-          color,
-        },
+      const res = await fetch(`${baseUrl}/kids/${kid.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', ...await getAuthHeaders() },
+        body: JSON.stringify({ name: name.trim(), color }),
       });
-      if (error) throw new Error('Failed to create kid');
-
-      toast({ title: `${name.trim()} added!` });
+      if (!res.ok) throw new Error('Failed to update');
+      toast({ title: 'Updated!' });
       router.refresh();
       onClose();
-      setName('');
     } catch {
-      toast({ title: 'Failed to add kid', variant: 'destructive' });
+      toast({ title: 'Failed to update', variant: 'destructive' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setSubmitting(true);
+    try {
+      const res = await fetch(`${baseUrl}/kids/${kid.id}`, {
+        method: 'DELETE',
+        headers: await getAuthHeaders(),
+      });
+      if (!res.ok) throw new Error('Failed to delete');
+      toast({ title: `${kid.name} removed` });
+      router.refresh();
+      onClose();
+    } catch {
+      toast({ title: 'Failed to remove', variant: 'destructive' });
     } finally {
       setSubmitting(false);
     }
@@ -58,8 +71,8 @@ export const AddKidDialog = ({ householdId, open, onClose }: AddKidDialogProps) 
         className="bg-card rounded-2xl p-6 w-full max-w-sm mx-4 border border-border"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-lg font-display font-bold mb-4">Add a Kid</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <h2 className="text-lg font-display font-bold mb-4">Edit Profile</h2>
+        <form onSubmit={handleSave} className="space-y-4">
           <div>
             <label className="text-sm font-semibold block mb-1">Name</label>
             <input
@@ -67,7 +80,6 @@ export const AddKidDialog = ({ householdId, open, onClose }: AddKidDialogProps) 
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
-              placeholder="Enter name"
               autoFocus
             />
           </div>
@@ -87,6 +99,8 @@ export const AddKidDialog = ({ householdId, open, onClose }: AddKidDialogProps) 
               ))}
             </div>
           </div>
+
+          {/* Preview */}
           {name.trim() && (
             <div className="flex items-center gap-3 p-3 rounded-xl bg-muted">
               <span
@@ -98,6 +112,7 @@ export const AddKidDialog = ({ householdId, open, onClose }: AddKidDialogProps) 
               <span className="font-semibold">{name.trim()}</span>
             </div>
           )}
+
           <div className="flex gap-2 justify-end">
             <button
               type="button"
@@ -111,10 +126,43 @@ export const AddKidDialog = ({ householdId, open, onClose }: AddKidDialogProps) 
               disabled={!name.trim() || submitting}
               className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-50"
             >
-              {submitting ? 'Adding…' : 'Add'}
+              {submitting ? 'Saving...' : 'Save'}
             </button>
           </div>
         </form>
+
+        {/* Delete section */}
+        <div className="mt-6 pt-4 border-t border-border">
+          {showDeleteConfirm ? (
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                Remove {kid.name}? This deletes their reading progress.
+              </p>
+              <div className="flex gap-2 justify-end">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="px-3 py-1.5 rounded-lg text-sm text-muted-foreground"
+                >
+                  Keep
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={submitting}
+                  className="px-3 py-1.5 rounded-lg bg-destructive text-destructive-foreground text-sm font-semibold disabled:opacity-50"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="text-sm text-destructive hover:underline"
+            >
+              Remove profile
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

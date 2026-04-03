@@ -1,9 +1,9 @@
 from unittest.mock import MagicMock, patch
 
-import pytest
 from fastapi.testclient import TestClient
 
 from api.main import app
+from tests.api.conftest import TEST_USER_ID
 
 client = TestClient(app)
 
@@ -11,7 +11,13 @@ client = TestClient(app)
 def test_create_kid_success():
     mock_response = MagicMock()
     mock_response.data = [
-        {"id": "kid-1", "household_id": "h-1", "name": "Emma", "avatar": "E", "color": "#F472B6"}
+        {
+            "id": "kid-1",
+            "household_id": TEST_USER_ID,
+            "name": "Emma",
+            "avatar": "E",
+            "color": "#F472B6",
+        }
     ]
 
     with patch("api.routers.kids._supabase_client") as mock_sb:
@@ -21,7 +27,7 @@ def test_create_kid_success():
         resp = client.post(
             "/kids",
             json={
-                "household_id": "h-1",
+                "household_id": TEST_USER_ID,
                 "name": "Emma",
                 "avatar": "E",
                 "color": "#F472B6",
@@ -31,14 +37,14 @@ def test_create_kid_success():
     assert resp.status_code == 200
     data = resp.json()
     assert data["name"] == "Emma"
-    assert data["household_id"] == "h-1"
+    assert data["household_id"] == TEST_USER_ID
 
 
 def test_create_kid_missing_name():
     resp = client.post(
         "/kids",
         json={
-            "household_id": "h-1",
+            "household_id": TEST_USER_ID,
             "name": "",
         },
     )
@@ -53,3 +59,14 @@ def test_create_kid_missing_household():
         },
     )
     assert resp.status_code == 422
+
+
+def test_create_kid_wrong_household_returns_403():
+    resp = client.post(
+        "/kids",
+        json={
+            "household_id": "someone-elses-household",
+            "name": "Emma",
+        },
+    )
+    assert resp.status_code == 403

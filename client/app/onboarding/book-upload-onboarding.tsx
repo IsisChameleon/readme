@@ -1,10 +1,8 @@
-// client/components/BookUpload.tsx
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRef, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { Upload, FileText, CheckCircle2, X, AlertCircle } from 'lucide-react';
+import { FileText, CheckCircle2, X, AlertCircle, BookOpen } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { getAccessToken } from '@/lib/api/client';
 
@@ -16,8 +14,9 @@ interface UploadedFile {
   progress: number;
 }
 
-interface BookUploadProps {
+interface BookUploadOnboardingProps {
   householdId: string;
+  onUploadComplete: () => void;
 }
 
 const formatSize = (bytes: number): string => {
@@ -26,11 +25,10 @@ const formatSize = (bytes: number): string => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
-export const BookUpload = ({ householdId }: BookUploadProps) => {
+export const BookUploadOnboarding = ({ householdId, onUploadComplete }: BookUploadOnboardingProps) => {
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const router = useRouter();
 
   const uploadFile = useCallback(async (file: File) => {
     if (file.type !== 'application/pdf') {
@@ -86,12 +84,12 @@ export const BookUpload = ({ householdId }: BookUploadProps) => {
       );
 
       toast({ title: 'Book uploaded!', description: 'Processing will complete shortly.' });
-      router.refresh();
 
       setTimeout(() => {
         setFiles((prev) =>
           prev.map((f) => (f.id === uploadedFile.id ? { ...f, status: 'done' } : f))
         );
+        onUploadComplete();
       }, 2000);
     } catch {
       setFiles((prev) =>
@@ -99,7 +97,7 @@ export const BookUpload = ({ householdId }: BookUploadProps) => {
       );
       toast({ title: 'Upload failed', description: 'Please try again.', variant: 'destructive' });
     }
-  }, [householdId, router]);
+  }, [householdId, onUploadComplete]);
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
@@ -139,13 +137,17 @@ export const BookUpload = ({ householdId }: BookUploadProps) => {
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
         className={`
-          rounded-2xl border-2 border-dashed p-8 text-center cursor-pointer transition-colors
-          ${isDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'}
+          rounded-2xl border-2 border-dashed p-8 text-center cursor-pointer transition-all
+          ${isDragging 
+            ? 'border-primary bg-primary/5 scale-[1.02]' 
+            : 'border-border hover:border-primary/50 hover:bg-muted/50'}
         `}
       >
-        <Upload className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
-        <p className="text-sm font-semibold">Drop PDF files here or click to browse</p>
-        <p className="text-xs text-muted-foreground mt-1">PDF files only</p>
+        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+          <BookOpen className="w-8 h-8 text-primary" />
+        </div>
+        <p className="text-base font-semibold mb-1">Drop a PDF book here</p>
+        <p className="text-sm text-muted-foreground">or click to browse your files</p>
       </div>
 
       {/* File list */}
@@ -153,17 +155,19 @@ export const BookUpload = ({ householdId }: BookUploadProps) => {
         {files.map((file) => (
           <motion.div
             key={file.id}
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="flex items-center gap-3 rounded-xl border border-border bg-card p-3"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="flex items-center gap-3 rounded-xl border border-border bg-background p-4"
           >
-            <FileText className="w-8 h-8 text-muted-foreground shrink-0" />
+            <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center shrink-0">
+              <FileText className="w-5 h-5 text-muted-foreground" />
+            </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold truncate">{file.name}</p>
               <p className="text-xs text-muted-foreground">{formatSize(file.size)}</p>
               {file.status === 'uploading' && (
-                <div className="mt-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
                   <motion.div
                     className="h-full bg-primary rounded-full"
                     initial={{ width: 0 }}
@@ -172,25 +176,35 @@ export const BookUpload = ({ householdId }: BookUploadProps) => {
                 </div>
               )}
             </div>
-            <div className="shrink-0">
-              {file.status === 'done' && <CheckCircle2 className="w-5 h-5 text-primary" />}
+            <div className="shrink-0 flex items-center gap-2">
+              {file.status === 'done' && (
+                <CheckCircle2 className="w-5 h-5 text-primary" />
+              )}
               {file.status === 'processing' && (
-                <span className="text-xs text-muted-foreground">Processing…</span>
+                <span className="text-xs text-muted-foreground animate-pulse">Processing...</span>
               )}
-              {file.status === 'error' && <AlertCircle className="w-5 h-5 text-destructive" />}
+              {file.status === 'error' && (
+                <AlertCircle className="w-5 h-5 text-destructive" />
+              )}
               {file.status === 'uploading' && (
-                <span className="text-xs text-muted-foreground">{file.progress}%</span>
+                <span className="text-xs font-medium text-primary">{file.progress}%</span>
               )}
+              <button
+                onClick={() => removeFile(file.id)}
+                className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
-            <button
-              onClick={() => removeFile(file.id)}
-              className="p-1 rounded text-muted-foreground hover:text-foreground"
-            >
-              <X className="w-4 h-4" />
-            </button>
           </motion.div>
         ))}
       </AnimatePresence>
+
+      {files.length === 0 && (
+        <p className="text-center text-sm text-muted-foreground py-2">
+          Supported format: PDF
+        </p>
+      )}
     </div>
   );
-};
+}

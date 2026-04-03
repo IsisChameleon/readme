@@ -12,15 +12,28 @@
         ],
         "summary": "Upload Book",
         "operationId": "upload_book_books_upload_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Bearer <supabase_access_token>",
+              "title": "Authorization"
+            },
+            "description": "Bearer <supabase_access_token>"
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "multipart/form-data": {
               "schema": {
                 "$ref": "#/components/schemas/Body_upload_book_books_upload_post"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -53,15 +66,28 @@
         ],
         "summary": "Create Kid",
         "operationId": "create_kid_kids_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Bearer <supabase_access_token>",
+              "title": "Authorization"
+            },
+            "description": "Bearer <supabase_access_token>"
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/CreateKidRequest"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -87,6 +113,113 @@
         }
       }
     },
+    "/kids/{kid_id}": {
+      "patch": {
+        "tags": [
+          "kids"
+        ],
+        "summary": "Update Kid",
+        "operationId": "update_kid_kids__kid_id__patch",
+        "parameters": [
+          {
+            "name": "kid_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kid Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Bearer <supabase_access_token>",
+              "title": "Authorization"
+            },
+            "description": "Bearer <supabase_access_token>"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateKidRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KidResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "kids"
+        ],
+        "summary": "Delete Kid",
+        "operationId": "delete_kid_kids__kid_id__delete",
+        "parameters": [
+          {
+            "name": "kid_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kid Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Bearer <supabase_access_token>",
+              "title": "Authorization"
+            },
+            "description": "Bearer <supabase_access_token>"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/start": {
       "post": {
         "tags": [
@@ -94,6 +227,19 @@
         ],
         "summary": "Start Session",
         "operationId": "start_session_start_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Bearer <supabase_access_token>",
+              "title": "Authorization"
+            },
+            "description": "Bearer <supabase_access_token>"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -316,6 +462,34 @@
           "token"
         ],
         "title": "StartSessionResponse"
+      },
+      "UpdateKidRequest": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color"
+          }
+        },
+        "type": "object",
+        "title": "UpdateKidRequest"
       },
       "UploadBookResponse": {
         "properties": {
