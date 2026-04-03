@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
-export default function VerifyPage() {
+const VerifyPage = () => {
   return (
     <div className="min-h-svh flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md text-center">
@@ -46,4 +46,6 @@ export default function VerifyPage() {
       </div>
     </div>
   );
-}
+};
+
+export default VerifyPage;

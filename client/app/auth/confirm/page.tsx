@@ -14,7 +14,7 @@ import { createClient } from '@/lib/supabase/client';
  * The server-side /auth/callback route can't reliably access browser cookies
  * through Docker's proxy chain, so this page handles the exchange client-side.
  */
-export default function AuthConfirmPage() {
+const AuthConfirmPage = () => {
   const router = useRouter();
 
   useEffect(() => {
@@ -49,4 +49,6 @@ export default function AuthConfirmPage() {
       <p className="text-muted-foreground">Verifying...</p>
     </div>
   );
-}
+};
+
+export default AuthConfirmPage;

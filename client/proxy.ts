@@ -38,7 +38,6 @@ export const proxy = async (request: NextRequest) => {
     request.nextUrl.searchParams.forEach((value, key) => {
       url.searchParams.set(key, value);
     });
-    console.log('[proxy] forwarding code to confirm:', url.toString());
     return NextResponse.redirect(url);
   }
 
@@ -62,38 +61,23 @@ export const proxy = async (request: NextRequest) => {
     return NextResponse.redirect(url);
   }
 
+  // Fetch household once for onboarding checks below
+  const household = user
+    ? (await supabase.from('households').select('onboarding_completed').eq('id', user.id).single()).data
+    : null;
+
   // If logged in and trying to access auth pages (except callback), redirect appropriately
   if (user && isPublicRoute && pathname !== '/auth/callback' && pathname !== '/auth/confirm' && pathname !== '/auth/reset-password') {
-    // Check if onboarding is complete
-    const { data: household } = await supabase
-      .from('households')
-      .select('onboarding_completed')
-      .eq('id', user.id)
-      .single();
-
     const url = request.nextUrl.clone();
-    if (!household?.onboarding_completed) {
-      url.pathname = '/onboarding';
-    } else {
-      url.pathname = '/';
-    }
+    url.pathname = household?.onboarding_completed ? '/' : '/onboarding';
     return NextResponse.redirect(url);
   }
 
   // If logged in, not on auth pages, and not on onboarding - check onboarding status
-  if (user && !isPublicRoute && !isOnboardingRoute) {
-    const { data: household } = await supabase
-      .from('households')
-      .select('onboarding_completed')
-      .eq('id', user.id)
-      .single();
-
-    // If no household or onboarding not completed, redirect to onboarding
-    if (!household?.onboarding_completed) {
-      const url = request.nextUrl.clone();
-      url.pathname = '/onboarding';
-      return NextResponse.redirect(url);
-    }
+  if (user && !isPublicRoute && !isOnboardingRoute && !household?.onboarding_completed) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/onboarding';
+    return NextResponse.redirect(url);
   }
 
   return supabaseResponse;

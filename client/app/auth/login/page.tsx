@@ -1,5 +1,5 @@
 import { AuthPage } from '../auth-page';
 
-export default function LoginPage() {
-  return <AuthPage mode="login" />;
-}
+const LoginPage = () => <AuthPage mode="login" />;
+
+export default LoginPage;

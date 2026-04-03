@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRef, useState, useCallback } from 'react';
-import { Upload, FileText, CheckCircle2, X, AlertCircle, BookOpen } from 'lucide-react';
+import { FileText, CheckCircle2, X, AlertCircle, BookOpen } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface UploadedFile {
@@ -24,7 +24,7 @@ const formatSize = (bytes: number): string => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
-export function BookUploadOnboarding({ householdId, onUploadComplete }: BookUploadOnboardingProps) {
+export const BookUploadOnboarding = ({ householdId, onUploadComplete }: BookUploadOnboardingProps) => {
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
