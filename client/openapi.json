@@ -53,15 +53,28 @@
         ],
         "summary": "Create Kid",
         "operationId": "create_kid_kids_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Bearer <supabase_access_token>",
+              "title": "Authorization"
+            },
+            "description": "Bearer <supabase_access_token>"
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/CreateKidRequest"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -103,6 +116,17 @@
               "type": "string",
               "title": "Kid Id"
             }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Bearer <supabase_access_token>",
+              "title": "Authorization"
+            },
+            "description": "Bearer <supabase_access_token>"
           }
         ],
         "requestBody": {
@@ -153,6 +177,17 @@
               "type": "string",
               "title": "Kid Id"
             }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Bearer <supabase_access_token>",
+              "title": "Authorization"
+            },
+            "description": "Bearer <supabase_access_token>"
           }
         ],
         "responses": {

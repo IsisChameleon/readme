@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/hooks/use-toast';
+import { getAuthHeaders } from '@/lib/api/client';
 
 const COLOR_OPTIONS = [
   '#F472B6', '#60A5FA', '#34D399', '#FBBF24', '#A78BFA', '#FB923C',
@@ -32,7 +33,7 @@ export const EditKidDialog = ({ kid, open, onClose }: EditKidDialogProps) => {
     try {
       const res = await fetch(`${baseUrl}/kids/${kid.id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...await getAuthHeaders() },
         body: JSON.stringify({ name: name.trim(), color }),
       });
       if (!res.ok) throw new Error('Failed to update');
@@ -49,7 +50,10 @@ export const EditKidDialog = ({ kid, open, onClose }: EditKidDialogProps) => {
   const handleDelete = async () => {
     setSubmitting(true);
     try {
-      const res = await fetch(`${baseUrl}/kids/${kid.id}`, { method: 'DELETE' });
+      const res = await fetch(`${baseUrl}/kids/${kid.id}`, {
+        method: 'DELETE',
+        headers: await getAuthHeaders(),
+      });
       if (!res.ok) throw new Error('Failed to delete');
       toast({ title: `${kid.name} removed` });
       router.refresh();

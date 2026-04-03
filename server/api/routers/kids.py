@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import Response
 from loguru import logger
 from pydantic import BaseModel, field_validator
 from supabase import Client, create_client
 
+from api.deps import get_authenticated_user_id
 from shared.config import settings
 
 router = APIRouter(prefix="/kids", tags=["kids"])
@@ -46,11 +47,14 @@ def _supabase_client() -> Client:
     return create_client(settings.supabase.url, settings.supabase.secret_key)
 
 
-# NOTE: No auth on this endpoint yet. In production, validate that
-# household_id matches the authenticated user. This is a known gap
-# consistent with the existing POST /books/upload pattern.
 @router.post("", response_model=KidResponse)
-async def create_kid(request: CreateKidRequest) -> KidResponse:
+async def create_kid(
+    request: CreateKidRequest,
+    user_id: str = Depends(get_authenticated_user_id),
+) -> KidResponse:
+    if request.household_id != user_id:
+        raise HTTPException(status_code=403, detail="Not your household")
+
     client = _supabase_client()
 
     avatar = request.avatar or request.name[0].upper()
@@ -96,7 +100,11 @@ class UpdateKidRequest(BaseModel):
 
 
 @router.patch("/{kid_id}", response_model=KidResponse)
-async def update_kid(kid_id: str, request: UpdateKidRequest) -> KidResponse:
+async def update_kid(
+    kid_id: str,
+    request: UpdateKidRequest,
+    user_id: str = Depends(get_authenticated_user_id),
+) -> KidResponse:
     updates = request.model_dump(exclude_none=True)
     if not updates:
         raise HTTPException(status_code=400, detail="No fields to update")
@@ -105,6 +113,11 @@ async def update_kid(kid_id: str, request: UpdateKidRequest) -> KidResponse:
         updates["avatar"] = updates["name"][0].upper()
 
     client = _supabase_client()
+
+    existing = client.table("kids").select("household_id").eq("id", kid_id).single().execute()
+    if not existing.data or existing.data["household_id"] != user_id:
+        raise HTTPException(status_code=404, detail="Kid not found")
+
     try:
         result = client.table("kids").update(updates).eq("id", kid_id).execute()
     except Exception as exc:
@@ -125,8 +138,16 @@ async def update_kid(kid_id: str, request: UpdateKidRequest) -> KidResponse:
 
 
 @router.delete("/{kid_id}", status_code=204)
-async def delete_kid(kid_id: str) -> Response:
+async def delete_kid(
+    kid_id: str,
+    user_id: str = Depends(get_authenticated_user_id),
+) -> Response:
     client = _supabase_client()
+
+    existing = client.table("kids").select("household_id").eq("id", kid_id).single().execute()
+    if not existing.data or existing.data["household_id"] != user_id:
+        raise HTTPException(status_code=404, detail="Kid not found")
+
     try:
         # Delete reading progress first (foreign key)
         client.table("reading_progress").delete().eq("kid_id", kid_id).execute()

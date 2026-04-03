@@ -222,7 +222,10 @@ export interface operations {
     create_kid_kids_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                /** @description Bearer <supabase_access_token> */
+                authorization: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -255,7 +258,10 @@ export interface operations {
     delete_kid_kids__kid_id__delete: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                /** @description Bearer <supabase_access_token> */
+                authorization: string;
+            };
             path: {
                 kid_id: string;
             };
@@ -284,7 +290,10 @@ export interface operations {
     update_kid_kids__kid_id__patch: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                /** @description Bearer <supabase_access_token> */
+                authorization: string;
+            };
             path: {
                 kid_id: string;
             };

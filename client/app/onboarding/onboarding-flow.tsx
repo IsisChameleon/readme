@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { apiClient } from '@/lib/api/client';
+import { apiClient, getAccessToken } from '@/lib/api/client';
 import { toast } from '@/hooks/use-toast';
 import { BookUploadOnboarding } from './book-upload-onboarding';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
@@ -18,7 +18,7 @@ interface OnboardingFlowProps {
   householdId: string;
 }
 
-export function OnboardingFlow({ householdId }: OnboardingFlowProps) {
+export const OnboardingFlow = ({ householdId }: OnboardingFlowProps) => {
   const [step, setStep] = useState(1);
   const [kidName, setKidName] = useState('');
   const [kidColor, setKidColor] = useState(COLOR_OPTIONS[0]);
@@ -35,7 +35,9 @@ export function OnboardingFlow({ householdId }: OnboardingFlowProps) {
 
     setIsSubmitting(true);
     try {
+      const token = await getAccessToken();
       const { error } = await apiClient.POST('/kids', {
+        params: { header: { authorization: `Bearer ${token}` } },
         body: {
           household_id: householdId,
           name: kidName.trim(),
