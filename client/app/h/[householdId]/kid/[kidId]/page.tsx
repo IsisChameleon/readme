@@ -11,9 +11,11 @@ export default async function KidHomePage({
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  const actualHouseholdId = user?.id ?? 'test_household';
-  if (householdId !== actualHouseholdId) {
-    redirect(`/h/${actualHouseholdId}`);
+  if (!user) {
+    redirect('/auth/login');
+  }
+  if (householdId !== user.id) {
+    redirect(`/h/${user.id}`);
   }
 
   const { data: kid } = await supabase
