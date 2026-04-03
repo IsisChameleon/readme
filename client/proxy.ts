@@ -25,25 +25,33 @@ export const proxy = async (request: NextRequest) => {
     }
   );
 
-  // If any page receives a ?code= param, forward to the auth callback
-  // (Supabase password reset emails may land on site_url instead of redirectTo)
-  // clone() preserves all existing search params (code, type=recovery, email, etc.)
+  // If any page receives a ?code= param, forward to the client-side confirm page.
+  // The browser client handles the PKCE code exchange using the code verifier
+  // stored in document.cookie — the server-side callback can't reliably access it
+  // through Docker's proxy chain.
   const code = request.nextUrl.searchParams.get('code');
-  if (code && pathname !== '/auth/callback') {
-    const url = request.nextUrl.clone();
-    url.pathname = '/auth/callback';
-    if (pathname === '/auth/login' || pathname === '/auth/forgot-password') {
-      url.searchParams.set('next', '/auth/reset-password');
-    }
-    console.log('[proxy] forwarding code to callback:', url.toString());
+  if (code && pathname !== '/auth/callback' && pathname !== '/auth/confirm') {
+    const host = request.headers.get('host') || request.nextUrl.host;
+    const proto = request.headers.get('x-forwarded-proto') || 'http';
+    const url = new URL(`${proto}://${host}${pathname}`);
+    url.pathname = '/auth/confirm';
+    request.nextUrl.searchParams.forEach((value, key) => {
+      url.searchParams.set(key, value);
+    });
+    console.log('[proxy] forwarding code to confirm:', url.toString());
     return NextResponse.redirect(url);
+  }
+
+  // /auth/callback and /auth/confirm handle their own auth — skip getUser()
+  if (pathname === '/auth/callback' || pathname === '/auth/confirm') {
+    return supabaseResponse;
   }
 
   // Refresh session and get user
   const { data: { user } } = await supabase.auth.getUser();
 
   // Public routes that don't require authentication
-  const publicRoutes = ['/auth/login', '/auth/signup', '/auth/verify', '/auth/callback', '/auth/forgot-password', '/auth/reset-password'];
+  const publicRoutes = ['/auth/login', '/auth/signup', '/auth/verify', '/auth/callback', '/auth/confirm', '/auth/forgot-password', '/auth/reset-password'];
   const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route));
   const isOnboardingRoute = pathname.startsWith('/onboarding');
 
@@ -55,7 +63,7 @@ export const proxy = async (request: NextRequest) => {
   }
 
   // If logged in and trying to access auth pages (except callback), redirect appropriately
-  if (user && isPublicRoute && pathname !== '/auth/callback' && pathname !== '/auth/reset-password') {
+  if (user && isPublicRoute && pathname !== '/auth/callback' && pathname !== '/auth/confirm' && pathname !== '/auth/reset-password') {
     // Check if onboarding is complete
     const { data: household } = await supabase
       .from('households')

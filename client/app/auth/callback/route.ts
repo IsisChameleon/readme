@@ -3,7 +3,11 @@ import { cookies } from 'next/headers';
 import { NextResponse, type NextRequest } from 'next/server';
 
 export const GET = async (request: NextRequest) => {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
+  // Use Host header for origin — Docker resolves request.url to 0.0.0.0 which breaks redirects
+  const host = request.headers.get('host') || new URL(request.url).host;
+  const proto = request.headers.get('x-forwarded-proto') || 'http';
+  const origin = `${proto}://${host}`;
   const code = searchParams.get('code');
 
   if (!code) {
