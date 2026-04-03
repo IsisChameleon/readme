@@ -9,7 +9,11 @@ from supabase import Client, create_client
 from api.deps import get_authenticated_user_id
 from shared.config import settings
 
-router = APIRouter(prefix="/kids", tags=["kids"])
+router = APIRouter(
+    prefix="/kids",
+    tags=["kids"],
+    dependencies=[Depends(get_authenticated_user_id)],
+)
 
 
 class CreateKidRequest(BaseModel):
