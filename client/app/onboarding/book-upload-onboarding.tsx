@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRef, useState, useCallback } from 'react';
 import { FileText, CheckCircle2, X, AlertCircle, BookOpen } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { getAccessToken } from '@/lib/api/client';
 
 interface UploadedFile {
   id: string;
@@ -46,6 +47,7 @@ export const BookUploadOnboarding = ({ householdId, onUploadComplete }: BookUplo
     setFiles((prev) => [...prev, uploadedFile]);
 
     try {
+      const token = await getAccessToken();
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.upload.onprogress = (e) => {
@@ -71,6 +73,7 @@ export const BookUploadOnboarding = ({ householdId, onUploadComplete }: BookUplo
 
         const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
         xhr.open('POST', `${baseUrl}/books/upload`);
+        if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
         xhr.send(form);
       });
 

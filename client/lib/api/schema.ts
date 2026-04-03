@@ -189,7 +189,10 @@ export interface operations {
     upload_book_books_upload_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                /** @description Bearer <supabase_access_token> */
+                authorization: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -328,7 +331,10 @@ export interface operations {
     start_session_start_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                /** @description Bearer <supabase_access_token> */
+                authorization: string;
+            };
             path?: never;
             cookie?: never;
         };

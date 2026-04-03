@@ -7,10 +7,15 @@ from loguru import logger
 from pydantic import BaseModel
 from supabase import Client, create_client
 
+from api.deps import get_authenticated_user_id
 from shared.books import set_book_status
 from shared.config import settings
 
-router = APIRouter(prefix="/books", tags=["books"])
+router = APIRouter(
+    prefix="/books",
+    tags=["books"],
+    dependencies=[Depends(get_authenticated_user_id)],
+)
 
 
 class UploadBookRequest(BaseModel):
@@ -59,9 +64,12 @@ async def upload_book(
     background_tasks: BackgroundTasks,
     request: UploadBookRequestForm,
     file: UploadFile = File(...),
+    user_id: str = Depends(get_authenticated_user_id),
 ) -> UploadBookResponse:
     if not request.household_id.strip():
         raise HTTPException(status_code=422, detail="household_id is required.")
+    if request.household_id != user_id:
+        raise HTTPException(status_code=403, detail="Not your household")
 
     filename = Path(file.filename or "book.pdf").name
     content_type = file.content_type or ""

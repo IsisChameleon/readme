@@ -12,15 +12,28 @@
         ],
         "summary": "Upload Book",
         "operationId": "upload_book_books_upload_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Bearer <supabase_access_token>",
+              "title": "Authorization"
+            },
+            "description": "Bearer <supabase_access_token>"
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "multipart/form-data": {
               "schema": {
                 "$ref": "#/components/schemas/Body_upload_book_books_upload_post"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -214,6 +227,19 @@
         ],
         "summary": "Start Session",
         "operationId": "start_session_start_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Bearer <supabase_access_token>",
+              "title": "Authorization"
+            },
+            "description": "Bearer <supabase_access_token>"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {

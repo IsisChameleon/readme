@@ -6,6 +6,7 @@ import { useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Upload, FileText, CheckCircle2, X, AlertCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { getAccessToken } from '@/lib/api/client';
 
 interface UploadedFile {
   id: string;
@@ -48,6 +49,7 @@ export const BookUpload = ({ householdId }: BookUploadProps) => {
     setFiles((prev) => [...prev, uploadedFile]);
 
     try {
+      const token = await getAccessToken();
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.upload.onprogress = (e) => {
@@ -73,6 +75,7 @@ export const BookUpload = ({ householdId }: BookUploadProps) => {
 
         const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
         xhr.open('POST', `${baseUrl}/books/upload`);
+        if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
         xhr.send(form);
       });
 
