@@ -1,12 +1,19 @@
 # Release Environment Variable Matrix
 
-Last updated: 2026-03-22
+Last updated: 2026-04-03
 
 This file is for hosted deploys (`dev` and `prod`). Local `.env` files remain the source for local Docker/dev runs.
 
 ## Architecture Overview
 
 All backend services (API, bot, worker) run on **Modal**. The client (Next.js) runs on **Vercel**.
+
+### Branch → Environment mapping
+
+| Branch       | Vercel env   | Domain                  | Modal app     |
+|--------------|-------------|-------------------------|---------------|
+| `main`       | Preview     | `dev.embertales.ai`     | `readme-dev`  |
+| `production` | Production  | `app.embertales.ai`     | `readme-prod` |
 
 **Request flow (Modal path):**
 

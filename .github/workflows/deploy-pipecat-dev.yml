@@ -31,7 +31,7 @@ jobs:
       UV_PYTHON: "3.13"
       PIPECAT_TOKEN: ${{ secrets.PIPECAT_TOKEN }}
       PIPECAT_ORG: stormy-badger-olive-971
-      PIPECAT_DEFAULT_PUBLIC_KEY_NAME: readme-prototype
+      PIPECAT_DEFAULT_PUBLIC_KEY_NAME: readme-dev
       DOCKERHUB_USERNAME: isischameleon
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
       PCC_SECRET_SET: readme-dev
@@ -61,7 +61,7 @@ jobs:
             fi
           done
 
-      - name: Resolve public API key (readme-prototype)
+      - name: Resolve public API key (readme-dev)
         run: |
           set -euo pipefail
           KEY_VALUE="$(uv run pcc organizations keys list --organization "${PIPECAT_ORG}" | awk -v keyname="${PIPECAT_DEFAULT_PUBLIC_KEY_NAME}" 'index($0,keyname){if (match($0,/pk_[0-9a-f-]+/)) {print substr($0,RSTART,RLENGTH); exit}}')"
@@ -107,7 +107,7 @@ jobs:
           AGENT_NAME="$(grep '^agent_name' pcc-deploy.toml | head -1 | cut -d '"' -f2)"
           uv run pcc agent status "${AGENT_NAME}" --organization "${PIPECAT_ORG}"
 
-      - name: Smoke test start endpoint with readme-prototype key
+      - name: Smoke test start endpoint with readme-dev key
         run: |
           set -euo pipefail
           AGENT_NAME="$(grep '^agent_name' pcc-deploy.toml | head -1 | cut -d '"' -f2)"
