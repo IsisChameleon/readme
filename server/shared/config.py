@@ -27,7 +27,7 @@ class LazySecretsSettings(BaseModel):
 
     @model_validator(mode="before")
     @classmethod
-    def resolve_env_vars(cls, data: dict) -> dict:  # type: ignore[override]
+    def resolve_env_vars(cls, data: dict) -> dict:
         if not isinstance(data, dict):
             return data
         for key, value in data.items():
