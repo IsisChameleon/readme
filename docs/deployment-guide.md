@@ -168,3 +168,28 @@ docker compose down
 | Google OAuth `Error 401: invalid_client` | Redirect URI not in Google Cloud Console | Add Supabase callback URL to Google OAuth authorized redirect URIs |
 | Supabase migration fails with UUID cast error | Pre-existing non-UUID data in DB | Run cleanup SQL before migration (see `scripts/` for examples) |
 | Pipecat deploy fails "Could not resolve public API key" | API key name doesn't match or doesn't exist | Create the key in Pipecat Cloud dashboard with the exact name the workflow expects |
+| `StorageApiError: Bucket not found` on book upload | Supabase storage bucket doesn't exist — migration likely failed or never ran | Check with `SELECT id FROM storage.buckets;` in SQL Editor, then re-run migrations (see FAQ below) |
+
+## FAQ
+
+### How to re-run the Supabase migrations workflow
+
+The migration workflow only triggers on push to `main` when files in `supabase/migrations/` change. If a previous run failed (e.g. bad data in the DB), later merges won't re-trigger it.
+
+To manually re-trigger:
+
+```bash
+gh workflow run deploy-supabase-migrations.yml
+```
+
+Or go to GitHub → Actions → "Deploy Supabase Migrations" → "Run workflow".
+
+### How to re-run other deploy workflows
+
+```bash
+# Modal API
+gh workflow run deploy-modal.yml
+
+# Pipecat bot
+gh workflow run deploy-pipecat-dev.yml
+```
