@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic_settings.main import PydanticBaseSettingsSource, TomlConfigSettingsSource
 
@@ -52,6 +52,13 @@ class UploadSettings(BaseModel):
 class CorsSettings(BaseModel):
     allowed_origins: list[str] = ["http://localhost:3000"]
     allowed_origin_regex: str = ""
+
+    @field_validator("allowed_origins", mode="before")
+    @classmethod
+    def parse_origins(cls, v: str | list[str]) -> list[str]:
+        if isinstance(v, str):
+            return [o.strip() for o in v.split(",") if o.strip()]
+        return v
 
 
 _TOML_PATH = Path(__file__).resolve().parent.parent / "settings.toml"
