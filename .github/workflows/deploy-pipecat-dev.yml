@@ -64,6 +64,9 @@ jobs:
       - name: Resolve public API key (readme-dev)
         run: |
           set -euo pipefail
+          echo "DEBUG: listing keys for org ${PIPECAT_ORG}..."
+          uv run pcc organizations keys list --organization "${PIPECAT_ORG}" || { echo "pcc keys list command failed"; exit 1; }
+          echo "DEBUG: raw output above. Looking for key named '${PIPECAT_DEFAULT_PUBLIC_KEY_NAME}'..."
           KEY_VALUE="$(uv run pcc organizations keys list --organization "${PIPECAT_ORG}" | awk -v keyname="${PIPECAT_DEFAULT_PUBLIC_KEY_NAME}" 'index($0,keyname){if (match($0,/pk_[0-9a-f-]+/)) {print substr($0,RSTART,RLENGTH); exit}}')"
           if [ -z "${KEY_VALUE}" ]; then
             echo "Could not resolve public API key named '${PIPECAT_DEFAULT_PUBLIC_KEY_NAME}' in organization '${PIPECAT_ORG}'." >&2
