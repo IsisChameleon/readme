@@ -46,6 +46,12 @@ create trigger on_auth_user_created
     for each row
     execute function public.handle_new_user();
 
+-- Backfill households for any existing auth users (created before trigger existed)
+insert into public.households (id, name)
+select id, coalesce(raw_user_meta_data ->> 'full_name', email)
+from auth.users
+on conflict (id) do nothing;
+
 -- Update kids and books to reference households
 -- Drop all policies that depend on household_id before type change
 drop policy if exists "kids_dev_bypass" on kids;
