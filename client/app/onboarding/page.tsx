@@ -31,5 +31,11 @@ export default async function OnboardingPage() {
     });
   }
 
-  return <OnboardingFlow householdId={user.id} />;
+  // Fetch any kids already created (e.g. user started onboarding but didn't finish)
+  const { data: existingKids } = await supabase
+    .from('kids')
+    .select('id, name')
+    .eq('household_id', user.id);
+
+  return <OnboardingFlow householdId={user.id} existingKids={existingKids ?? []} />;
 }

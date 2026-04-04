@@ -14,16 +14,23 @@ const COLOR_OPTIONS = [
   '#F472B6', '#60A5FA', '#34D399', '#FBBF24', '#A78BFA', '#FB923C',
 ];
 
-interface OnboardingFlowProps {
-  householdId: string;
+interface ExistingKid {
+  id: string;
+  name: string;
 }
 
-export const OnboardingFlow = ({ householdId }: OnboardingFlowProps) => {
-  const [step, setStep] = useState(1);
-  const [kidName, setKidName] = useState('');
+interface OnboardingFlowProps {
+  householdId: string;
+  existingKids: ExistingKid[];
+}
+
+export const OnboardingFlow = ({ householdId, existingKids }: OnboardingFlowProps) => {
+  const hasExistingKid = existingKids.length > 0;
+  const [step, setStep] = useState(hasExistingKid ? 2 : 1);
+  const [kidName, setKidName] = useState(hasExistingKid ? existingKids[0].name : '');
   const [kidColor, setKidColor] = useState(COLOR_OPTIONS[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [kidCreated, setKidCreated] = useState(false);
+  const [kidCreated, setKidCreated] = useState(hasExistingKid);
   const [bookUploaded, setBookUploaded] = useState(false);
   const router = useRouter();
 
@@ -201,14 +208,16 @@ export const OnboardingFlow = ({ householdId }: OnboardingFlowProps) => {
                   />
 
                   <div className="flex gap-3">
-                    <Button
-                      variant="outline"
-                      onClick={() => setStep(1)}
-                      className="h-12 px-4"
-                    >
-                      <ArrowLeft className="w-4 h-4 mr-2" />
-                      Back
-                    </Button>
+                    {!hasExistingKid && (
+                      <Button
+                        variant="outline"
+                        onClick={() => setStep(1)}
+                        className="h-12 px-4"
+                      >
+                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        Back
+                      </Button>
+                    )}
                     
                     {bookUploaded ? (
                       <Button
