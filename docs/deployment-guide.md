@@ -1,150 +1,147 @@
-# Deployment Guide (Dev + Prod)
+# Deployment Guide — Setting Up a New Environment
 
-Last updated: 2026-02-22
+Last updated: 2026-04-04
 
-## 1) Current Infra Baseline
+## Architecture Overview
 
-This is the active deployment target for Milestone 0:
+| Component | Platform | How deployed |
+|-----------|----------|--------------|
+| Client (Next.js) | Vercel | Auto-deploy on push |
+| API + Worker | Modal | GitHub Actions (`deploy-modal.yml`) |
+| Voice Bot | Pipecat Cloud | GitHub Actions (`deploy-pipecat-dev.yml`) |
+| Database + Auth + Storage | Supabase | Migrations via GitHub Actions (`deploy-supabase-migrations.yml`) |
 
-1. Client: Vercel (`client/`)
-2. API: Railway (`server/api`)
-3. Worker: Railway (`server/worker`)
-4. Voice bot: Pipecat Cloud (`server/bot`, `server/pcc-deploy.toml`)
-5. Database + file storage: Supabase (Postgres + Storage)
-6. Queue broker + transient call state store: Upstash Redis (default)
+### Branch → Environment mapping
 
-For now, use Supabase Free while the product is still in development.
+| Branch | Vercel env | Domain | Modal app |
+|--------|-----------|--------|-----------|
+| `main` | Preview | `dev.embertales.ai` | `readme-dev` |
+| `production` | Production | `app.embertales.ai` | `readme-prod` |
 
-## 2) Where We Are Today
+## Step-by-step: Configure a new deployed environment
 
-Implemented in code now:
+### 1. Supabase project
 
-1. `POST /admin/books/upload` exists and validates PDF uploads.
-2. Upload writes PDF to Supabase Storage and inserts a `books` row.
-3. Upload response status is user-facing and set to `processing`.
-4. Dramatiq enqueue path exists and worker task logs `processing your book`.
-5. API `GET /health` endpoint exists.
-6. API tests pass locally (`9 passed` in `server/tests/api`).
+1. Create a new Supabase project (e.g. `readme-dev`)
+2. Note these values (Settings → API):
+   - **Project URL** → `SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_URL`
+   - **anon public key** → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - **service_role secret key** → `SUPABASE_SECRET_KEY`
+   - **Database URL** (Settings → Database → Connection string → URI) → `SUPABASE_DB_URL`
+3. Create a storage bucket named `readme_dev` (or `readme_prod`)
+4. Configure **Authentication → URL Configuration**:
+   - **Site URL**: `https://dev.embertales.ai` (or your domain)
+   - **Redirect URLs**: add `https://dev.embertales.ai/auth/callback` and `https://dev.embertales.ai/auth/confirm`
+5. Configure **Authentication → Providers → Google**:
+   - Enable Google provider
+   - Add your Google OAuth Client ID and Secret
+   - The callback URL shown by Supabase (e.g. `https://xxx.supabase.co/auth/v1/callback`) must be added to Google Cloud Console (see next step)
 
-Not implemented yet:
+> **Lesson learned**: If Google OAuth redirects to `localhost:3000` after sign-in, the Supabase Site URL is still set to localhost. This is the most common auth issue when deploying a new environment.
 
-1. Full PDF extraction/normalization/chunking pipeline.
-2. `GET /books/{book_id}/status` and chunk-read endpoints.
-3. CI/release workflow files (`.github/workflows/ci.yml`, `.github/workflows/release.yml`).
-4. End-to-end smoke script for deployed environments.
+### 2. Google Cloud Console (OAuth)
 
-## 3) Environment Model
+1. Go to **APIs & Credentials → OAuth 2.0 Client IDs**
+2. Edit your OAuth client
+3. Add to **Authorized JavaScript origins**: `https://dev.embertales.ai`
+4. Add to **Authorized redirect URIs**: `https://YOUR_SUPABASE_PROJECT.supabase.co/auth/v1/callback`
+5. Save
 
-Use two isolated environments:
+> **Lesson learned**: The Google OAuth `invalid_client` / `Error 401` error means the redirect URI from Supabase is not in the Google Cloud Console's authorized list.
 
-1. `dev`
-2. `prod`
+### 3. Vercel (Client)
 
-Rules:
+#### First-time project setup
 
-1. Do not share Supabase projects between `dev` and `prod`.
-2. Do not share Redis databases between `dev` and `prod`.
-3. Keep separate Pipecat Cloud secret sets for `dev` and `prod`.
-4. Keep separate Railway services for `dev` and `prod`.
-5. Keep Vercel preview deployments for `dev` and production deployment for `prod`.
-6. Keep separate Supabase buckets per environment (`readme_dev`, `readme_prod`).
+1. Import the GitHub repo in Vercel
+2. Set **Root Directory** to `client`
+3. Set **Framework Preset** to **Next.js**
 
-Suggested names:
+> **Lesson learned**: If Framework Preset gets set to "Other", the build completes in 0ms and produces nothing — every page returns a Vercel-level 404. Always verify it says "Next.js".
 
-1. Railway: `readme-api-dev`, `readme-worker-dev`, `readme-api-prod`, `readme-worker-prod`
-2. Supabase: `readme-dev`, `readme-prod`
-3. Broker: `readme-dev-broker`, `readme-prod-broker`
-4. Pipecat secret sets: `readme-dev`, `readme-prod`
+#### Environment / branch configuration
 
-## 4) One-Time Setup Checklist
+1. **Settings → Environments**: set the Production branch to `production` (not `main`)
+2. **Settings → Environments → Preview**: assign `dev.embertales.ai` as a custom domain linked to the `main` branch
+3. **Settings → Environments → Production**: `app.embertales.ai` is the production domain
 
-Run this once for each environment (`dev` first, then `prod`).
+#### Environment variables
 
-### Supabase
+Set these per environment (uncheck the environments you don't want for each value):
 
-1. Create project.
-2. Create storage bucket (`readme_dev` in dev, `readme_prod` in prod).
-3. Apply SQL migration from `server/api/migrations/0001_books.sql`.
+| Variable | Preview (dev) | Production |
+|----------|--------------|------------|
+| `NEXT_PUBLIC_API_BASE_URL` | `https://isischameleon--readme-dev-serve-api.modal.run` | `https://isischameleon--readme-prod-serve-api.modal.run` |
+| `NEXT_PUBLIC_SUPABASE_URL` | dev Supabase Project URL | prod Supabase Project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | dev Supabase anon key | prod Supabase anon key |
 
-### Queue Broker (Upstash Redis)
+#### Deployment Protection
 
-1. Create one Upstash Redis database per environment (`dev`, `prod`) in the closest region.
-2. Use the Redis connection URL for worker/API broker traffic in `DRAMATIQ_BROKER_URL`.
-3. Keep REST credentials separate for application/API use cases if needed.
+Vercel enables **Deployment Protection** for Preview deployments by default. This blocks all unauthenticated access with a 404 page (not 401 — it looks like a broken deployment, not an auth issue).
 
-### Railway
+- To make `dev.embertales.ai` publicly accessible: **Settings → Deployment Protection** → disable for Preview
+- To keep it private: leave enabled, but you'll need to be logged into Vercel to access
 
-1. Create API service with root directory `server`.
-2. Create worker service with root directory `server`.
-3. API start command: `uv run uvicorn api.main:app --host 0.0.0.0 --port $PORT`
-4. Worker start command: `uv run python -m dramatiq worker.tasks`
-5. Set service env vars from `docs/release-env-matrix.md`.
+> **Lesson learned**: A Vercel 404 on a Preview deployment that shows a valid "Ready" status in the dashboard is almost always Deployment Protection blocking access. Check this before debugging the build.
 
-### Pipecat Cloud
+### 4. Modal (API + Worker)
 
-1. Build/push bot image from `server/`.
-2. Keep `server/pcc-deploy.toml` as source of deploy config.
-3. Create separate secret sets for `dev` and `prod`.
-4. Include bot provider secrets (`OPENAI_API_KEY`, `DEEPGRAM_API_KEY`, `HUME_API_KEY`, `DAILY_API_KEY`).
-5. Deploy bot and keep each environment's `/start` URL.
+1. Create a Modal secret group named `readme-{env}` (e.g. `readme-dev`) in the Modal dashboard
+2. Add these secrets to the group:
 
-### Vercel
+| Secret | Description |
+|--------|-------------|
+| `SUPABASE_URL` | Supabase Project URL |
+| `SUPABASE_SECRET_KEY` | Supabase service_role key |
+| `SUPABASE_BOOKS_BUCKET` | `readme_dev` or `readme_prod` |
+| `DAILY_API_KEY` | Daily.co API key |
+| `OPENAI_API_KEY` | OpenAI key |
+| `DEEPGRAM_API_KEY` | Deepgram STT key |
+| `CARTESIA_API_KEY` | Cartesia TTS key |
+| `GOOGLE_API_KEY` | Google Gemini key |
+| `CORS_ALLOWED_ORIGINS` | `https://dev.embertales.ai` or `https://app.embertales.ai` |
 
-1. Import `client/`.
-2. Configure preview env (`dev`) and production env (`prod`).
-3. Set `BOT_START_URL` to the correct Pipecat `/start` endpoint per environment.
-4. Set `NEXT_PUBLIC_API_BASE_URL` to matching API URL.
+`MODAL_APP_NAME` is auto-injected at deploy time — do not add it manually.
 
-## 5) Deployment Runbook
+3. Add GitHub environment secrets (`MODAL_TOKEN_ID`, `MODAL_TOKEN_SECRET`) for the CI workflow
 
-### Dev
+### 5. Pipecat Cloud (Voice Bot)
 
-1. Apply latest DB migration in Supabase dev.
-2. Deploy Railway API (`readme-api-dev`).
-3. Deploy Railway worker (`readme-worker-dev`).
-4. Deploy Pipecat bot using dev secret set.
-5. Update Vercel preview env vars (if endpoints changed).
-6. Trigger Vercel preview deploy.
-7. Run smoke tests.
+1. Go to the Pipecat Cloud dashboard → your organization
+2. Create a **public API key** named `readme-dev` (the CI workflow resolves the key by name)
+3. Create a **secret set** named `readme-dev` with bot provider secrets (`OPENAI_API_KEY`, `DEEPGRAM_API_KEY`, `DAILY_API_KEY`, etc.)
+4. Add GitHub environment secrets (`PIPECAT_TOKEN`, `DOCKERHUB_TOKEN`) for the CI workflow
 
-### Prod
+### 6. Supabase Migrations (CI)
 
-1. Confirm `dev` smoke tests passed for the same commit.
-2. Apply latest DB migration in Supabase prod.
-3. Deploy Railway API (`readme-api-prod`).
-4. Deploy Railway worker (`readme-worker-prod`).
-5. Deploy Pipecat bot using prod secret set.
-6. Update Vercel production env vars (if endpoints changed).
-7. Trigger Vercel production deploy.
-8. Run smoke tests.
+1. Add `SUPABASE_DB_URL` as a GitHub environment secret (the database connection string)
+2. Migrations run automatically on push to `main` when files in `supabase/migrations/` change
+3. On GitHub release, migrations deploy to `prod`
 
-## 6) Smoke Tests (Both Environments)
+> **Lesson learned**: If the migration casts a column type (e.g. `text` → `uuid`), existing data must be compatible. Run a one-time fix script against the DB before re-triggering the migration workflow. See `scripts/fix_test_household.sql` for an example.
 
-1. API health
-```bash
-curl -fsS "$API_BASE_URL/health"
-```
+### 7. GitHub environment secrets summary
 
-2. Upload endpoint
-```bash
-curl -X POST "$API_BASE_URL/admin/books/upload" \
-  -F "household_id=11111111-1111-1111-1111-111111111111" \
-  -F "file=@/absolute/path/to/book.pdf;type=application/pdf"
-```
+Each GitHub environment (`dev`, `prod`) needs:
 
-Expected:
+| Secret | Used by |
+|--------|---------|
+| `MODAL_TOKEN_ID` | Modal deploy workflow |
+| `MODAL_TOKEN_SECRET` | Modal deploy workflow |
+| `PIPECAT_TOKEN` | Pipecat bot deploy workflow |
+| `DOCKERHUB_TOKEN` | Pipecat bot deploy workflow |
+| `SUPABASE_DB_URL` | Supabase migration workflow |
 
-1. HTTP 200
-2. Response includes `book_id`, `status="processing"`, and `storage_path`
-3. Worker logs include `processing your book | book_id=...`
+## Smoke tests
 
-3. Frontend to bot connection
+After deploying all services:
 
-1. Open deployed client URL.
-2. Trigger connect/start flow.
-3. Confirm `/api/start` returns success and session starts.
+1. **API health**: `curl -fsS https://isischameleon--readme-dev-serve-api.modal.run/health`
+2. **Client loads**: visit `https://dev.embertales.ai` — should show login page
+3. **Google OAuth**: sign in with Google — should redirect back to the app (not localhost)
+4. **Voice session**: start a call from the dashboard — bot should connect
 
-## 7) Local Dev Stack Commands
+## Local dev stack commands
 
 Use these when running locally with Docker Compose:
 
@@ -161,29 +158,13 @@ docker compose --profile worker up --build
 docker compose down
 ```
 
-## 8) Next Documentation to Add
+## Common issues
 
-1. `docs/release-checklist.md` with a strict go/no-go checklist.
-2. `scripts/smoke.sh` to automate the smoke tests above.
-3. `.github/workflows/release.yml` for repeatable deploys.
-
-## 9) Redis Usage Pattern (Broker + Shared Call State)
-
-Using one Redis/Valkey backend for both Dramatiq and call state is valid. Keep strict key separation:
-
-1. Dramatiq keys:
-`dramatiq:*` (queue internals)
-2. App call-state keys:
-`call:*`, `session:*`, `presence:*`
-
-Recommended key conventions:
-
-1. `call:{session_id}:state` (hash, TTL 30-120 min)
-2. `call:{session_id}:events` (stream/list for timeline events, TTL)
-3. `user:{user_id}:active_call` (string, short TTL)
-
-Important guardrails:
-
-1. Do not expose full Redis credentials to the browser.
-2. Browser should read/write via API routes (or read-only token with strict ACL when intentionally public).
-3. Keep queue and app keys isolated by prefix and ACL policy.
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| Vercel 404 on Preview, deployment shows "Ready" | Deployment Protection enabled | Settings → Deployment Protection → disable for Preview |
+| Vercel 404, build completed in 0ms | Framework Preset set to "Other" | Settings → Build and Deployment → change to "Next.js", redeploy |
+| Google OAuth redirects to `localhost:3000` | Supabase Site URL still set to localhost | Supabase → Authentication → URL Configuration → update Site URL |
+| Google OAuth `Error 401: invalid_client` | Redirect URI not in Google Cloud Console | Add Supabase callback URL to Google OAuth authorized redirect URIs |
+| Supabase migration fails with UUID cast error | Pre-existing non-UUID data in DB | Run cleanup SQL before migration (see `scripts/` for examples) |
+| Pipecat deploy fails "Could not resolve public API key" | API key name doesn't match or doesn't exist | Create the key in Pipecat Cloud dashboard with the exact name the workflow expects |

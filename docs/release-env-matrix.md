@@ -96,12 +96,14 @@ Required:
 6. `DEEPGRAM_API_KEY`
 7. `CARTESIA_API_KEY`
 8. `GOOGLE_API_KEY`
+9. `CORS_ALLOWED_ORIGINS`
 
 Environment-specific values:
 
-| Var                     | `dev`         | `prod`         |
-|-------------------------|---------------|----------------|
-| `SUPABASE_BOOKS_BUCKET` | `readme_dev`  | `readme_prod`  |
+| Var                     | `dev`                          | `prod`                         |
+|-------------------------|--------------------------------|--------------------------------|
+| `SUPABASE_BOOKS_BUCKET` | `readme_dev`                  | `readme_prod`                  |
+| `CORS_ALLOWED_ORIGINS`  | `https://dev.embertales.ai`   | `https://app.embertales.ai`    |
 
 Note: `MODAL_APP_NAME` is **auto-injected** — do not add it to the secret group manually.
 

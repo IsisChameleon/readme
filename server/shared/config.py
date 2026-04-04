@@ -3,19 +3,45 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic_settings.main import PydanticBaseSettingsSource, TomlConfigSettingsSource
 
 
 class LazySecretsSettings(BaseModel):
-    """BaseModel subclass that resolves ${ENV_VAR} references on access."""
+    """BaseModel subclass that resolves ${ENV_VAR} references.
 
-    def __getattribute__(self, name: str) -> object:
-        value = super().__getattribute__(name)
-        if isinstance(value, str) and value.startswith("${") and value.endswith("}"):
+    Resolution happens in two stages:
+    - model_validator(mode="before"): resolves values passed to the constructor
+      (e.g. from TOML settings). Runs before field validators, so comma-separated
+      strings can be split into lists by downstream validators.
+    - model_post_init: resolves class-level defaults (e.g. api_key = "${MY_KEY}")
+      that aren't in the input data.
+    """
+
+    @staticmethod
+    def _resolve(value: str) -> str:
+        if value.startswith("${") and value.endswith("}"):
             return os.getenv(value[2:-1], "")
         return value
+
+    @model_validator(mode="before")
+    @classmethod
+    def resolve_env_vars(cls, data: dict) -> dict:
+        if not isinstance(data, dict):
+            return data
+        for key, value in data.items():
+            if isinstance(value, str):
+                data[key] = cls._resolve(value)
+        return data
+
+    def model_post_init(self, __context: object) -> None:
+        for name, _field in type(self).model_fields.items():
+            value = object.__getattribute__(self, name)
+            if isinstance(value, str):
+                resolved = self._resolve(value)
+                if resolved is not value:
+                    object.__setattr__(self, name, resolved)
 
 
 class SupabaseSettings(LazySecretsSettings):
@@ -49,9 +75,18 @@ class UploadSettings(BaseModel):
     max_bytes: int = 25 * 1024 * 1024
 
 
-class CorsSettings(BaseModel):
+class CorsSettings(LazySecretsSettings):
     allowed_origins: list[str] = ["http://localhost:3000"]
     allowed_origin_regex: str = ""
+
+    @field_validator("allowed_origins", mode="before")
+    @classmethod
+    def parse_origins(cls, v: str | list[str]) -> list[str]:
+        if isinstance(v, str):
+            if not v:
+                return ["http://localhost:3000"]
+            return [o.strip() for o in v.split(",") if o.strip()]
+        return v
 
 
 _TOML_PATH = Path(__file__).resolve().parent.parent / "settings.toml"
