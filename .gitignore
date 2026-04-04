@@ -57,3 +57,4 @@ scripts/output/*.json
 scripts/input/*.pdf
 temp/
 server/scripts/manuscript*.json
+.vercel

@@ -30,11 +30,15 @@ class BotSession:
         import pipecat.services.openai.llm  # noqa: F401
 
     @modal.method()
-    async def run(self, room_url: str, token: str) -> None:
+    async def run(
+        self, room_url: str, token: str, book_id: str | None = None, kid_id: str | None = None
+    ) -> None:
         from bot.bot import bot
         from pipecat.runner.types import DailyRunnerArguments
 
-        await bot(DailyRunnerArguments(room_url=room_url, token=token))
+        await bot(
+            DailyRunnerArguments(room_url=room_url, token=token), book_id=book_id, kid_id=kid_id
+        )
 
 
 @app.function(
@@ -43,9 +47,13 @@ class BotSession:
     region=[config.region],
     timeout=30 * 60,
 )
-async def run_bot_session(room_url: str, token: str) -> None:
+async def run_bot_session(
+    room_url: str, token: str, book_id: str | None = None, kid_id: str | None = None
+) -> None:
     """Spawnable entry point — delegates to BotSession for snapshot benefits."""
-    await BotSession().run.remote.aio(room_url=room_url, token=token)
+    await BotSession().run.remote.aio(
+        room_url=room_url, token=token, book_id=book_id, kid_id=kid_id
+    )
 
 
 # ── Worker (PDF processing) ─────────────────────────────────────────

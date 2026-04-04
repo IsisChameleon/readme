@@ -76,14 +76,16 @@ def _build_tools() -> ToolsSchema:
     )
 
 
-async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
+async def run_bot(
+    transport: BaseTransport,
+    runner_args: RunnerArguments,
+    book_id: str | None = None,
+    kid_id: str | None = None,
+):
     """Pipeline: input -> STT -> user_agg -> LLM -> StateManager -> assistant_agg -> TTS -> output."""
     logger.info(f"run_bot started with transport={type(transport).__name__}")
 
-    # TODO: Wire kid_id from /start request body through runner_args instead of hardcoding.
-    # The API already validates kid ownership — this just needs plumbing through Pipecat's
-    # runner config so the bot reads the correct kid's progress.
-    kid_id = "demo_kid"
+    kid_id = kid_id or "demo_kid"
 
     stt = DeepgramSTTService(
         api_key=os.environ["DEEPGRAM_API_KEY"],
@@ -201,7 +203,7 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
     await runner.run(task)
 
 
-async def bot(runner_args: RunnerArguments):
+async def bot(runner_args: RunnerArguments, book_id: str | None = None, kid_id: str | None = None):
     """Main bot entry point compatible with Pipecat Cloud."""
     logger.info(f"bot() invoked with runner_args={type(runner_args).__name__}")
     transport_params = {
@@ -218,7 +220,7 @@ async def bot(runner_args: RunnerArguments):
     }
     transport = await create_transport(runner_args, transport_params)
     logger.info(f"Transport created: {type(transport).__name__}")
-    await run_bot(transport, runner_args)
+    await run_bot(transport, runner_args, book_id=book_id, kid_id=kid_id)
 
 
 if __name__ == "__main__":
