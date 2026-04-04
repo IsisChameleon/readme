@@ -57,6 +57,11 @@ class CorsSettings(BaseModel):
     @classmethod
     def parse_origins(cls, v: str | list[str]) -> list[str]:
         if isinstance(v, str):
+            # Resolve ${ENV_VAR} references (same pattern as LazySecretsSettings)
+            if v.startswith("${") and v.endswith("}"):
+                v = os.getenv(v[2:-1], "")
+            if not v:
+                return ["http://localhost:3000"]
             return [o.strip() for o in v.split(",") if o.strip()]
         return v
 
