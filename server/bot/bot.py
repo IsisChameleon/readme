@@ -79,13 +79,12 @@ def _build_tools() -> ToolsSchema:
 async def run_bot(
     transport: BaseTransport,
     runner_args: RunnerArguments,
-    book_id: str | None = None,
-    kid_id: str | None = None,
 ):
     """Pipeline: input -> STT -> user_agg -> LLM -> StateManager -> assistant_agg -> TTS -> output."""
     logger.info(f"run_bot started with transport={type(transport).__name__}")
 
-    kid_id = kid_id or "demo_kid"
+    body = runner_args.body or {}
+    kid_id = body.get("kid_id") or "demo_kid"
 
     stt = DeepgramSTTService(
         api_key=os.environ["DEEPGRAM_API_KEY"],
@@ -203,7 +202,7 @@ async def run_bot(
     await runner.run(task)
 
 
-async def bot(runner_args: RunnerArguments, book_id: str | None = None, kid_id: str | None = None):
+async def bot(runner_args: RunnerArguments):
     """Main bot entry point compatible with Pipecat Cloud."""
     logger.info(f"bot() invoked with runner_args={type(runner_args).__name__}")
     transport_params = {
@@ -220,7 +219,7 @@ async def bot(runner_args: RunnerArguments, book_id: str | None = None, kid_id: 
     }
     transport = await create_transport(runner_args, transport_params)
     logger.info(f"Transport created: {type(transport).__name__}")
-    await run_bot(transport, runner_args, book_id=book_id, kid_id=kid_id)
+    await run_bot(transport, runner_args)
 
 
 if __name__ == "__main__":

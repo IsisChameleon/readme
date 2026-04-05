@@ -30,11 +30,10 @@ async def _start_via_bot_runner(
     bot_url: str, book_id: str | None = None, kid_id: str | None = None
 ) -> dict:
     """Forward to the Pipecat bot runner, which creates the Daily room and runs the bot."""
-    body: dict = {"createDailyRoom": True}
-    if book_id:
-        body["book_id"] = book_id
-    if kid_id:
-        body["kid_id"] = kid_id
+    body: dict = {
+        "createDailyRoom": True,
+        "body": {"book_id": book_id, "kid_id": kid_id},
+    }
 
     async with aiohttp.ClientSession() as session:
         async with session.post(

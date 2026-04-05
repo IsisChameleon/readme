@@ -36,9 +36,8 @@ class BotSession:
         from bot.bot import bot
         from pipecat.runner.types import DailyRunnerArguments
 
-        await bot(
-            DailyRunnerArguments(room_url=room_url, token=token), book_id=book_id, kid_id=kid_id
-        )
+        body = {"book_id": book_id, "kid_id": kid_id}
+        await bot(DailyRunnerArguments(room_url=room_url, token=token, body=body))
 
 
 @app.function(
