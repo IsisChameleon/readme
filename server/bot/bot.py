@@ -203,7 +203,12 @@ async def run_bot(
 
 
 async def bot(runner_args: RunnerArguments):
-    """Main bot entry point compatible with Pipecat Cloud."""
+    """Main bot entry point compatible with Pipecat Cloud.
+
+    Custom params (book_id, kid_id) are passed via runner_args.body, NOT as
+    extra kwargs. Pipecat Cloud only passes a single session args object.
+    See: https://docs.pipecat.daily.co/guides/deploying-your-bot#bot-function
+    """
     logger.info(f"bot() invoked with runner_args={type(runner_args).__name__}")
     transport_params = {
         "daily": lambda: DailyParams(

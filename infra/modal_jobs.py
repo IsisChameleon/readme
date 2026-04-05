@@ -36,6 +36,8 @@ class BotSession:
         from bot.bot import bot
         from pipecat.runner.types import DailyRunnerArguments
 
+        # Pass custom params via body to match Pipecat Cloud's single-arg contract.
+        # See: https://docs.pipecat.daily.co/guides/deploying-your-bot#bot-function
         body = {"book_id": book_id, "kid_id": kid_id}
         await bot(DailyRunnerArguments(room_url=room_url, token=token, body=body))
 
