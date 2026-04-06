@@ -97,33 +97,21 @@ def _make_state_manager(
 
 
 @pytest.mark.asyncio
-async def test_enter_book_selection_sets_state():
+async def test_greet_child_sets_state():
     sm, library, collector = _make_state_manager()
-    with _patch_supabase():
-        await sm.enter_book_selection()
+    await sm.greet_child()
     assert sm.state == State.BOOK_SELECTION
 
 
 @pytest.mark.asyncio
-async def test_enter_book_selection_triggers_llm_greeting():
+async def test_greet_child_triggers_llm_greeting():
     sm, library, collector = _make_state_manager()
-    with _patch_supabase():
-        await sm.enter_book_selection()
+    await sm.greet_child()
     appends = [(f, d) for f, d in collector.frames if isinstance(f, LLMMessagesAppendFrame)]
     assert len(appends) == 1
     frame, direction = appends[0]
     assert direction == FrameDirection.UPSTREAM
     assert frame.run_llm is True
-
-
-@pytest.mark.asyncio
-async def test_enter_book_selection_sets_system_prompt():
-    sm, library, collector = _make_state_manager()
-    with _patch_supabase():
-        await sm.enter_book_selection()
-    messages = sm._context.get_messages()
-    assert messages[0]["role"] == "system"
-    assert "book_001" in messages[0]["content"]
 
 
 # ======================================================================

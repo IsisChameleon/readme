@@ -28,7 +28,7 @@ from pipecat.processors.frame_processor import FrameDirection, FrameProcessor
 
 try:
     from ..library import Library
-    from ..prompt import BOOK_SELECTION_SYSTEM, FINISHED_SYSTEM, QA_SYSTEM, READING_SYSTEM
+    from ..prompt import FINISHED_SYSTEM, QA_SYSTEM, READING_SYSTEM
     from .frames import EndSessionFrame, StartReadingFrame
 except ImportError:
     from library import Library  # type: ignore[assignment]
@@ -37,7 +37,6 @@ except ImportError:
         StartReadingFrame,
     )
     from prompt import (  # type: ignore[assignment]
-        BOOK_SELECTION_SYSTEM,
         FINISHED_SYSTEM,
         QA_SYSTEM,
         READING_SYSTEM,
@@ -67,6 +66,19 @@ class BookReadingStateManager(FrameProcessor):
         self._disconnect_callback: Callable[[], Coroutine[Any, Any, None]] | None = None
         self._idle_task: asyncio.Task | None = None
         self._idle_event: asyncio.Event = asyncio.Event()
+        self._book_index_map: dict[str, str] = {}
+
+    # ------------------------------------------------------------------
+    # Book index resolution
+    # ------------------------------------------------------------------
+
+    def populate_index(self, index: str, book_id: str) -> None:
+        """Register a numeric index → full UUID mapping."""
+        self._book_index_map[index] = book_id
+
+    def resolve_book_id(self, raw_id: str) -> str:
+        """Resolve a numeric index (e.g. '1') to a full UUID. Falls through to raw_id."""
+        return self._book_index_map.get(raw_id, raw_id)
 
     @property
     def state(self) -> State:
@@ -79,39 +91,17 @@ class BookReadingStateManager(FrameProcessor):
     # Public entry points
     # ------------------------------------------------------------------
 
-    async def enter_book_selection(self) -> None:
-        """Set up book selection state with available books in the system prompt."""
+    async def greet_child(self) -> None:
+        """Push a greeting nudge. The system prompt is already set at context creation."""
         await self._stop_idle_timer()
         self._state = State.BOOK_SELECTION
-        books_with_progress = self._library.get_books_with_progress()
-
-        if not books_with_progress:
-            book_list = "No books available."
-        else:
-            lines = []
-            for b in books_with_progress:
-                line = f'- id={b["id"]}, title="{b["title"]}"'
-                if "current_chunk_index" in b:
-                    line += (
-                        f" (in progress — chunk {b['current_chunk_index']}"
-                        f', chapter: "{b.get("chapter_title", "unknown")}"'
-                        f', last passage: "{b.get("chunk_text", "")}")'
-                    )
-                lines.append(line)
-            book_list = "\n".join(lines)
-
-        chapter_map = self._format_chapter_map()
-        prompt = BOOK_SELECTION_SYSTEM.format(book_list=book_list, chapter_map=chapter_map)
-        self._replace_system_prompt(prompt)
 
         await self.push_frame(
             LLMMessagesAppendFrame(
                 messages=[
                     {
                         "role": "system",
-                        "content": (
-                            "Greet the child warmly and tell them which books are available."
-                        ),
+                        "content": "The child has joined. Greet them warmly.",
                     }
                 ],
                 run_llm=True,
@@ -236,9 +226,14 @@ class BookReadingStateManager(FrameProcessor):
 
         if len(books) > 1:
             other_books = [b for b in books if not book or b.id != book.id]
-            book_list = ", ".join(f'{b.id} ("{b.title}")' for b in other_books)
+            hints = []
+            for i, b in enumerate(other_books, len(self._book_index_map) + 1):
+                idx = str(i)
+                self._book_index_map[idx] = b.id
+                hints.append(f'{idx}. "{b.title}"')
             another_book_hint = (
-                f"If they want a different book, call select_book(book_id) with one of: {book_list}"
+                "If they want a different book, call select_book(index) with one of:\n"
+                + "\n".join(hints)
             )
         else:
             another_book_hint = (
@@ -246,10 +241,18 @@ class BookReadingStateManager(FrameProcessor):
                 "available and suggest asking their parents to load more stories!"
             )
 
+        # Find the index for the current book
+        book_index = "1"
+        if book:
+            for idx, bid in self._book_index_map.items():
+                if bid == book.id:
+                    book_index = idx
+                    break
+
         prompt = FINISHED_SYSTEM.format(
             title=book.title if book else "the book",
             full_book_text=self._library.full_text(),
-            book_id=book.id if book else "",
+            book_index=book_index,
             another_book_hint=another_book_hint,
         )
         self._replace_system_prompt(prompt)

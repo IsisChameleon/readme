@@ -20,6 +20,10 @@ start_url = "http://bot:7860/start"
 [modal]
 app_name = "${MODAL_APP_NAME}"
 
+[pipecat_cloud]
+public_key = "${PIPECAT_PUBLIC_KEY}"
+agent_name = "readme-bot-dev"
+
 [upload]
 max_bytes = 26214400
 
