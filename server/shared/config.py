@@ -71,12 +71,6 @@ class ModalSettings(LazySecretsSettings):
     app_name: str = ""
 
 
-class PipecatCloudSettings(LazySecretsSettings):
-    public_key: str = ""
-    agent_name: str = "readme-bot-dev"
-    api_base_url: str = "https://api.pipecat.daily.co/v1"
-
-
 class UploadSettings(BaseModel):
     max_bytes: int = 25 * 1024 * 1024
 
@@ -109,7 +103,6 @@ class Settings(BaseSettings):
     keys: KeysSettings = KeysSettings()
     bot: BotSettings = BotSettings()
     modal: ModalSettings = ModalSettings()
-    pipecat_cloud: PipecatCloudSettings = PipecatCloudSettings()
     upload: UploadSettings = UploadSettings()
     cors: CorsSettings = CorsSettings()
 

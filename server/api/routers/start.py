@@ -26,33 +26,6 @@ class StartSessionRequest(BaseModel):
     kid_id: str | None = None
 
 
-async def _start_via_pcc(book_id: str | None = None, kid_id: str | None = None) -> dict:
-    """Forward to Pipecat Cloud's public /start endpoint."""
-    pcc = settings.pipecat_cloud
-    url = f"{pcc.api_base_url}/public/{pcc.agent_name}/start"
-
-    body: dict = {
-        "createDailyRoom": True,
-        "body": {"book_id": book_id, "kid_id": kid_id},
-    }
-
-    async with aiohttp.ClientSession() as session:
-        async with session.post(
-            url,
-            json=body,
-            headers={
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {pcc.public_key}",
-            },
-        ) as resp:
-            if resp.status >= 400:
-                body_text = await resp.text()
-                raise HTTPException(
-                    status_code=resp.status, detail=f"PCC /start failed: {body_text}"
-                )
-            return await resp.json()
-
-
 async def _start_via_bot_runner(
     bot_url: str, book_id: str | None = None, kid_id: str | None = None
 ) -> dict:
@@ -90,15 +63,8 @@ async def start_session(
         if not kid.data or kid.data["household_id"] != user_id:
             raise HTTPException(status_code=403, detail="Kid does not belong to your household")
 
-    # Priority: Pipecat Cloud > Modal > local bot runner
-    if settings.pipecat_cloud.public_key:
-        try:
-            data = await _start_via_pcc(book_id, kid_id)
-        except aiohttp.ClientError as exc:
-            logger.exception("Failed to reach Pipecat Cloud")
-            raise HTTPException(status_code=503, detail="Bot service unavailable.") from exc
-        return StartSessionResponse(room_url=data["dailyRoom"], token=data["dailyToken"])
-
+    # Modal path — custom /start needed for room creation + function spawning.
+    # For local dev and PCC, the client calls the Pipecat runner/PCC /start directly.
     if settings.modal.app_name:
         # DEPRECATED: Modal bot sessions — kept as fallback
         try:

@@ -24,7 +24,6 @@ def test_start_accepts_book_id_and_kid_id():
         _mock_kid_lookup(),
     ):
         mock_runner.return_value = {"dailyRoom": "https://daily.co/room", "dailyToken": "tok"}
-        mock_settings.pipecat_cloud.public_key = ""
         mock_settings.modal.app_name = ""
         mock_settings.bot.start_url = "http://bot:7860/start"
 
@@ -39,7 +38,6 @@ def test_start_works_without_params():
         patch("api.routers.start.settings") as mock_settings,
     ):
         mock_runner.return_value = {"dailyRoom": "https://daily.co/room", "dailyToken": "tok"}
-        mock_settings.pipecat_cloud.public_key = ""
         mock_settings.modal.app_name = ""
         mock_settings.bot.start_url = "http://bot:7860/start"
 
