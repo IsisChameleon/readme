@@ -77,7 +77,7 @@ class BookReadingStateManager(FrameProcessor):
         self._book_index_map[index] = book_id
 
     def resolve_book_id(self, raw_id: str) -> str:
-        """Resolve a numeric index (e.g. '1') to a full UUID. Falls through to raw_id."""
+        """Resolve a numeric index (e.g. '0') to a full UUID. Falls through to raw_id."""
         return self._book_index_map.get(raw_id, raw_id)
 
     @property
@@ -227,7 +227,7 @@ class BookReadingStateManager(FrameProcessor):
         if len(books) > 1:
             other_books = [b for b in books if not book or b.id != book.id]
             hints = []
-            for i, b in enumerate(other_books, len(self._book_index_map) + 1):
+            for i, b in enumerate(other_books, len(self._book_index_map)):
                 idx = str(i)
                 self._book_index_map[idx] = b.id
                 hints.append(f'{idx}. "{b.title}"')

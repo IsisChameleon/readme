@@ -31,7 +31,7 @@ try:
         StartReadingFrame,
     )
     from .processors.state_manager import BookReadingStateManager
-    from .prompt import FLOW_A_SYSTEM, FLOW_B_SYSTEM
+    from .prompt import BOOK_BROWSE_SYSTEM, BOOK_PRESELECTED_SYSTEM
 except ImportError:
     from library import Library  # type: ignore[assignment]
     from processors.frames import (  # type: ignore[assignment]
@@ -40,7 +40,7 @@ except ImportError:
         StartReadingFrame,
     )
     from processors.state_manager import BookReadingStateManager  # type: ignore[assignment]
-    from prompt import FLOW_A_SYSTEM, FLOW_B_SYSTEM  # type: ignore[assignment]
+    from prompt import BOOK_BROWSE_SYSTEM, BOOK_PRESELECTED_SYSTEM  # type: ignore[assignment]
 
 load_dotenv(override=True)
 
@@ -53,7 +53,7 @@ def _build_tools(has_book: bool) -> ToolsSchema:
             properties={
                 "book_id": {
                     "type": "string",
-                    "description": "The numeric index of the book (e.g. '1') as shown in the book list.",
+                    "description": "The numeric index of the book (e.g. '0') as shown in the book list.",
                 },
             },
             required=["book_id"],
@@ -64,7 +64,7 @@ def _build_tools(has_book: bool) -> ToolsSchema:
             properties={
                 "book_id": {
                     "type": "string",
-                    "description": "The numeric index of the book (e.g. '1').",
+                    "description": "The numeric index of the book (e.g. '0').",
                 },
                 "chunk_id": {
                     "type": "integer",
@@ -123,9 +123,9 @@ async def run_bot(
 
     # -- Build system prompt at context creation (never empty) --
     if book_id:
-        system_prompt = FLOW_A_SYSTEM
+        system_prompt = BOOK_PRESELECTED_SYSTEM
     else:
-        system_prompt = FLOW_B_SYSTEM
+        system_prompt = BOOK_BROWSE_SYSTEM
 
     tools = _build_tools(has_book=bool(book_id))
     context = LLMContext(
@@ -147,7 +147,7 @@ async def run_bot(
 
     # Pre-populate index map if book_id was provided
     if book_id:
-        state_manager.populate_index("1", book_id)
+        state_manager.populate_index("0", book_id)
 
     # -- Register function call handlers on the LLM --
 
@@ -158,7 +158,7 @@ async def run_bot(
             return
 
         lines = []
-        for i, b in enumerate(books_with_progress, 1):
+        for i, b in enumerate(books_with_progress):
             idx = str(i)
             state_manager.populate_index(idx, b["id"])
             line = f'{idx}. "{b["title"]}"'
