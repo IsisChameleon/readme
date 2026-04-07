@@ -21,7 +21,7 @@ jobs:
   deploy:
     name: Build + Deploy Dev Agent
     runs-on: ubuntu-latest
-    environment: dev
+    environment: readme / dev
     permissions:
       contents: read
     defaults:
