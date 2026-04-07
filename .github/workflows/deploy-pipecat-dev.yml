@@ -36,7 +36,7 @@ jobs:
       - name: Build and Deploy to Pipecat Cloud
         uses: daily-co/pipecat-cloud-deploy-action@v2
         with:
-          api-key: ${{ secrets.PIPECAT_TOKEN }}
+          api-key: ${{ secrets.PCC_API_KEY }}
           agent-name: readme-bot-dev
           cloud-build: true
           secret-set: readme-dev
