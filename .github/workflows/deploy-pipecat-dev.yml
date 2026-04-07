@@ -41,6 +41,7 @@ jobs:
           cloud-build: true
           secret-set: readme-dev
           build-context: server
+          dockerfile: bot/Dockerfile
 
       - name: Smoke test start endpoint
         env:
