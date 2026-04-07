@@ -1,6 +1,14 @@
+"""Voice session /start endpoint (Modal only).
+
+For local dev and Pipecat Cloud, the client calls the Pipecat runner or
+PCC /start endpoint directly — this endpoint is not involved.
+
+For Modal, the client calls this endpoint which creates a Daily room,
+spawns the bot on Modal, and returns the room URL + token.
+"""
+
 from __future__ import annotations
 
-import aiohttp
 from fastapi import APIRouter, Depends, HTTPException
 from loguru import logger
 from pydantic import BaseModel
@@ -16,38 +24,14 @@ router = APIRouter(
 )
 
 
-class StartSessionResponse(BaseModel):
-    room_url: str
-    token: str
-
-
 class StartSessionRequest(BaseModel):
     book_id: str | None = None
     kid_id: str | None = None
 
 
-async def _start_via_bot_runner(
-    bot_url: str, book_id: str | None = None, kid_id: str | None = None
-) -> dict:
-    """Forward to the Pipecat bot runner, which creates the Daily room and runs the bot."""
-    body: dict = {"createDailyRoom": True}
-    if book_id:
-        body["book_id"] = book_id
-    if kid_id:
-        body["kid_id"] = kid_id
-
-    async with aiohttp.ClientSession() as session:
-        async with session.post(
-            bot_url,
-            json=body,
-            headers={"Content-Type": "application/json"},
-        ) as resp:
-            if resp.status >= 400:
-                body_text = await resp.text()
-                raise HTTPException(
-                    status_code=resp.status, detail=f"Bot /start failed: {body_text}"
-                )
-            return await resp.json()
+class StartSessionResponse(BaseModel):
+    room_url: str
+    token: str
 
 
 @router.post("/start", response_model=StartSessionResponse)
@@ -64,17 +48,6 @@ async def start_session(
         if not kid.data or kid.data["household_id"] != user_id:
             raise HTTPException(status_code=403, detail="Kid does not belong to your household")
 
-    if not settings.modal.app_name:
-        # No Modal configured — use the bot runner directly
-        bot_url = settings.bot.start_url
-        try:
-            data = await _start_via_bot_runner(bot_url, book_id, kid_id)
-        except aiohttp.ClientError as exc:
-            logger.exception("Failed to reach bot at {}", bot_url)
-            raise HTTPException(status_code=503, detail="Bot service unavailable.") from exc
-        return StartSessionResponse(room_url=data["dailyRoom"], token=data["dailyToken"])
-
-    # Modal configured — create room via Daily API + spawn bot on Modal
     try:
         details = await DailyAPI.create_room_and_tokens()
     except DailyAPIError as exc:

@@ -31,7 +31,7 @@ jobs:
       UV_PYTHON: "3.13"
       PIPECAT_TOKEN: ${{ secrets.PIPECAT_TOKEN }}
       PIPECAT_ORG: stormy-badger-olive-971
-      PIPECAT_DEFAULT_PUBLIC_KEY_NAME: readme-dev
+      PIPECAT_DEFAULT_PUBLIC_KEY: ${{ secrets.PIPECAT_DEFAULT_PUBLIC_KEY }}
       DOCKERHUB_USERNAME: isischameleon
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
       PCC_SECRET_SET: readme-dev
@@ -54,25 +54,12 @@ jobs:
       - name: Validate required secrets
         run: |
           set -euo pipefail
-          for key in PIPECAT_TOKEN DOCKERHUB_TOKEN; do
+          for key in PIPECAT_TOKEN DOCKERHUB_TOKEN PIPECAT_DEFAULT_PUBLIC_KEY; do
             if [ -z "${!key:-}" ]; then
               echo "Missing required secret: $key" >&2
               exit 1
             fi
           done
-
-      - name: Resolve public API key (readme-dev)
-        run: |
-          set -euo pipefail
-          echo "DEBUG: listing keys for org ${PIPECAT_ORG}..."
-          uv run pcc organizations keys list --organization "${PIPECAT_ORG}" || { echo "pcc keys list command failed"; exit 1; }
-          echo "DEBUG: raw output above. Looking for key named '${PIPECAT_DEFAULT_PUBLIC_KEY_NAME}'..."
-          KEY_VALUE="$(uv run pcc organizations keys list --organization "${PIPECAT_ORG}" | awk -v keyname="${PIPECAT_DEFAULT_PUBLIC_KEY_NAME}" 'index($0,keyname){if (match($0,/pk_[0-9a-f-]+/)) {print substr($0,RSTART,RLENGTH); exit}}')"
-          if [ -z "${KEY_VALUE}" ]; then
-            echo "Could not resolve public API key named '${PIPECAT_DEFAULT_PUBLIC_KEY_NAME}' in organization '${PIPECAT_ORG}'." >&2
-            exit 1
-          fi
-          echo "PIPECAT_DEFAULT_PUBLIC_KEY=${KEY_VALUE}" >> "${GITHUB_ENV}"
 
       - name: Docker login
         run: |

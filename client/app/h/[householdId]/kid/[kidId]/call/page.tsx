@@ -137,12 +137,17 @@ const CallPageInner = () => {
     getAccessToken().then(setAuthToken);
   }, []);
 
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
-  const connectEndpoint = `${baseUrl}/start`;
+  const connectEndpoint =
+    process.env.NEXT_PUBLIC_CONNECT_ENDPOINT || 'http://localhost:7860/start';
 
   const connectHeaders = useMemo(() => {
     const h = new Headers();
-    if (authToken) h.set('Authorization', `Bearer ${authToken}`);
+    const pipecatKey = process.env.NEXT_PUBLIC_PIPECAT_PUBLIC_KEY;
+    if (pipecatKey) {
+      h.set('Authorization', `Bearer ${pipecatKey}`);
+    } else if (authToken) {
+      h.set('Authorization', `Bearer ${authToken}`);
+    }
     return h;
   }, [authToken]);
 
@@ -169,13 +174,16 @@ const CallPageInner = () => {
 
       <PipecatAppBase
         transportType="daily"
-        connectParams={{
+        startBotParams={{
           endpoint: connectEndpoint,
           headers: connectHeaders,
-          body: JSON.stringify({
-            book_id: bookId ?? undefined,
-            kid_id: params.kidId ?? undefined,
-          }),
+          requestData: {
+            createDailyRoom: true,
+            body: {
+              ...(bookId ? { book_id: bookId } : {}),
+              ...(params.kidId ? { kid_id: params.kidId } : {}),
+            },
+          },
         }}
         initDevicesOnMount
         themeProps={{ defaultTheme: 'dark' }}

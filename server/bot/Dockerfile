@@ -10,4 +10,6 @@ RUN --mount=type=cache,id=uv-cache,target=/root/.cache/uv \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     uv sync --locked --no-install-project --no-dev
 
-COPY ./bot .
+COPY ./bot ./bot
+COPY ./shared ./shared
+COPY ./settings.toml .
