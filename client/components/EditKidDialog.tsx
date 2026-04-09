@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/hooks/use-toast';
-import { getAuthHeaders } from '@/lib/api/client';
+import { apiClient } from '@/lib/api/client';
 
 const COLOR_OPTIONS = [
   '#F472B6', '#60A5FA', '#34D399', '#FBBF24', '#A78BFA', '#FB923C',
@@ -24,19 +24,16 @@ export const EditKidDialog = ({ kid, open, onClose }: EditKidDialogProps) => {
 
   if (!open) return null;
 
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
-
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
     setSubmitting(true);
     try {
-      const res = await fetch(`${baseUrl}/kids/${kid.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', ...await getAuthHeaders() },
-        body: JSON.stringify({ name: name.trim(), color }),
+      const { error } = await apiClient.PATCH('/kids/{kid_id}', {
+        params: { path: { kid_id: kid.id } },
+        body: { name: name.trim(), color },
       });
-      if (!res.ok) throw new Error('Failed to update');
+      if (error) throw new Error('Failed to update');
       toast({ title: 'Updated!' });
       router.refresh();
       onClose();
@@ -50,11 +47,10 @@ export const EditKidDialog = ({ kid, open, onClose }: EditKidDialogProps) => {
   const handleDelete = async () => {
     setSubmitting(true);
     try {
-      const res = await fetch(`${baseUrl}/kids/${kid.id}`, {
-        method: 'DELETE',
-        headers: await getAuthHeaders(),
+      const { error } = await apiClient.DELETE('/kids/{kid_id}', {
+        params: { path: { kid_id: kid.id } },
       });
-      if (!res.ok) throw new Error('Failed to delete');
+      if (error) throw new Error('Failed to delete');
       toast({ title: `${kid.name} removed` });
       router.refresh();
       onClose();

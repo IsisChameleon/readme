@@ -53,6 +53,7 @@ export const proxy = async (request: NextRequest) => {
   const publicRoutes = ['/auth/login', '/auth/signup', '/auth/verify', '/auth/callback', '/auth/confirm', '/auth/forgot-password', '/auth/reset-password'];
   const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route));
   const isOnboardingRoute = pathname.startsWith('/onboarding');
+  const isAdminRoute = pathname.startsWith('/admin');
 
   // If not logged in and trying to access protected route, redirect to login
   if (!user && !isPublicRoute) {
@@ -74,7 +75,7 @@ export const proxy = async (request: NextRequest) => {
   }
 
   // If logged in, not on auth pages, and not on onboarding - check onboarding status
-  if (user && !isPublicRoute && !isOnboardingRoute && !household?.onboarding_completed) {
+  if (user && !isPublicRoute && !isOnboardingRoute && !isAdminRoute && !household?.onboarding_completed) {
     const url = request.nextUrl.clone();
     url.pathname = '/onboarding';
     return NextResponse.redirect(url);

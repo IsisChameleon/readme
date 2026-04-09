@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { apiClient, getAccessToken } from '@/lib/api/client';
+import { apiClient } from '@/lib/api/client';
 import { toast } from '@/hooks/use-toast';
 
 const COLOR_OPTIONS = [
@@ -29,9 +29,7 @@ export const AddKidDialog = ({ householdId, open, onClose }: AddKidDialogProps) 
 
     setSubmitting(true);
     try {
-      const token = await getAccessToken();
       const { error } = await apiClient.POST('/kids', {
-        params: { header: { authorization: `Bearer ${token}` } },
         body: {
           household_id: householdId,
           name: name.trim(),

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Upload, FileText, BookOpen } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { getAuthHeaders } from '@/lib/api/client';
+import { apiClient } from '@/lib/api/client';
 
 interface KidLastBook {
   bookId: string;
@@ -142,16 +142,16 @@ export const UploadCard = ({ householdId, index }: UploadCardProps) => {
     setUploading(true);
     setFileName(file.name);
     try {
-      const form = new FormData();
-      form.append('file', file);
-      form.append('household_id', householdId);
-      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
-      const res = await fetch(`${baseUrl}/books/upload`, {
-        method: 'POST',
-        headers: await getAuthHeaders(),
-        body: form,
+      const { error } = await apiClient.POST('/books/upload', {
+        body: { file: file as unknown as string, household_id: householdId },
+        bodySerializer: (body) => {
+          const fd = new FormData();
+          fd.append('file', (body as Record<string, unknown>).file as File);
+          fd.append('household_id', (body as Record<string, unknown>).household_id as string);
+          return fd;
+        },
       });
-      if (!res.ok) throw new Error('Upload failed');
+      if (error) throw new Error('Upload failed');
       toast({ title: 'Book uploaded!' });
       router.refresh();
     } catch {

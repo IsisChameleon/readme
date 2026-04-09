@@ -5,6 +5,27 @@
     "version": "0.1.0"
   },
   "paths": {
+    "/admin/is-admin": {
+      "get": {
+        "summary": "Is Admin",
+        "operationId": "is_admin_admin_is_admin_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/books/upload": {
       "post": {
         "tags": [
@@ -12,28 +33,15 @@
         ],
         "summary": "Upload Book",
         "operationId": "upload_book_books_upload_post",
-        "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "Bearer <supabase_access_token>",
-              "title": "Authorization"
-            },
-            "description": "Bearer <supabase_access_token>"
-          }
-        ],
         "requestBody": {
-          "required": true,
           "content": {
             "multipart/form-data": {
               "schema": {
                 "$ref": "#/components/schemas/Body_upload_book_books_upload_post"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -56,7 +64,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
       }
     },
     "/kids": {
@@ -66,28 +79,15 @@
         ],
         "summary": "Create Kid",
         "operationId": "create_kid_kids_post",
-        "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "Bearer <supabase_access_token>",
-              "title": "Authorization"
-            },
-            "description": "Bearer <supabase_access_token>"
-          }
-        ],
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/CreateKidRequest"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -110,7 +110,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
       }
     },
     "/kids/{kid_id}": {
@@ -120,6 +125,11 @@
         ],
         "summary": "Update Kid",
         "operationId": "update_kid_kids__kid_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "kid_id",
@@ -129,17 +139,6 @@
               "type": "string",
               "title": "Kid Id"
             }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "Bearer <supabase_access_token>",
-              "title": "Authorization"
-            },
-            "description": "Bearer <supabase_access_token>"
           }
         ],
         "requestBody": {
@@ -181,6 +180,11 @@
         ],
         "summary": "Delete Kid",
         "operationId": "delete_kid_kids__kid_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "kid_id",
@@ -190,17 +194,6 @@
               "type": "string",
               "title": "Kid Id"
             }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "Bearer <supabase_access_token>",
-              "title": "Authorization"
-            },
-            "description": "Bearer <supabase_access_token>"
           }
         ],
         "responses": {
@@ -227,19 +220,6 @@
         ],
         "summary": "Start Session",
         "operationId": "start_session_start_post",
-        "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "Bearer <supabase_access_token>",
-              "title": "Authorization"
-            },
-            "description": "Bearer <supabase_access_token>"
-          }
-        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -278,7 +258,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
       }
     },
     "/health": {
@@ -552,6 +537,12 @@
           "type"
         ],
         "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
       }
     }
   }

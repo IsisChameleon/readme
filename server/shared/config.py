@@ -75,6 +75,10 @@ class UploadSettings(BaseModel):
     max_bytes: int = 25 * 1024 * 1024
 
 
+class AdminSettings(BaseModel):
+    allowed_emails: list[str] = []
+
+
 class CorsSettings(LazySecretsSettings):
     allowed_origins: list[str] = ["http://localhost:3000"]
     allowed_origin_regex: str = ""
@@ -104,6 +108,7 @@ class Settings(BaseSettings):
     bot: BotSettings = BotSettings()
     modal: ModalSettings = ModalSettings()
     upload: UploadSettings = UploadSettings()
+    admin: AdminSettings = AdminSettings()
     cors: CorsSettings = CorsSettings()
 
     @classmethod
