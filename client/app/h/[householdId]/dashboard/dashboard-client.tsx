@@ -1,13 +1,12 @@
 'use client';
 
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Upload, Settings, Plus, BookOpen, ChevronRight, X, LogOut, Trash2 } from 'lucide-react';
+import { ArrowLeft, Settings, Plus, BookOpen, LogOut, Trash2 } from 'lucide-react';
 import { EmberLogo } from '@/components/EmberLogo';
 import { AddKidDialog } from '@/components/AddKidDialog';
 import { EditKidDialog } from '@/components/EditKidDialog';
-import { BookCard } from '@/components/BookCard';
 import { BookUpload } from '@/components/BookUpload';
 import { createClient } from '@/lib/supabase/client';
 
@@ -191,7 +190,6 @@ export const ParentDashboardClient = ({ householdId, userEmail, userName, kids, 
           <LibraryTab
             householdId={householdId}
             books={books}
-            kids={kids}
             kidMap={kidMap}
             onDeleteBook={handleDeleteBook}
           />
@@ -200,7 +198,6 @@ export const ParentDashboardClient = ({ householdId, userEmail, userName, kids, 
             householdId={householdId}
             kids={kids}
             books={books}
-            kidMap={kidMap}
             onAddKid={() => setShowAddKid(true)}
             onEditKid={(kid) => setEditingKid(kid)}
           />
@@ -220,13 +217,11 @@ export const ParentDashboardClient = ({ householdId, userEmail, userName, kids, 
 const LibraryTab = ({
   householdId,
   books,
-  kids,
   kidMap,
   onDeleteBook,
 }: {
   householdId: string;
   books: Book[];
-  kids: Kid[];
   kidMap: Map<string, Kid>;
   onDeleteBook: (bookId: string) => void;
 }) => (
@@ -314,17 +309,15 @@ const LibraryTab = ({
 
 /* ── Readers Tab ── */
 const ReadersTab = ({
-  householdId,
+  householdId: _householdId,
   kids,
   books,
-  kidMap,
   onAddKid,
   onEditKid,
 }: {
   householdId: string;
   kids: Kid[];
   books: Book[];
-  kidMap: Map<string, Kid>;
   onAddKid: () => void;
   onEditKid: (kid: Kid) => void;
 }) => {
