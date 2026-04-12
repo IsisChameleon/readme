@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Moon, Sun, Play, Sparkles, Upload, Settings, ChevronRight, Plus, X, Check, Mic, Volume2, BookOpen } from "lucide-react"
+import { EmberLogo } from "@/components/EmberLogo"
 
 // Dragon mascot placeholder - replace with actual EmberDragon asset
 function DragonIcon({ className, size = "md" }: { className?: string; size?: "sm" | "md" | "lg" | "xl" }) {
@@ -36,7 +37,7 @@ export default function DesignSystemPage() {
         <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
             <div className="flex items-center gap-3">
-              <DragonIcon className="text-primary" size="md" />
+              <EmberLogo size={40} className="text-primary" />
               <div>
                 <h1 className="font-[family-name:var(--font-marcellus)] text-2xl font-bold text-foreground">
                   EmberTales
@@ -815,6 +816,17 @@ export default function DesignSystemPage() {
                   ]}
                 />
                 <PagePatternCard
+                  title="Home Strip"
+                  items={[
+                    "Landing page after login",
+                    "Flex-wrap card strip (vertical portrait, horizontal landscape)",
+                    "One KidCard per reader + UploadCard",
+                    "KidCards: cover hero with kid identity overlay",
+                    "Cards grow to fill (flex-1, min-w-80, max-w-[32rem])",
+                    "Header: dragon logo + kid avatars + settings cog",
+                  ]}
+                />
+                <PagePatternCard
                   title="Manage (tabbed)"
                   items={[
                     "Two tabs: Library | Readers",
@@ -867,9 +879,7 @@ export default function DesignSystemPage() {
                     <div className="flex items-center gap-3">
                       <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center text-muted-foreground text-xs">&larr;</div>
                       <div className="flex items-center gap-2">
-                        <div className="h-8 w-8 rounded-xl bg-primary flex items-center justify-center">
-                          <BookOpen className="w-4 h-4 text-primary-foreground" />
-                        </div>
+                        <EmberLogo size={32} className="text-primary shrink-0" />
                         <span className="font-[family-name:var(--font-marcellus)] font-bold">EmberTales</span>
                       </div>
                     </div>
@@ -963,9 +973,7 @@ export default function DesignSystemPage() {
                     <div className="flex items-center gap-3">
                       <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center text-muted-foreground text-xs">&larr;</div>
                       <div className="flex items-center gap-2">
-                        <div className="h-8 w-8 rounded-xl bg-primary flex items-center justify-center">
-                          <BookOpen className="w-4 h-4 text-primary-foreground" />
-                        </div>
+                        <EmberLogo size={32} className="text-primary shrink-0" />
                         <span className="font-[family-name:var(--font-marcellus)] font-bold">EmberTales</span>
                       </div>
                     </div>
