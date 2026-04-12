@@ -992,40 +992,61 @@ export default function DesignSystemPage() {
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-4">Readers tab</p>
 
                     <div className="space-y-4">
-                      {/* Kid card — with activity */}
-                      {[
-                        { name: "Emma", color: "#C56B8A", books: 3, current: "Where the Wild Things Are", progress: 67, lastActive: "Today" },
-                        { name: "Liam", color: "#6B8FD4", books: 1, current: "The Gruffalo", progress: 25, lastActive: "2 days ago" },
-                      ].map((kid) => (
-                        <div key={kid.name} className="rounded-xl border border-border bg-card p-4 flex items-start gap-4">
-                          <div
-                            className="h-12 w-12 rounded-full flex items-center justify-center text-lg font-bold text-white shrink-0"
-                            style={{ backgroundColor: kid.color }}
-                          >
-                            {kid.name[0]}
+                      {/* Emma — 3 books */}
+                      <div className="rounded-xl border border-border bg-card p-4 flex items-start gap-4">
+                        <div className="h-12 w-12 rounded-full flex items-center justify-center text-lg font-bold text-white shrink-0 bg-[#C56B8A]">E</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-1">
+                            <h4 className="font-[family-name:var(--font-marcellus)] font-bold">Emma</h4>
+                            <span className="text-xs text-muted-foreground">Last active: Today</span>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between mb-1">
-                              <h4 className="font-[family-name:var(--font-marcellus)] font-bold">{kid.name}</h4>
-                              <span className="text-xs text-muted-foreground">Last active: {kid.lastActive}</span>
-                            </div>
-                            <p className="text-sm text-muted-foreground">{kid.books} {kid.books === 1 ? "book" : "books"}</p>
-                            {/* Current book progress */}
-                            <div className="mt-2 rounded-lg bg-secondary/50 p-3">
-                              <div className="flex items-center justify-between text-sm mb-1">
-                                <span className="truncate text-muted-foreground">{kid.current}</span>
-                                <span className="font-semibold text-foreground shrink-0 ml-2">{kid.progress}%</span>
+                          <p className="text-sm text-muted-foreground mb-2">3 books</p>
+                          <div className="space-y-2">
+                            {[
+                              { title: "Where the Wild Things Are", progress: 67 },
+                              { title: "The Dragon and the Star", progress: 30 },
+                              { title: "The Gruffalo", progress: 0 },
+                            ].map((book) => (
+                              <div key={book.title} className="rounded-lg bg-secondary/50 p-2.5">
+                                <div className="flex items-center justify-between text-sm mb-1">
+                                  <span className="truncate text-muted-foreground">{book.title}</span>
+                                  <span className="font-semibold text-foreground shrink-0 ml-2">{book.progress}%</span>
+                                </div>
+                                <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                                  <div className="h-full rounded-full bg-[#C56B8A]" style={{ width: `${book.progress}%` }} />
+                                </div>
                               </div>
-                              <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                                <div className="h-full rounded-full" style={{ width: `${kid.progress}%`, backgroundColor: kid.color }} />
-                              </div>
-                            </div>
-                          </div>
-                          <div className="h-8 w-8 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground cursor-pointer shrink-0">
-                            <Settings className="w-4 h-4" />
+                            ))}
                           </div>
                         </div>
-                      ))}
+                        <div className="h-8 w-8 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground cursor-pointer shrink-0">
+                          <Settings className="w-4 h-4" />
+                        </div>
+                      </div>
+
+                      {/* Liam — 1 book */}
+                      <div className="rounded-xl border border-border bg-card p-4 flex items-start gap-4">
+                        <div className="h-12 w-12 rounded-full flex items-center justify-center text-lg font-bold text-white shrink-0 bg-[#6B8FD4]">L</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-1">
+                            <h4 className="font-[family-name:var(--font-marcellus)] font-bold">Liam</h4>
+                            <span className="text-xs text-muted-foreground">Last active: 2 days ago</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-2">1 book</p>
+                          <div className="rounded-lg bg-secondary/50 p-2.5">
+                            <div className="flex items-center justify-between text-sm mb-1">
+                              <span className="truncate text-muted-foreground">The Gruffalo</span>
+                              <span className="font-semibold text-foreground shrink-0 ml-2">25%</span>
+                            </div>
+                            <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                              <div className="h-full rounded-full bg-[#6B8FD4]" style={{ width: '25%' }} />
+                            </div>
+                          </div>
+                        </div>
+                        <div className="h-8 w-8 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground cursor-pointer shrink-0">
+                          <Settings className="w-4 h-4" />
+                        </div>
+                      </div>
 
                       {/* Add reader button */}
                       <button className="w-full rounded-xl border-2 border-dashed border-border p-4 flex items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-foreground hover:bg-primary/5 transition-colors">
