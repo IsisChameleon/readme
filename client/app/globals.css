@@ -14,6 +14,10 @@
   --amber-light: #F5C891;
   --sage-cream: #F5F7F2;
   --sage-muted: #E8EDE3;
+  --glow: #FFD170;
+  --glow-light: #FFE4A3;
+  --magic: #7C6DAF;
+  --magic-light: #9B8EC4;
 
   /* Semantic tokens */
   --background: #F5F7F2;
@@ -52,6 +56,10 @@
 }
 
 .dark {
+  --glow: #FBBF24;
+  --glow-light: #FCD34D;
+  --magic: #9B8EC4;
+  --magic-light: #B4A9D6;
   --background: #141F1A;
   --foreground: #E8EDE3;
   --card: #1A2A22;
@@ -126,6 +134,10 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-glow: var(--glow);
+  --color-glow-light: var(--glow-light);
+  --color-magic: var(--magic);
+  --color-magic-light: var(--magic-light);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);

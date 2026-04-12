@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Moon, Sun, Play, Sparkles, Upload, Settings, ChevronRight, Plus, X, Check, Mic, Volume2 } from "lucide-react"
+import { Moon, Sun, Play, Sparkles, Upload, Settings, ChevronRight, Plus, X, Check, Mic, Volume2, BookOpen } from "lucide-react"
 
 // Dragon mascot placeholder - replace with actual EmberDragon asset
 function DragonIcon({ className, size = "md" }: { className?: string; size?: "sm" | "md" | "lg" | "xl" }) {
@@ -83,12 +83,18 @@ export default function DesignSystemPage() {
               {/* Color Palette */}
               <div className="mb-12">
                 <h3 className="font-[family-name:var(--font-marcellus)] mb-4 text-xl font-bold">Color Palette</h3>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   <ColorSwatch name="Forest (Primary)" color="#2D6A4F" darkColor="#40916C" isDark={isDark} />
                   <ColorSwatch name="Woodland" color="#1B4332" darkColor="#243D30" isDark={isDark} />
                   <ColorSwatch name="Amber (Accent)" color="#E9A55F" darkColor="#E9A55F" isDark={isDark} />
                   <ColorSwatch name="Sage Cream (BG)" color="#F5F7F2" darkColor="#141F1A" isDark={isDark} />
+                  <ColorSwatch name="Firefly Glow" color="#FFD170" darkColor="#FBBF24" isDark={isDark} />
+                  <ColorSwatch name="Twilight Magic" color="#7C6DAF" darkColor="#9B8EC4" isDark={isDark} />
                 </div>
+                <p className="mt-3 text-sm text-muted-foreground">
+                  <strong>Glow</strong> — warm luminous gold for kid highlights, hover glows, sparkle moments.{" "}
+                  <strong>Magic</strong> — twilight purple for celebrations, completion badges, special moments.
+                </p>
               </div>
 
               {/* Typography */}
@@ -155,7 +161,7 @@ export default function DesignSystemPage() {
                     </li>
                     <li className="flex items-start gap-3">
                       <span className="mt-1 h-2 w-2 rounded-full bg-primary shrink-0" />
-                      <div><strong>Texture:</strong> None by default. Reserve for special moments (orb, voice UI).</div>
+                      <div><strong>Kid cards:</strong> Warmth comes from book cover imagery, not background gradients. Cards use bg-card with visual interest from content.</div>
                     </li>
                   </ul>
                 </div>
@@ -302,6 +308,9 @@ export default function DesignSystemPage() {
                     <span className="font-[family-name:var(--font-marcellus)] inline-flex items-center gap-2 rounded-xl bg-destructive px-5 py-2.5 font-semibold text-destructive-foreground cursor-pointer hover:bg-destructive/90 transition-colors">
                       Destructive
                     </span>
+                    <span className="font-[family-name:var(--font-marcellus)] inline-flex items-center gap-2 rounded-xl bg-magic px-5 py-2.5 font-semibold text-white cursor-pointer hover:bg-magic-light transition-colors">
+                      Magic
+                    </span>
                   </div>
                   <div className="flex flex-wrap gap-4 mb-6">
                     <span className="font-[family-name:var(--font-marcellus)] inline-flex items-center gap-2 rounded-xl bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground cursor-pointer">
@@ -318,12 +327,16 @@ export default function DesignSystemPage() {
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    <strong>Kid CTA variant:</strong> Use accent (amber) background with rounded-2xl for main actions like Start Reading.
+                    <strong>Kid CTA variant:</strong> Accent (amber) with warm glow shadow. <strong>Magic variant:</strong> Twilight purple for celebrations and achievements.
                   </p>
-                  <div className="mt-4">
-                    <span className="font-[family-name:var(--font-marcellus)] inline-flex items-center gap-3 rounded-2xl bg-accent px-8 py-4 text-lg font-bold text-accent-foreground cursor-pointer hover:bg-accent/90 transition-colors">
+                  <div className="mt-4 flex flex-wrap gap-4 items-center">
+                    <span className="font-[family-name:var(--font-marcellus)] inline-flex items-center gap-3 rounded-2xl bg-accent px-8 py-4 text-lg font-bold text-accent-foreground cursor-pointer hover:bg-accent/90 shadow-[0_4px_14px] shadow-accent/30 hover:shadow-accent/50 transition-all">
                       <Play className="h-6 w-6" />
                       Start Reading
+                    </span>
+                    <span className="font-[family-name:var(--font-marcellus)] inline-flex items-center gap-3 rounded-2xl bg-magic px-8 py-4 text-lg font-bold text-white cursor-pointer hover:bg-magic-light shadow-[0_4px_14px] shadow-magic/30 hover:shadow-magic/50 transition-all">
+                      <Sparkles className="h-6 w-6" />
+                      Story Complete!
                     </span>
                   </div>
                 </div>
@@ -445,51 +458,100 @@ export default function DesignSystemPage() {
               {/* KidCard + UploadCard */}
               <div className="mb-12">
                 <h3 className="font-[family-name:var(--font-marcellus)] mb-4 text-xl font-bold">KidCard + UploadCard</h3>
-                <div className="grid gap-6 md:grid-cols-3">
-                  {/* KidCard */}
-                  <div className="rounded-2xl border border-border bg-card overflow-hidden cursor-pointer hover:border-primary hover:scale-[1.02] transition-all">
-                    <div className="h-3 bg-primary" />
-                    <div className="p-6">
-                      <div className="flex items-center gap-4 mb-4">
-                        <div className="h-16 w-16 rounded-full bg-primary/20 flex items-center justify-center text-2xl font-bold text-primary">
+                <p className="text-sm text-muted-foreground mb-4">
+                  <strong>Used in:</strong> Home page (<code className="text-xs bg-secondary px-1.5 py-0.5 rounded">/h/[householdId]</code>) — <code className="text-xs bg-secondary px-1.5 py-0.5 rounded">components/HomeCard.tsx</code>
+                </p>
+                <p className="text-xs text-muted-foreground mb-2 italic">Quick-access action strip. Scrolls horizontally in landscape, vertically in portrait. One card per family member + upload.</p>
+
+                {/* Scroll-adaptive strip: horizontal on wide screens, vertical on narrow */}
+                <div className="flex flex-col gap-5 md:flex-row md:overflow-x-auto md:pb-4 md:snap-x md:snap-mandatory">
+
+                  {/* KidCard — Emma, resuming a book */}
+                  <div className="rounded-2xl border border-border bg-card overflow-hidden cursor-pointer hover:border-primary transition-all shrink-0 md:w-80 md:snap-start">
+                    {/* Book cover hero */}
+                    <div className="relative h-36 overflow-hidden">
+                      <img
+                        src="https://covers.openlibrary.org/b/id/8228691-L.jpg"
+                        alt="Where the Wild Things Are"
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                      {/* Kid identity overlaid on cover */}
+                      <div className="absolute bottom-3 left-4 flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-lg font-bold text-white ring-2 ring-white/80">
                           E
                         </div>
                         <div>
-                          <p className="font-[family-name:var(--font-marcellus)] text-xl font-bold">Emma</p>
-                          <p className="text-sm text-muted-foreground">Reading now</p>
+                          <p className="font-[family-name:var(--font-marcellus)] text-base font-bold text-white">Emma</p>
+                          <p className="text-xs text-white/80">Reading now</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3 rounded-xl bg-secondary/50 p-3">
-                        <div className="h-10 w-10 rounded-lg bg-accent/20" />
-                        <div className="flex-1">
-                          <p className="text-sm font-medium truncate">{"The Dragon's Garden"}</p>
-                          <div className="mt-1 h-1.5 w-full rounded-full bg-secondary">
-                            <div className="h-full w-2/3 rounded-full bg-primary" />
-                          </div>
-                        </div>
+                    </div>
+                    {/* Book info + progress */}
+                    <div className="p-4">
+                      <p className="font-[family-name:var(--font-marcellus)] font-semibold text-sm truncate">Where the Wild Things Are</p>
+                      <div className="mt-2 h-2 rounded-full bg-muted overflow-hidden">
+                        <div className="h-full w-2/3 rounded-full bg-primary" />
+                      </div>
+                      <div className="mt-2 flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">67% complete</span>
+                        <span className="text-sm font-semibold text-primary">Continue &rarr;</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* KidCard Alt Color */}
-                  <div className="rounded-2xl border border-border bg-card overflow-hidden cursor-pointer hover:border-accent hover:scale-[1.02] transition-all">
-                    <div className="h-3 bg-accent" />
-                    <div className="p-6">
-                      <div className="flex items-center gap-4 mb-4">
-                        <div className="h-16 w-16 rounded-full bg-accent/20 flex items-center justify-center text-2xl font-bold text-accent">
+                  {/* KidCard — Liam, ready to start */}
+                  <div className="rounded-2xl border border-border bg-card overflow-hidden cursor-pointer hover:border-accent transition-all shrink-0 md:w-80 md:snap-start">
+                    {/* Book cover hero */}
+                    <div className="relative h-36 overflow-hidden">
+                      <img
+                        src="https://covers.openlibrary.org/b/id/12547191-L.jpg"
+                        alt="The Gruffalo"
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                      <div className="absolute bottom-3 left-4 flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-accent flex items-center justify-center text-lg font-bold text-white ring-2 ring-white/80">
                           L
                         </div>
                         <div>
-                          <p className="font-[family-name:var(--font-marcellus)] text-xl font-bold">Liam</p>
-                          <p className="text-sm text-muted-foreground">Last read 2 days ago</p>
+                          <p className="font-[family-name:var(--font-marcellus)] text-base font-bold text-white">Liam</p>
+                          <p className="text-xs text-white/80">New book ready</p>
                         </div>
                       </div>
-                      <p className="text-sm text-muted-foreground">No book in progress</p>
+                    </div>
+                    <div className="p-4">
+                      <p className="font-[family-name:var(--font-marcellus)] font-semibold text-sm truncate">The Gruffalo</p>
+                      <div className="mt-2 flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">by Julia Donaldson</span>
+                        <span className="text-sm font-semibold text-accent">Start reading &rarr;</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* KidCard — Sophie, no book */}
+                  <div className="rounded-2xl border border-border bg-card overflow-hidden cursor-pointer hover:border-magic transition-all shrink-0 md:w-80 md:snap-start">
+                    {/* Fallback: colored block when no cover */}
+                    <div className="relative h-36 overflow-hidden bg-magic/20 flex items-center justify-center">
+                      <BookOpen className="w-12 h-12 text-magic/40" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                      <div className="absolute bottom-3 left-4 flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-magic flex items-center justify-center text-lg font-bold text-white ring-2 ring-white/80">
+                          S
+                        </div>
+                        <div>
+                          <p className="font-[family-name:var(--font-marcellus)] text-base font-bold text-white">Sophie</p>
+                          <p className="text-xs text-white/80">No books yet</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-4">
+                      <p className="text-sm text-muted-foreground">Upload a book to get started</p>
                     </div>
                   </div>
 
                   {/* UploadCard */}
-                  <div className="rounded-2xl border-2 border-dashed border-border bg-card/50 p-6 flex flex-col items-center justify-center gap-4 cursor-pointer hover:border-primary hover:bg-primary/5 transition-all min-h-[200px]">
+                  <div className="rounded-2xl border-2 border-dashed border-border bg-card/50 flex flex-col items-center justify-center gap-4 cursor-pointer hover:border-primary hover:bg-primary/5 transition-all shrink-0 md:w-64 md:snap-start min-h-[220px]">
                     <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                       <Upload className="h-7 w-7" />
                     </div>
@@ -499,27 +561,39 @@ export default function DesignSystemPage() {
                     </div>
                   </div>
                 </div>
+
+                <p className="mt-4 text-xs text-muted-foreground">
+                  <strong>Scroll:</strong> Horizontal in landscape (md+), vertical in portrait. Uses <code className="text-xs bg-secondary px-1.5 py-0.5 rounded">snap-x snap-mandatory</code> for smooth paging.
+                  <strong> Cover fallback:</strong> Kid-color block with BookOpen icon when no cover image available.
+                </p>
               </div>
 
               {/* BookCard */}
               <div className="mb-12">
                 <h3 className="font-[family-name:var(--font-marcellus)] mb-4 text-xl font-bold">BookCard</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  <strong>Used in:</strong> Dashboard (<code className="text-xs bg-secondary px-1.5 py-0.5 rounded">/h/[householdId]/dashboard</code>) and Kid home (<code className="text-xs bg-secondary px-1.5 py-0.5 rounded">/h/[householdId]/kid/[kidId]</code>) — <code className="text-xs bg-secondary px-1.5 py-0.5 rounded">components/BookCard.tsx</code>
+                </p>
                 <div className="grid gap-6 md:grid-cols-2">
                   {/* Kid Version */}
                   <div>
                     <p className="text-sm font-medium text-muted-foreground mb-3">Kid Version (vertical, playful)</p>
                     <div className="rounded-2xl border border-border bg-card overflow-hidden max-w-xs">
-                      <div className="aspect-[3/4] bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                        <DragonIcon className="text-primary opacity-50" size="xl" />
+                      <div className="aspect-[2/3] overflow-hidden">
+                        <img
+                          src="https://covers.openlibrary.org/b/id/8228691-L.jpg"
+                          alt="Where the Wild Things Are"
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                       <div className="p-5">
-                        <h4 className="font-[family-name:var(--font-marcellus)] text-xl font-bold mb-1">{"The Dragon's Garden"}</h4>
-                        <p className="text-sm text-muted-foreground mb-3">By Emily Woods</p>
+                        <h4 className="font-[family-name:var(--font-marcellus)] text-xl font-bold mb-1">Where the Wild Things Are</h4>
+                        <p className="text-sm text-muted-foreground mb-3">By Maurice Sendak</p>
                         <div className="h-2 w-full rounded-full bg-secondary mb-2">
                           <div className="h-full w-3/4 rounded-full bg-primary" />
                         </div>
                         <p className="text-xs text-muted-foreground mb-4">Chapter 8 of 12</p>
-                        <span className="font-[family-name:var(--font-marcellus)] w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-accent px-6 py-3 text-lg font-bold text-accent-foreground cursor-pointer hover:bg-accent/90 transition-colors">
+                        <span className="font-[family-name:var(--font-marcellus)] w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-accent px-6 py-3 text-lg font-bold text-accent-foreground cursor-pointer hover:bg-accent/90 shadow-[0_4px_14px] shadow-accent/30 hover:shadow-accent/50 transition-all">
                           <Play className="h-5 w-5" />
                           Continue
                         </span>
@@ -531,7 +605,9 @@ export default function DesignSystemPage() {
                   <div>
                     <p className="text-sm font-medium text-muted-foreground mb-3">Parent Version (horizontal, compact)</p>
                     <div className="rounded-xl border border-border bg-card p-4 flex gap-4">
-                      <div className="h-24 w-16 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 shrink-0" />
+                      <div className="h-24 w-16 rounded-lg overflow-hidden shrink-0">
+                        <img src="https://covers.openlibrary.org/b/id/8228691-L.jpg" alt="" className="w-full h-full object-cover" />
+                      </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2">
                           <div>
@@ -570,15 +646,21 @@ export default function DesignSystemPage() {
               {/* KidSelector */}
               <div className="mb-12">
                 <h3 className="font-[family-name:var(--font-marcellus)] mb-4 text-xl font-bold">KidSelector</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  <strong>Used in:</strong> Dashboard (<code className="text-xs bg-secondary px-1.5 py-0.5 rounded">/h/[householdId]/dashboard</code>) — <code className="text-xs bg-secondary px-1.5 py-0.5 rounded">components/KidSelector.tsx</code>
+                </p>
                 <div className="rounded-xl border border-border bg-card p-6">
-                  <div className="flex items-center gap-4 overflow-x-auto pb-2">
+                  <div className="flex items-center gap-5 overflow-x-auto p-2">
                     {[
-                      { name: "Emma", color: "bg-primary", selected: true },
-                      { name: "Liam", color: "bg-accent", selected: false },
-                      { name: "Sophie", color: "bg-[#A78BDA]", selected: false },
+                      { name: "Emma", color: "#C56B8A", selected: true },
+                      { name: "Liam", color: "#6B8FD4", selected: false },
+                      { name: "Sophie", color: "#8B6DAF", selected: false },
                     ].map((kid) => (
                       <div key={kid.name} className="flex flex-col items-center gap-2 shrink-0">
-                        <div className={`h-14 w-14 rounded-full ${kid.color} flex items-center justify-center text-xl font-bold text-white cursor-pointer transition-all ${kid.selected ? "ring-2 ring-ring ring-offset-2" : "opacity-70 hover:opacity-100"}`}>
+                        <div
+                          className={`h-16 w-16 rounded-full flex items-center justify-center text-xl font-bold text-white cursor-pointer transition-all ${kid.selected ? "ring-2 ring-ring ring-offset-2 ring-offset-background" : "opacity-70 hover:opacity-100"}`}
+                          style={{ backgroundColor: kid.color }}
+                        >
                           {kid.name[0]}
                         </div>
                         <span className={`text-sm ${kid.selected ? "font-semibold text-foreground" : "text-muted-foreground"}`}>
@@ -587,7 +669,7 @@ export default function DesignSystemPage() {
                       </div>
                     ))}
                     <div className="flex flex-col items-center gap-2 shrink-0">
-                      <div className="h-14 w-14 rounded-full border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors">
+                      <div className="h-16 w-16 rounded-full border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors">
                         <Plus className="h-6 w-6 text-muted-foreground" />
                       </div>
                       <span className="text-sm text-muted-foreground">Add</span>
@@ -599,6 +681,9 @@ export default function DesignSystemPage() {
               {/* AnimatedOrb Preview */}
               <div>
                 <h3 className="font-[family-name:var(--font-marcellus)] mb-4 text-xl font-bold">AnimatedOrb (Voice UI)</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  <strong>Used in:</strong> Call page (<code className="text-xs bg-secondary px-1.5 py-0.5 rounded">/h/[householdId]/kid/[kidId]/call</code>) — <code className="text-xs bg-secondary px-1.5 py-0.5 rounded">components/AnimatedOrb.tsx</code>
+                </p>
                 <p className="text-sm text-muted-foreground mb-4">Voice session supports both light and dark mode. Kids can choose based on preference or time of day.</p>
                 <div className="grid gap-6 md:grid-cols-2">
                   {/* Dark Mode Orb */}
@@ -661,27 +746,27 @@ export default function DesignSystemPage() {
               {/* Kid Color Palette */}
               <div className="mt-12">
                 <h3 className="font-[family-name:var(--font-marcellus)] mb-4 text-xl font-bold">Kid Color Palette</h3>
-                <p className="text-sm text-muted-foreground mb-6">Each kid can choose their favorite color during onboarding. Used for their avatar ring, KidCard accent, and personalized UI touches.</p>
+                <p className="text-sm text-muted-foreground mb-6">Each kid chooses their color during onboarding. Palette is drawn from the enchanted forest — every color belongs in the woodland.</p>
                 <div className="rounded-xl border border-border bg-card p-6">
                   <div className="grid grid-cols-7 gap-4">
-                    <KidColorSwatch name="Ocean" color="#4A90D9" />
-                    <KidColorSwatch name="Sunset" color="#FF7B54" />
-                    <KidColorSwatch name="Sunshine" color="#FFD93D" />
-                    <KidColorSwatch name="Forest" color="#6BCB77" />
-                    <KidColorSwatch name="Lavender" color="#A78BDA" />
-                    <KidColorSwatch name="Coral" color="#FF6B6B" />
-                    <KidColorSwatch name="Sky" color="#7DD3FC" />
+                    <KidColorSwatch name="Firefly" color="#E9A55F" />
+                    <KidColorSwatch name="Fern" color="#5CB87A" />
+                    <KidColorSwatch name="Bluebell" color="#6B8FD4" />
+                    <KidColorSwatch name="Berry" color="#C56B8A" />
+                    <KidColorSwatch name="Moss" color="#8FB56A" />
+                    <KidColorSwatch name="Plum" color="#8B6DAF" />
+                    <KidColorSwatch name="Stream" color="#5BAEC4" />
                   </div>
                   <div className="mt-6 pt-6 border-t border-border">
                     <p className="text-sm font-medium mb-4">Usage Example: KidCard with color accent</p>
                     <div className="flex flex-wrap gap-4">
                       {[
-                        { name: "Sophie", color: "#A78BDA" },
-                        { name: "Max", color: "#4A90D9" },
-                        { name: "Emma", color: "#FF7B54" },
+                        { name: "Sophie", color: "#8B6DAF" },
+                        { name: "Max", color: "#6B8FD4" },
+                        { name: "Emma", color: "#C56B8A" },
                       ].map((kid) => (
                         <div key={kid.name} className="flex items-center gap-3 rounded-2xl bg-secondary p-4">
-                          <div 
+                          <div
                             className="h-12 w-12 rounded-full flex items-center justify-center text-white font-bold"
                             style={{ backgroundColor: kid.color }}
                           >
@@ -793,6 +878,8 @@ bg-primary            // Primary buttons (#2D6A4F)
 bg-accent             // Accent/CTA buttons (#E9A55F)
 bg-secondary          // Secondary surfaces
 bg-destructive        // Error states
+bg-glow               // Firefly gold highlights (#FFD170)
+bg-magic              // Twilight purple specials (#7C6DAF)
 
 // Text
 text-foreground           // Primary text
@@ -837,7 +924,8 @@ transition-all        // Transform + color transitions`}</code>
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-secondary",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        accent: "bg-accent text-accent-foreground hover:bg-accent/90", // Kid CTAs
+        accent: "bg-accent text-accent-foreground hover:bg-accent/90 shadow-[0_4px_14px] shadow-accent/30", // Kid CTAs
+        magic: "bg-magic text-white hover:bg-magic-light shadow-[0_4px_14px] shadow-magic/30", // Celebrations
       },
       size: {
         sm: "h-8 px-3 text-sm rounded-lg",
@@ -904,6 +992,8 @@ transition-all        // Transform + color transitions`}</code>
                         <tr><td className="px-4 py-2 font-mono text-xs">--border</td><td className="px-4 py-2">#D4DDD0</td><td className="px-4 py-2">#2D4A3A</td></tr>
                         <tr><td className="px-4 py-2 font-mono text-xs">--card</td><td className="px-4 py-2">#FFFFFF</td><td className="px-4 py-2">#1A2A22</td></tr>
                         <tr><td className="px-4 py-2 font-mono text-xs">--destructive</td><td className="px-4 py-2">#DC2626</td><td className="px-4 py-2">#EF4444</td></tr>
+                        <tr><td className="px-4 py-2 font-mono text-xs">--glow</td><td className="px-4 py-2">#FFD170</td><td className="px-4 py-2">#FBBF24</td></tr>
+                        <tr><td className="px-4 py-2 font-mono text-xs">--magic</td><td className="px-4 py-2">#7C6DAF</td><td className="px-4 py-2">#9B8EC4</td></tr>
                       </tbody>
                     </table>
                   </div>
