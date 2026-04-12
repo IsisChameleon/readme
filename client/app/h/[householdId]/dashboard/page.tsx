@@ -64,6 +64,8 @@ export default async function ParentDashboardPage({
   return (
     <ParentDashboardClient
       householdId={householdId}
+      userEmail={user.email ?? ''}
+      userName={user.user_metadata?.full_name ?? user.email?.split('@')[0] ?? ''}
       kids={kids ?? []}
       books={(books ?? []).map((b) => ({
         ...b,

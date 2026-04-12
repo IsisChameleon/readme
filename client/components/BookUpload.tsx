@@ -18,6 +18,7 @@ interface UploadedFile {
 
 interface BookUploadProps {
   householdId: string;
+  compact?: boolean;
 }
 
 const formatSize = (bytes: number): string => {
@@ -26,7 +27,7 @@ const formatSize = (bytes: number): string => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
-export const BookUpload = ({ householdId }: BookUploadProps) => {
+export const BookUpload = ({ householdId, compact = false }: BookUploadProps) => {
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -133,20 +134,40 @@ export const BookUpload = ({ householdId }: BookUploadProps) => {
       />
 
       {/* Drop zone */}
-      <div
-        onClick={() => inputRef.current?.click()}
-        onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-        onDragLeave={() => setIsDragging(false)}
-        onDrop={handleDrop}
-        className={`
-          rounded-2xl border-2 border-dashed p-8 text-center cursor-pointer transition-colors
-          ${isDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'}
-        `}
-      >
-        <Upload className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
-        <p className="text-sm font-semibold">Drop PDF files here or click to browse</p>
-        <p className="text-xs text-muted-foreground mt-1">PDF files only</p>
-      </div>
+      {compact ? (
+        <div
+          onClick={() => inputRef.current?.click()}
+          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={handleDrop}
+          className={`flex items-center gap-3 rounded-xl border border-dashed p-3 cursor-pointer transition-colors ${
+            isDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
+          }`}
+        >
+          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+            <Upload className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold">Add a book</p>
+            <p className="text-xs text-muted-foreground">Drop PDF or click to browse</p>
+          </div>
+        </div>
+      ) : (
+        <div
+          onClick={() => inputRef.current?.click()}
+          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={handleDrop}
+          className={`
+            rounded-2xl border-2 border-dashed p-8 text-center cursor-pointer transition-colors
+            ${isDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'}
+          `}
+        >
+          <Upload className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+          <p className="text-sm font-semibold">Drop PDF files here or click to browse</p>
+          <p className="text-xs text-muted-foreground mt-1">PDF files only</p>
+        </div>
+      )}
 
       {/* File list */}
       <AnimatePresence>
