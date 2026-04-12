@@ -2,11 +2,12 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { X } from 'lucide-react';
 import { apiClient } from '@/lib/api/client';
 import { toast } from '@/hooks/use-toast';
 
 const COLOR_OPTIONS = [
-  '#F472B6', '#60A5FA', '#34D399', '#FBBF24', '#A78BFA', '#FB923C',
+  '#E9A55F', '#5CB87A', '#6B8FD4', '#C56B8A', '#8FB56A', '#8B6DAF', '#5BAEC4',
 ];
 
 interface AddKidDialogProps {
@@ -51,12 +52,20 @@ export const AddKidDialog = ({ householdId, open, onClose }: AddKidDialogProps) 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="bg-card rounded-2xl p-6 w-full max-w-sm mx-4 border border-border"
+        className="relative bg-card rounded-xl p-6 w-full max-w-sm mx-4 border border-border shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-lg font-display font-bold mb-4">Add a Kid</h2>
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute top-4 right-4 h-8 w-8 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <X className="h-4 w-4" />
+        </button>
+
+        <h2 className="font-[family-name:var(--font-marcellus)] text-xl font-bold mb-4">Add a Reader</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="text-sm font-semibold block mb-1">Name</label>
@@ -64,7 +73,7 @@ export const AddKidDialog = ({ householdId, open, onClose }: AddKidDialogProps) 
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
+              className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring focus:ring-offset-2 outline-none"
               placeholder="Enter name"
               autoFocus
             />
@@ -100,16 +109,16 @@ export const AddKidDialog = ({ householdId, open, onClose }: AddKidDialogProps) 
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground"
+              className="font-[family-name:var(--font-marcellus)] px-4 py-2 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!name.trim() || submitting}
-              className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-50"
+              className="font-[family-name:var(--font-marcellus)] px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors"
             >
-              {submitting ? 'Adding…' : 'Add'}
+              {submitting ? 'Adding\u2026' : 'Create'}
             </button>
           </div>
         </form>

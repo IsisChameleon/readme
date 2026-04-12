@@ -45,7 +45,7 @@ export const HomePage = ({ householdId, kids, readyBooks }: HomePageProps) => {
               <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
                 <BookOpen className="w-5 h-5 text-primary-foreground" />
               </div>
-              <h1 className="font-display text-xl font-bold text-foreground">EmberTales</h1>
+              <h1 className="font-[family-name:var(--font-marcellus)] text-xl font-bold text-foreground">EmberTales</h1>
             </div>
 
             <div className="flex items-center gap-2">
@@ -75,9 +75,9 @@ export const HomePage = ({ householdId, kids, readyBooks }: HomePageProps) => {
         </div>
       </header>
 
-      {/* Card strip */}
+      {/* Card strip — horizontal scroll in landscape, vertical in portrait */}
       <main className="flex-1 container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
+        <div className="flex flex-col gap-5 md:flex-row md:flex-wrap">
           {kids.map((kid, i) => (
             <KidCard
               key={kid.id}

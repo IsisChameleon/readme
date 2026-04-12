@@ -20,7 +20,7 @@ interface KidSelectorProps {
 
 export const KidSelector = ({ kids, selectedKidId, onSelectKid, onAddKid, onEditKid }: KidSelectorProps) => {
   return (
-    <div className="flex items-center gap-3 overflow-x-auto pb-2">
+    <div className="flex items-center gap-5 overflow-x-auto p-2">
       {kids.map((kid) => (
         <motion.div
           key={kid.id}
@@ -33,12 +33,14 @@ export const KidSelector = ({ kids, selectedKidId, onSelectKid, onAddKid, onEdit
             className="relative"
           >
             <div
-              className={`w-16 h-16 rounded-full flex items-center justify-center border-4 transition-colors ${
-                selectedKidId === kid.id ? 'border-primary shadow-lg' : 'border-transparent'
+              className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${
+                selectedKidId === kid.id
+                  ? 'ring-2 ring-ring ring-offset-2 ring-offset-background'
+                  : 'opacity-70 hover:opacity-100'
               }`}
               style={{ backgroundColor: kid.color ?? '#60A5FA' }}
             >
-              <span className="text-2xl font-display text-white">
+              <span className="text-2xl font-[family-name:var(--font-marcellus)] text-white">
                 {kid.avatar ?? kid.name[0]?.toUpperCase()}
               </span>
             </div>
@@ -54,8 +56,8 @@ export const KidSelector = ({ kids, selectedKidId, onSelectKid, onAddKid, onEdit
             </button>
           )}
 
-          <span className={`text-sm font-medium transition-colors ${
-            selectedKidId === kid.id ? 'text-primary' : 'text-muted-foreground'
+          <span className={`text-sm transition-colors ${
+            selectedKidId === kid.id ? 'font-semibold text-foreground' : 'text-muted-foreground'
           }`}>
             {kid.name}
           </span>
@@ -66,11 +68,11 @@ export const KidSelector = ({ kids, selectedKidId, onSelectKid, onAddKid, onEdit
         <div className="flex flex-col items-center gap-2 min-w-fit">
           <button
             onClick={onAddKid}
-            className="w-16 h-16 rounded-full border-2 border-dashed border-border flex items-center justify-center hover:border-primary transition-colors"
+            className="w-16 h-16 rounded-full border-2 border-dashed border-border flex items-center justify-center hover:border-primary hover:bg-primary/5 transition-colors"
           >
             <Plus className="w-6 h-6 text-muted-foreground" />
           </button>
-          <span className="text-sm font-medium text-muted-foreground">Add</span>
+          <span className="text-sm text-muted-foreground">Add</span>
         </div>
       )}
     </div>

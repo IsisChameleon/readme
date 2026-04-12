@@ -43,12 +43,12 @@ export const BookCard = ({
       <motion.div
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        className="flex flex-col gap-6 rounded-xl border-2 border-transparent hover:border-primary bg-card py-6 shadow-sm overflow-hidden cursor-pointer touch-manipulation transition-all duration-300 hover:shadow-xl"
+        className="flex flex-col rounded-2xl border border-border bg-card overflow-hidden cursor-pointer touch-manipulation transition-all hover:border-primary"
         onClick={() => book.status === 'ready' && onStartReading?.(book.id)}
       >
         {/* Book cover */}
         <div
-          className="relative h-44 md:h-52 flex items-center justify-center"
+          className="aspect-[2/3] flex items-center justify-center"
           style={{ backgroundColor: book.coverImageUrl ? undefined : coverColor }}
         >
           {book.coverImageUrl ? (
@@ -56,37 +56,41 @@ export const BookCard = ({
           ) : (
             <BookOpen className="w-16 h-16 md:w-20 md:h-20 text-white/80" />
           )}
-          {progress > 0 && (
-            <div className="absolute bottom-3 left-3 right-3">
-              <div className="h-2.5 md:h-3 bg-white/30 rounded-full overflow-hidden">
-                <div className="h-full bg-white rounded-full" style={{ width: `${progress}%` }} />
+        </div>
+
+        {/* Content */}
+        <div className="p-5">
+          <h3 className="font-[family-name:var(--font-marcellus)] text-xl font-bold leading-tight line-clamp-2">{book.title}</h3>
+          {book.author && (
+            <p className="text-sm text-muted-foreground truncate mt-1">{book.author}</p>
+          )}
+          {progress > 0 && progress < 100 && (
+            <div className="mt-3">
+              <div className="flex items-center justify-between text-sm mb-1">
+                <span className="text-muted-foreground">Progress</span>
+                <span className="font-semibold text-foreground">{progress}%</span>
+              </div>
+              <div className="h-2 rounded-full bg-muted overflow-hidden">
+                <div className="h-full bg-primary rounded-full" style={{ width: `${progress}%` }} />
               </div>
             </div>
           )}
           {progress === 100 && (
-            <div className="absolute top-3 right-3 bg-white/90 text-green-600 px-3 py-1 rounded-full text-sm font-bold">
-              Done!
+            <div className="mt-2 inline-block bg-magic/10 text-magic px-3 py-1 rounded-full text-sm font-bold">
+              Complete!
             </div>
-          )}
-        </div>
-
-        {/* Content */}
-        <div className="p-4 md:p-5">
-          <h3 className="font-display text-lg md:text-xl font-bold leading-tight line-clamp-2">{book.title}</h3>
-          {book.author && (
-            <p className="text-sm md:text-base text-muted-foreground truncate mt-1">{book.author}</p>
           )}
           {book.status === 'ready' ? (
             <button
-              className="mt-4 w-full h-12 md:h-14 rounded-xl bg-primary text-primary-foreground font-bold text-base md:text-lg flex items-center justify-center gap-2"
+              className="mt-4 w-full h-14 rounded-2xl bg-accent text-accent-foreground font-[family-name:var(--font-marcellus)] font-bold text-lg flex items-center justify-center gap-2 hover:bg-accent/90 shadow-[0_4px_14px] shadow-accent/30 hover:shadow-accent/50 transition-all"
               onClick={(e) => { e.stopPropagation(); onStartReading?.(book.id); }}
             >
-              <Mic className="w-5 h-5 md:w-6 md:h-6" />
+              <Mic className="w-6 h-6" />
               {buttonLabel}
             </button>
           ) : (
             <span className="mt-2 block text-xs text-muted-foreground capitalize">
-              {book.status}…
+              {book.status}&hellip;
             </span>
           )}
         </div>
@@ -170,7 +174,7 @@ const ParentBookCard = ({
   };
 
   return (
-    <div className="flex rounded-xl border border-border bg-card overflow-hidden">
+    <div className="flex rounded-xl border border-border bg-card overflow-hidden hover:border-primary transition-colors">
       <div
         className="w-24 h-32 flex items-center justify-center shrink-0"
         style={{ backgroundColor: book.coverImageUrl ? undefined : coverColor }}
@@ -214,7 +218,7 @@ const ParentBookCard = ({
                 </div>
               ) : (
                 <>
-                  <h3 className="font-semibold text-foreground truncate">{book.title}</h3>
+                  <h3 className="font-[family-name:var(--font-marcellus)] font-semibold text-foreground truncate">{book.title}</h3>
                   <p className="text-sm text-muted-foreground truncate">{book.author}</p>
                 </>
               )}
@@ -223,7 +227,7 @@ const ParentBookCard = ({
             <div className="relative shrink-0" ref={menuRef}>
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                className="h-8 w-8 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
               >
                 <MoreVertical className="w-4 h-4" />
               </button>
