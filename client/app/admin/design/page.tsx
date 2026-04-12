@@ -815,13 +815,13 @@ export default function DesignSystemPage() {
                   ]}
                 />
                 <PagePatternCard
-                  title="Parent Dashboard"
+                  title="Manage (tabbed)"
                   items={[
-                    "Light background, compact density",
-                    "Sticky header with logo + nav",
-                    "Grid of KidCards + UploadCard",
-                    "Horizontal BookCard layout",
-                    "Settings gear uses ghost button style",
+                    "Two tabs: Library | Readers",
+                    "Sticky header: back arrow + logo + tab bar + profile menu",
+                    "Library = default tab, Readers = secondary",
+                    "Compact parent density (p-4, gap-4, rounded-xl)",
+                    "Sign out in profile menu, not standalone button",
                   ]}
                 />
                 <PagePatternCard
@@ -854,6 +854,192 @@ export default function DesignSystemPage() {
                     "Subtle muted-foreground text",
                   ]}
                 />
+              </div>
+
+              {/* ── Manage Page Wireframes ── */}
+              <div className="mt-12">
+                <h3 className="font-[family-name:var(--font-marcellus)] mb-2 text-xl font-bold">Manage Page — Wireframes</h3>
+                <p className="text-sm text-muted-foreground mb-6">Two-tab layout: Library (books) and Readers (kids + progress). Parent lands on Library by default.</p>
+
+                {/* Shared header wireframe */}
+                <div className="rounded-xl border border-border bg-card overflow-hidden mb-8">
+                  <div className="border-b border-border px-6 py-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center text-muted-foreground text-xs">&larr;</div>
+                      <div className="flex items-center gap-2">
+                        <div className="h-8 w-8 rounded-xl bg-primary flex items-center justify-center">
+                          <BookOpen className="w-4 h-4 text-primary-foreground" />
+                        </div>
+                        <span className="font-[family-name:var(--font-marcellus)] font-bold">EmberTales</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      {/* Tab bar */}
+                      <div className="flex items-center gap-1 bg-secondary rounded-xl p-1">
+                        <span className="px-4 py-1.5 rounded-lg bg-primary text-primary-foreground text-sm font-semibold">Library</span>
+                        <span className="px-4 py-1.5 rounded-lg text-sm text-muted-foreground cursor-pointer hover:text-foreground">Readers</span>
+                      </div>
+                      {/* Profile avatar — Google-style */}
+                      <div className="relative group">
+                        <button className="h-10 w-10 rounded-full ring-[3px] ring-primary/50 hover:ring-primary transition-all bg-[#5CB87A] flex items-center justify-center text-sm font-bold text-white cursor-pointer">
+                          I
+                        </button>
+                        {/* Hover tooltip: name + email */}
+                        <div className="absolute right-0 top-12 w-56 rounded-lg bg-foreground text-background px-3 py-2 text-xs shadow-lg z-20 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity">
+                          <p className="font-semibold">Isabelle De Backer</p>
+                          <p className="text-background/70">isabelle@example.com</p>
+                        </div>
+                        {/* Click menu (shown statically for wireframe) */}
+                        <div className="absolute right-0 top-14 w-72 rounded-xl border border-border bg-card shadow-lg z-10 overflow-hidden">
+                          <div className="p-4 text-center border-b border-border">
+                            <div className="h-16 w-16 rounded-full bg-[#5CB87A] flex items-center justify-center text-2xl font-bold text-white mx-auto ring-[3px] ring-primary/40">I</div>
+                            <p className="font-[family-name:var(--font-marcellus)] font-bold mt-2">Hi, Isabelle!</p>
+                            <p className="text-xs text-muted-foreground">isabelle@example.com</p>
+                          </div>
+                          <div className="py-1">
+                            <div className="flex items-center gap-3 px-4 py-2.5 text-sm text-muted-foreground hover:bg-secondary cursor-pointer transition-colors">
+                              <ChevronRight className="w-4 h-4" />
+                              <span>Sign out</span>
+                            </div>
+                            <div className="flex items-center gap-3 px-4 py-2.5 text-sm text-destructive hover:bg-destructive/10 cursor-pointer transition-colors">
+                              <X className="w-4 h-4" />
+                              <span>Delete account</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ── Library tab wireframe ── */}
+                  <div className="p-6">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-4">Library tab</p>
+
+                    {/* Upload row */}
+                    <div className="flex items-center gap-3 rounded-xl border border-dashed border-border p-3 mb-6 hover:border-primary/50 cursor-pointer transition-colors">
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                        <Upload className="w-5 h-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold">Add a book</p>
+                        <p className="text-xs text-muted-foreground">Drop PDF or click to browse</p>
+                      </div>
+                    </div>
+
+                    {/* Book grid */}
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                      {[
+                        { title: "The Dragon and the Star", author: "EmberTales Team", status: "Ready", color: "#5CB87A" },
+                        { title: "Where the Wild Things Are", author: "Maurice Sendak", status: "Ready", color: "#6B8FD4" },
+                        { title: "gutenberg_cache_27922.txt", author: "Unknown", status: "Processing", color: "#E9A55F" },
+                      ].map((book) => (
+                        <div key={book.title} className="rounded-xl border border-border bg-card overflow-hidden">
+                          {/* Cover placeholder */}
+                          <div className="h-28 flex flex-col items-center justify-center p-3 text-center" style={{ backgroundColor: book.color }}>
+                            <BookOpen className="w-6 h-6 text-white/40 mb-1" />
+                            <p className="text-white/90 text-xs font-bold leading-tight line-clamp-2">{book.title}</p>
+                          </div>
+                          <div className="p-3">
+                            <p className="font-[family-name:var(--font-marcellus)] font-semibold text-sm truncate">{book.title}</p>
+                            <p className="text-xs text-muted-foreground truncate">{book.author}</p>
+                            <div className="mt-2 flex items-center justify-between">
+                              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${book.status === "Ready" ? "bg-primary/10 text-primary" : "bg-accent/10 text-accent"}`}>
+                                {book.status}
+                              </span>
+                              <div className="h-6 w-6 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground cursor-pointer">
+                                <Settings className="w-3 h-3" />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* ── Readers tab wireframe ── */}
+                <div className="rounded-xl border border-border bg-card overflow-hidden">
+                  <div className="border-b border-border px-6 py-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center text-muted-foreground text-xs">&larr;</div>
+                      <div className="flex items-center gap-2">
+                        <div className="h-8 w-8 rounded-xl bg-primary flex items-center justify-center">
+                          <BookOpen className="w-4 h-4 text-primary-foreground" />
+                        </div>
+                        <span className="font-[family-name:var(--font-marcellus)] font-bold">EmberTales</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-1 bg-secondary rounded-xl p-1">
+                        <span className="px-4 py-1.5 rounded-lg text-sm text-muted-foreground cursor-pointer hover:text-foreground">Library</span>
+                        <span className="px-4 py-1.5 rounded-lg bg-primary text-primary-foreground text-sm font-semibold">Readers</span>
+                      </div>
+                      <button className="h-10 w-10 rounded-full ring-[3px] ring-primary/50 hover:ring-primary transition-all bg-[#5CB87A] flex items-center justify-center text-sm font-bold text-white cursor-pointer">
+                        I
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="p-6">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-4">Readers tab</p>
+
+                    <div className="space-y-4">
+                      {/* Kid card — with activity */}
+                      {[
+                        { name: "Emma", color: "#C56B8A", books: 3, current: "Where the Wild Things Are", progress: 67, lastActive: "Today" },
+                        { name: "Liam", color: "#6B8FD4", books: 1, current: "The Gruffalo", progress: 25, lastActive: "2 days ago" },
+                      ].map((kid) => (
+                        <div key={kid.name} className="rounded-xl border border-border bg-card p-4 flex items-start gap-4">
+                          <div
+                            className="h-12 w-12 rounded-full flex items-center justify-center text-lg font-bold text-white shrink-0"
+                            style={{ backgroundColor: kid.color }}
+                          >
+                            {kid.name[0]}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-1">
+                              <h4 className="font-[family-name:var(--font-marcellus)] font-bold">{kid.name}</h4>
+                              <span className="text-xs text-muted-foreground">Last active: {kid.lastActive}</span>
+                            </div>
+                            <p className="text-sm text-muted-foreground">{kid.books} {kid.books === 1 ? "book" : "books"}</p>
+                            {/* Current book progress */}
+                            <div className="mt-2 rounded-lg bg-secondary/50 p-3">
+                              <div className="flex items-center justify-between text-sm mb-1">
+                                <span className="truncate text-muted-foreground">{kid.current}</span>
+                                <span className="font-semibold text-foreground shrink-0 ml-2">{kid.progress}%</span>
+                              </div>
+                              <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                                <div className="h-full rounded-full" style={{ width: `${kid.progress}%`, backgroundColor: kid.color }} />
+                              </div>
+                            </div>
+                          </div>
+                          <div className="h-8 w-8 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground cursor-pointer shrink-0">
+                            <Settings className="w-4 h-4" />
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* Add reader button */}
+                      <button className="w-full rounded-xl border-2 border-dashed border-border p-4 flex items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-foreground hover:bg-primary/5 transition-colors">
+                        <Plus className="w-5 h-5" />
+                        <span className="text-sm font-semibold">Add a reader</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Interaction notes */}
+                <div className="mt-6 rounded-xl border border-border bg-card p-5">
+                  <h4 className="font-[family-name:var(--font-marcellus)] font-bold mb-3">Interaction Notes</h4>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    <li className="flex items-start gap-2"><ChevronRight className="h-4 w-4 mt-0.5 shrink-0 text-primary" /><span><strong>Cog icon (per book)</strong> — opens a dropdown menu: Edit title/author/cover, Delete book.</span></li>
+                    <li className="flex items-start gap-2"><ChevronRight className="h-4 w-4 mt-0.5 shrink-0 text-primary" /><span><strong>Cog icon (per reader)</strong> — opens a dropdown menu: Edit name/color, Delete reader and their progress.</span></li>
+                    <li className="flex items-start gap-2"><ChevronRight className="h-4 w-4 mt-0.5 shrink-0 text-primary" /><span><strong>Profile avatar (top-right)</strong> — user initial with 3px ring (ring-primary/50, solid on hover). <em>Hover:</em> dark tooltip with name + email. <em>Click:</em> Google-style popover with large avatar, greeting, Sign out, Delete account.</span></li>
+                    <li className="flex items-start gap-2"><ChevronRight className="h-4 w-4 mt-0.5 shrink-0 text-primary" /><span><strong>Upload row</strong> — click anywhere on the row to browse, or drag-drop a PDF onto it. Replaces the current full-width drop zone.</span></li>
+                    <li className="flex items-start gap-2"><ChevronRight className="h-4 w-4 mt-0.5 shrink-0 text-primary" /><span><strong>Tab pill toggle</strong> — bg-secondary container with active pill in bg-primary. Sits in header so it stays visible on scroll.</span></li>
+                    <li className="flex items-start gap-2"><ChevronRight className="h-4 w-4 mt-0.5 shrink-0 text-primary" /><span><strong>Book grid</strong> — consistent card sizes with deterministic cover color from title. Status: green = Ready, amber = Processing.</span></li>
+                  </ul>
+                </div>
               </div>
             </section>
           )}
