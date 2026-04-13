@@ -26,6 +26,7 @@ from pipecat.frames.frames import (
 )
 from pipecat.processors.aggregators.llm_context import LLMContext
 from pipecat.processors.frame_processor import FrameDirection, FrameProcessor
+from pipecat.services.llm_service import LLMService
 
 try:
     from ..library import Library
@@ -56,7 +57,7 @@ class State(enum.Enum):
 class BookReadingStateManager(FrameProcessor):
     """Function-call-driven state machine for book reading sessions."""
 
-    def __init__(self, library: Library, context: LLMContext, llm, **kwargs):
+    def __init__(self, library: Library, context: LLMContext, llm: LLMService, **kwargs):
         super().__init__(**kwargs)
         self._library = library
         self._context = context
@@ -336,11 +337,13 @@ class BookReadingStateManager(FrameProcessor):
         return "\nChapter map:\n" + "\n".join(lines)
 
     async def _replace_system_prompt(self, prompt: str) -> None:
+        # `Settings` lives on concrete LLMService subclasses (e.g. OpenAILLMService),
+        # not on the base class — so the attribute is duck-typed here.
         await self.push_frame(
             LLMUpdateSettingsFrame(
-                delta=self._llm.Settings(system_instruction=prompt),
+                delta=self._llm.Settings(system_instruction=prompt),  # ty: ignore[unresolved-attribute]
             ),
-            FrameDirection.DOWNSTREAM,
+            FrameDirection.UPSTREAM,
         )
 
     async def _push_current_chunk(self) -> None:

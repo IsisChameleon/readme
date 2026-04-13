@@ -98,7 +98,6 @@ def _make_llm_mock() -> MagicMock:
     def _settings_factory(**kwargs):
         settings = MagicMock(name="Settings")
         settings.system_instruction = kwargs.get("system_instruction")
-        settings._kwargs = kwargs
         return settings
 
     llm.Settings.side_effect = _settings_factory
@@ -494,11 +493,15 @@ async def test_start_reading_pushes_system_instruction_frame():
         FrameDirection.DOWNSTREAM,
     )
 
-    update_frames = [f for f, _ in collector.frames if isinstance(f, LLMUpdateSettingsFrame)]
+    update_frames = [(f, d) for f, d in collector.frames if isinstance(f, LLMUpdateSettingsFrame)]
     assert len(update_frames) == 1
+    frame, direction = update_frames[0]
+    # Must be UPSTREAM so the LLM service (which sits upstream of the StateManager)
+    # actually receives the updated system_instruction.
+    assert direction == FrameDirection.UPSTREAM
     # READING_SYSTEM is a minimal prompt used during TTS reading.
-    assert update_frames[0].delta is not None
-    assert update_frames[0].delta.system_instruction is not None
+    assert frame.delta is not None
+    assert frame.delta.system_instruction is not None
 
 
 @pytest.mark.asyncio
@@ -509,6 +512,8 @@ async def test_qa_transition_pushes_system_instruction_frame():
 
     await sm.process_frame(UserStartedSpeakingFrame(), FrameDirection.DOWNSTREAM)
 
-    update_frames = [f for f, _ in collector.frames if isinstance(f, LLMUpdateSettingsFrame)]
+    update_frames = [(f, d) for f, d in collector.frames if isinstance(f, LLMUpdateSettingsFrame)]
     assert len(update_frames) == 1
-    assert update_frames[0].delta.system_instruction is not None
+    frame, direction = update_frames[0]
+    assert direction == FrameDirection.UPSTREAM
+    assert frame.delta.system_instruction is not None
