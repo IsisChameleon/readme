@@ -1,0 +1,61 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`UploadActionCard > renders default state 1`] = `
+<div
+  animate="[object Object]"
+  class="md:flex-1 md:min-w-80 md:max-w-[32rem]"
+  initial="[object Object]"
+  transition="[object Object]"
+>
+  <input
+    accept=".pdf"
+    class="hidden"
+    type="file"
+  />
+  <button
+    class="w-full h-full cursor-pointer rounded-2xl border-2 border-dashed p-6 text-left transition-colors flex flex-col gap-4 items-center justify-center border-border hover:border-primary/50 hover:bg-primary/5 "
+  >
+    <div
+      class="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center text-primary"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-upload w-7 h-7"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M12 3v12"
+        />
+        <path
+          d="m17 8-5-5-5 5"
+        />
+        <path
+          d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+        />
+      </svg>
+    </div>
+    <div
+      class="text-center"
+    >
+      <p
+        class="font-[family-name:var(--font-marcellus)] font-semibold text-foreground"
+      >
+        Add a Book
+      </p>
+      <p
+        class="text-sm text-muted-foreground mt-1"
+      >
+        Drop PDF or click to browse
+      </p>
+    </div>
+  </button>
+</div>
+`;

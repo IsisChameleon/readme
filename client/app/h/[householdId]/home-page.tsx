@@ -3,7 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { AppHeader } from '@/components/AppHeader';
 import { ProfileAvatar } from '@/components/ProfileAvatar';
-import { KidCard, UploadCard } from '@/components/HomeCard';
+import { ReaderActionCard } from '@/components/ReaderActionCard';
+import { UploadActionCard } from '@/components/UploadActionCard';
 
 interface KidLastBook {
   bookId: string;
@@ -70,7 +71,7 @@ export const HomePage = ({ householdId, userEmail, userName, kids, readyBooks }:
       <main className="flex-1 container mx-auto px-4 py-8">
         <div className="flex flex-col gap-5 md:flex-row md:flex-wrap">
           {kids.map((kid, i) => (
-            <KidCard
+            <ReaderActionCard
               key={kid.id}
               householdId={householdId}
               kid={kid}
@@ -79,7 +80,7 @@ export const HomePage = ({ householdId, userEmail, userName, kids, readyBooks }:
               index={i}
             />
           ))}
-          <UploadCard householdId={householdId} index={kids.length} />
+          <UploadActionCard householdId={householdId} index={kids.length} />
         </div>
 
         {kids.length === 0 && (

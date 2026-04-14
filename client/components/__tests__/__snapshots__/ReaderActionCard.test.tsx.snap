@@ -1,0 +1,280 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ReaderActionCard > renders empty-state (no books) 1`] = `
+<button
+  animate="[object Object]"
+  class="w-full rounded-2xl border border-border bg-card text-left overflow-hidden cursor-pointer transition-all hover:border-primary md:flex-1 md:min-w-80 md:max-w-[32rem]"
+  initial="[object Object]"
+  transition="[object Object]"
+  whilehover="[object Object]"
+  whiletap="[object Object]"
+>
+  <div
+    class="relative h-44 overflow-hidden"
+  >
+    <div
+      class="w-full h-full flex flex-col items-center justify-center p-6 text-center"
+      style="background-color: rgb(92, 184, 122);"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-book-open w-10 h-10 text-white/40 mb-3"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M12 7v14"
+        />
+        <path
+          d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"
+        />
+      </svg>
+    </div>
+    <div
+      class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"
+    />
+    <div
+      class="absolute bottom-3 left-4 flex items-center gap-3"
+    >
+      <div
+        class="h-10 w-10 rounded-full flex items-center justify-center text-lg font-bold text-white ring-2 ring-white/80"
+        style="background-color: rgb(92, 184, 122);"
+      >
+        F
+      </div>
+      <div>
+        <p
+          class="font-[family-name:var(--font-marcellus)] text-base font-bold text-white"
+        >
+          Fynn
+        </p>
+        <p
+          class="text-xs text-white/80"
+        >
+          No books yet
+        </p>
+      </div>
+    </div>
+  </div>
+  <div
+    class="p-5"
+  >
+    <p
+      class="text-sm text-muted-foreground"
+    >
+      Upload a book to get started
+    </p>
+  </div>
+</button>
+`;
+
+exports[`ReaderActionCard > renders resuming state 1`] = `
+<button
+  animate="[object Object]"
+  class="w-full rounded-2xl border border-border bg-card text-left overflow-hidden cursor-pointer transition-all hover:border-primary md:flex-1 md:min-w-80 md:max-w-[32rem]"
+  initial="[object Object]"
+  transition="[object Object]"
+  whilehover="[object Object]"
+  whiletap="[object Object]"
+>
+  <div
+    class="relative h-44 overflow-hidden"
+  >
+    <div
+      class="w-full h-full flex flex-col items-center justify-center p-6 text-center"
+      style="background-color: rgb(92, 184, 122);"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-book-open w-10 h-10 text-white/40 mb-3"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M12 7v14"
+        />
+        <path
+          d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"
+        />
+      </svg>
+      <p
+        class="font-[family-name:var(--font-marcellus)] text-white/90 font-bold text-sm leading-tight line-clamp-2"
+      >
+        The Gruffalo
+      </p>
+    </div>
+    <div
+      class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"
+    />
+    <div
+      class="absolute bottom-3 left-4 flex items-center gap-3"
+    >
+      <div
+        class="h-10 w-10 rounded-full flex items-center justify-center text-lg font-bold text-white ring-2 ring-white/80"
+        style="background-color: rgb(92, 184, 122);"
+      >
+        F
+      </div>
+      <div>
+        <p
+          class="font-[family-name:var(--font-marcellus)] text-base font-bold text-white"
+        >
+          Fynn
+        </p>
+        <p
+          class="text-xs text-white/80"
+        >
+          Reading now
+        </p>
+      </div>
+    </div>
+  </div>
+  <div
+    class="p-5"
+  >
+    <p
+      class="font-[family-name:var(--font-marcellus)] font-semibold truncate"
+    >
+      The Gruffalo
+    </p>
+    <div
+      class="mt-3 h-2 rounded-full bg-muted overflow-hidden"
+    >
+      <div
+        class="h-full rounded-full transition-all"
+        style="width: 45%; background-color: rgb(92, 184, 122);"
+      />
+    </div>
+    <div
+      class="mt-2 flex items-center justify-between"
+    >
+      <span
+        class="text-xs text-muted-foreground"
+      >
+        45
+        % complete
+      </span>
+      <span
+        class="text-sm font-semibold"
+        style="color: rgb(92, 184, 122);"
+      >
+        Continue →
+      </span>
+    </div>
+  </div>
+</button>
+`;
+
+exports[`ReaderActionCard > renders single-book state 1`] = `
+<button
+  animate="[object Object]"
+  class="w-full rounded-2xl border border-border bg-card text-left overflow-hidden cursor-pointer transition-all hover:border-primary md:flex-1 md:min-w-80 md:max-w-[32rem]"
+  initial="[object Object]"
+  transition="[object Object]"
+  whilehover="[object Object]"
+  whiletap="[object Object]"
+>
+  <div
+    class="relative h-44 overflow-hidden"
+  >
+    <div
+      class="w-full h-full flex flex-col items-center justify-center p-6 text-center"
+      style="background-color: rgb(233, 165, 95);"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-book-open w-10 h-10 text-white/40 mb-3"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M12 7v14"
+        />
+        <path
+          d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"
+        />
+      </svg>
+      <p
+        class="font-[family-name:var(--font-marcellus)] text-white/90 font-bold text-sm leading-tight line-clamp-2"
+      >
+        Where the Wild Things Are
+      </p>
+      <p
+        class="text-white/60 text-xs mt-1 truncate max-w-full"
+      >
+        Maurice Sendak
+      </p>
+    </div>
+    <div
+      class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"
+    />
+    <div
+      class="absolute bottom-3 left-4 flex items-center gap-3"
+    >
+      <div
+        class="h-10 w-10 rounded-full flex items-center justify-center text-lg font-bold text-white ring-2 ring-white/80"
+        style="background-color: rgb(92, 184, 122);"
+      >
+        F
+      </div>
+      <div>
+        <p
+          class="font-[family-name:var(--font-marcellus)] text-base font-bold text-white"
+        >
+          Fynn
+        </p>
+        <p
+          class="text-xs text-white/80"
+        >
+          New book ready
+        </p>
+      </div>
+    </div>
+  </div>
+  <div
+    class="p-5"
+  >
+    <p
+      class="font-[family-name:var(--font-marcellus)] font-semibold truncate"
+    >
+      Where the Wild Things Are
+    </p>
+    <div
+      class="mt-2 flex items-center justify-between"
+    >
+      <span
+        class="text-xs text-muted-foreground"
+      >
+        by Maurice Sendak
+      </span>
+      <span
+        class="text-sm font-semibold"
+        style="color: rgb(92, 184, 122);"
+      >
+        Start reading →
+      </span>
+    </div>
+  </div>
+</button>
+`;

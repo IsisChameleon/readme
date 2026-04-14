@@ -75,6 +75,8 @@ export default async function HouseholdPage({
   return (
     <HomePage
       householdId={householdId}
+      userEmail={user.email ?? ''}
+      userName={user.user_metadata?.full_name ?? user.email?.split('@')[0] ?? ''}
       kids={(kids ?? []).map((k) => ({
         ...k,
         lastBook: kidProgress[k.id] ?? null,
