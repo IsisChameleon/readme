@@ -8,7 +8,7 @@ import { AppHeader } from '@/components/AppHeader';
 import { ProfileAvatar } from '@/components/ProfileAvatar';
 import { AddKidDialog } from '@/components/AddKidDialog';
 import { EditKidDialog } from '@/components/EditKidDialog';
-import { BookUpload } from '@/components/BookUpload';
+import { UploadCard } from '@/components/UploadCard';
 import { BookCard } from '@/components/BookCard';
 import { createClient } from '@/lib/supabase/client';
 
@@ -132,7 +132,7 @@ const LibraryTab = ({
 }) => (
   <div className="space-y-6">
     {/* Compact upload row */}
-    <BookUpload householdId={householdId} compact />
+    <UploadCard householdId={householdId} compact />
 
     {/* Book list — uses the parent BookCard variant (includes rename + delete) */}
     <div className="space-y-3">

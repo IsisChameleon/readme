@@ -1,4 +1,3 @@
-// client/components/BookUpload.tsx
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,7 +15,7 @@ interface UploadedFile {
   progress: number;
 }
 
-interface BookUploadProps {
+interface UploadCardProps {
   householdId: string;
   compact?: boolean;
 }
@@ -27,7 +26,7 @@ const formatSize = (bytes: number): string => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
-export const BookUpload = ({ householdId, compact = false }: BookUploadProps) => {
+export const UploadCard = ({ householdId, compact = false }: UploadCardProps) => {
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
