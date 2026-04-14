@@ -22,19 +22,19 @@ interface Book {
   progress: number;
 }
 
-interface KidHomeClientProps {
+interface ReaderHomeClientProps {
   householdId: string;
   kid: Kid;
   books: Book[];
 }
 
-export const KidHomeClient = ({ householdId, kid, books }: KidHomeClientProps) => {
+export const ReaderHomeClient = ({ householdId, kid, books }: ReaderHomeClientProps) => {
   const router = useRouter();
 
   const inProgress = books.filter((b) => b.progress > 0 && b.progress < 100);
 
   const handleStartReading = (bookId: string) => {
-    router.push(`/h/${householdId}/kid/${kid.id}/call?bookId=${bookId}`);
+    router.push(`/h/${householdId}/reader/${kid.id}/call?bookId=${bookId}`);
   };
 
   return (

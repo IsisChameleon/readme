@@ -49,7 +49,7 @@ const SessionInner = ({
   const remoteAudioTrack = usePipecatClientMediaTrack('audio', 'bot');
   const { state: connectionState } = usePipecatConnectionState();
   const router = useRouter();
-  const params = useParams<{ householdId: string; kidId: string }>();
+  const params = useParams<{ householdId: string; readerId: string }>();
   const searchParams = useSearchParams();
   const autoConnectAttempted = useRef(false);
 
@@ -61,7 +61,7 @@ const SessionInner = ({
   }, [searchParams, handleConnect]);
 
   const handleBack = () => {
-    router.push(`/h/${params.householdId}/kid/${params.kidId}`);
+    router.push(`/h/${params.householdId}/reader/${params.readerId}`);
   };
 
   return (
@@ -131,7 +131,7 @@ const CallPageInner = () => {
   const [authToken, setAuthToken] = useState<string | undefined>(undefined);
   const searchParams = useSearchParams();
   const bookId = searchParams.get('bookId');
-  const params = useParams<{ kidId: string }>();
+  const params = useParams<{ readerId: string }>();
 
   useEffect(() => {
     getAccessToken().then(setAuthToken);
@@ -174,7 +174,7 @@ const CallPageInner = () => {
           headers: connectHeaders,
           body: JSON.stringify({
             book_id: bookId ?? undefined,
-            kid_id: params.kidId ?? undefined,
+            kid_id: params.readerId ?? undefined,
           }),
         }}
         initDevicesOnMount

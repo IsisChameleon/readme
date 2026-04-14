@@ -1,13 +1,13 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import { KidHomeClient } from './kid-home-client';
+import { ReaderHomeClient } from './reader-home';
 
 export default async function KidHomePage({
   params,
 }: {
-  params: Promise<{ householdId: string; kidId: string }>;
+  params: Promise<{ householdId: string; readerId: string }>;
 }) {
-  const { householdId, kidId } = await params;
+  const { householdId, readerId } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -21,7 +21,7 @@ export default async function KidHomePage({
   const { data: kid } = await supabase
     .from('kids')
     .select('id, name, avatar, color')
-    .eq('id', kidId)
+    .eq('id', readerId)
     .single();
 
   if (!kid) {
@@ -38,7 +38,7 @@ export default async function KidHomePage({
   const { data: progress } = await supabase
     .from('reading_progress')
     .select('book_id, current_chunk_index')
-    .eq('kid_id', kidId);
+    .eq('kid_id', readerId);
 
   const bookIds = (books ?? []).map((b) => b.id);
   const { data: chunkCounts } = bookIds.length > 0
@@ -60,7 +60,7 @@ export default async function KidHomePage({
   });
 
   return (
-    <KidHomeClient
+    <ReaderHomeClient
       householdId={householdId}
       kid={kid}
       books={(books ?? []).map((b) => ({
