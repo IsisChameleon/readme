@@ -152,31 +152,20 @@ const LibraryTab = ({
               status: book.status,
               coverImageUrl: book.cover_image_url,
             }}
-            onDelete={onDeleteBook}
-          />
-          {/* Per-kid progress badges */}
-          {book.kidProgress.length > 0 && (
-            <div className="mt-1.5 ml-24 pl-4 flex flex-wrap gap-2">
-              {book.kidProgress.map(({ kidId, progress }) => {
+            kidProgress={book.kidProgress
+              .map(({ kidId, progress }) => {
                 const kid = kidMap.get(kidId);
                 if (!kid) return null;
-                return (
-                  <div
-                    key={kidId}
-                    className="flex items-center gap-1.5 text-xs rounded-full bg-secondary px-2 py-0.5"
-                  >
-                    <span
-                      className="w-3.5 h-3.5 rounded-full flex items-center justify-center text-white text-[8px] font-bold"
-                      style={{ backgroundColor: kid.color ?? '#5CB87A' }}
-                    >
-                      {kid.name[0]}
-                    </span>
-                    <span className="text-muted-foreground">{progress}%</span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                return {
+                  kidId,
+                  kidName: kid.name,
+                  kidColor: kid.color ?? '#5CB87A',
+                  progress,
+                };
+              })
+              .filter((x): x is NonNullable<typeof x> => x !== null)}
+            onDelete={onDeleteBook}
+          />
         </motion.div>
       ))}
     </div>

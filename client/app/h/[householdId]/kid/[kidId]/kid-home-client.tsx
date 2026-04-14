@@ -2,7 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { ArrowLeft, BookOpen, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
+import { AppHeader } from '@/components/AppHeader';
 import { EmberDragon } from '@/components/EmberDragon';
 import { BookCard } from '@/components/BookCard';
 
@@ -38,25 +39,7 @@ export const KidHomeClient = ({ householdId, kid, books }: KidHomeClientProps) =
 
   return (
     <div className="min-h-dvh bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-10 border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => router.push(`/h/${householdId}`)}
-                className="p-2 rounded-lg hover:bg-muted transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-                <BookOpen className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <h1 className="font-display text-xl font-bold text-foreground">EmberTales</h1>
-            </div>
-          </div>
-        </div>
-      </header>
+      <AppHeader backHref={`/h/${householdId}`} />
 
       <section className="container mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row items-center gap-6 mb-8">
@@ -108,7 +91,7 @@ export const KidHomeClient = ({ householdId, kid, books }: KidHomeClientProps) =
                       coverImageUrl: book.cover_image_url,
                       progress: book.progress,
                     }}
-                    variant="kid"
+                    variant="reader"
                     onStartReading={handleStartReading}
                   />
                 </motion.div>
@@ -136,7 +119,7 @@ export const KidHomeClient = ({ householdId, kid, books }: KidHomeClientProps) =
                     coverImageUrl: book.cover_image_url,
                     progress: book.progress,
                   }}
-                  variant="kid"
+                  variant="reader"
                   onStartReading={handleStartReading}
                 />
               </motion.div>
