@@ -116,20 +116,23 @@ async def run_bot(
         model="sonic-2",
     )
 
-    llm = OpenAILLMService(
-        api_key=os.environ["OPENAI_API_KEY"],
-        model="gpt-4",
-    )
-
-    # -- Build system prompt at context creation (never empty) --
+    # -- Build the initial system prompt (lives in LLM Settings, not context messages) --
     if book_id:
         system_prompt = BOOK_PRESELECTED_SYSTEM
     else:
         system_prompt = BOOK_BROWSE_SYSTEM
 
+    llm = OpenAILLMService(
+        api_key=os.environ["OPENAI_API_KEY"],
+        settings=OpenAILLMService.Settings(
+            model="gpt-4",
+            system_instruction=system_prompt,
+        ),
+    )
+
     tools = _build_tools(has_book=bool(book_id))
     context = LLMContext(
-        messages=[{"role": "system", "content": system_prompt}],
+        messages=[],
         tools=tools,
     )
 
@@ -143,7 +146,7 @@ async def run_bot(
     assistant_agg = agg_pair.assistant()
 
     library = Library(kid_id=kid_id)
-    state_manager = BookReadingStateManager(library=library, context=context)
+    state_manager = BookReadingStateManager(library=library, context=context, llm=llm)
 
     # Pre-populate index map if book_id was provided
     if book_id:
