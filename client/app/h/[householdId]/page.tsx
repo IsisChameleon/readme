@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import { HomePage } from './home-page';
+import { Home } from './home';
 
 export default async function HouseholdPage({
   params,
@@ -73,7 +73,7 @@ export default async function HouseholdPage({
   const readyBooks = allBooks ?? [];
 
   return (
-    <HomePage
+    <Home
       householdId={householdId}
       userEmail={user.email ?? ''}
       userName={user.user_metadata?.full_name ?? user.email?.split('@')[0] ?? ''}

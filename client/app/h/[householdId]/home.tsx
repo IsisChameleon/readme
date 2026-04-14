@@ -28,7 +28,7 @@ interface Kid {
   lastBook: KidLastBook | null;
 }
 
-interface HomePageProps {
+interface HomeProps {
   householdId: string;
   userEmail: string;
   userName: string;
@@ -36,38 +36,17 @@ interface HomePageProps {
   readyBooks: ReadyBook[];
 }
 
-export const HomePage = ({ householdId, userEmail, userName, kids, readyBooks }: HomePageProps) => {
+export const Home = ({ householdId, userEmail, userName, kids, readyBooks }: HomeProps) => {
   const router = useRouter();
-
-  const rightSlot = (
-    <>
-      {/* Kid avatars — quick nav to each kid's library */}
-      <div className="hidden sm:flex items-center gap-1.5 mr-1">
-        {kids.map((kid) => (
-          <button
-            key={kid.id}
-            onClick={() => router.push(`/h/${householdId}/kid/${kid.id}`)}
-            title={`${kid.name}'s books`}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold transition-transform hover:scale-110 cursor-pointer"
-            style={{ backgroundColor: kid.color ?? 'var(--kid-fern)' }}
-          >
-            {kid.avatar ?? kid.name[0]?.toUpperCase()}
-          </button>
-        ))}
-      </div>
-      <ProfileAvatar
-        userName={userName}
-        userEmail={userEmail}
-        householdId={householdId}
-      />
-    </>
-  );
 
   return (
     <div className="min-h-dvh bg-background flex flex-col">
-      <AppHeader right={rightSlot} />
+      <AppHeader
+        right={
+          <ProfileAvatar userName={userName} userEmail={userEmail} householdId={householdId} />
+        }
+      />
 
-      {/* Card strip — horizontal scroll in landscape, vertical in portrait */}
       <main className="flex-1 container mx-auto px-4 py-8">
         <div className="flex flex-col gap-5 md:flex-row md:flex-wrap">
           {kids.map((kid, i) => (
@@ -87,20 +66,14 @@ export const HomePage = ({ householdId, userEmail, userName, kids, readyBooks }:
           <p className="text-center text-muted-foreground mt-8">
             No readers yet.{' '}
             <button
-              onClick={() => router.push(`/h/${householdId}/dashboard`)}
+              onClick={() => router.push(`/h/${householdId}/readers`)}
               className="underline hover:text-foreground cursor-pointer"
             >
-              Add one from Manage.
+              Add one.
             </button>
           </p>
         )}
       </main>
-
-      <footer className="border-t border-border bg-card py-4">
-        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          Stories, read together
-        </div>
-      </footer>
     </div>
   );
 };
