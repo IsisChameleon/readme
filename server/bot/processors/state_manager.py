@@ -20,11 +20,13 @@ from pipecat.frames.frames import (
     LLMFullResponseEndFrame,
     LLMFullResponseStartFrame,
     LLMMessagesAppendFrame,
+    LLMUpdateSettingsFrame,
     TTSSpeakFrame,
     UserStartedSpeakingFrame,
 )
 from pipecat.processors.aggregators.llm_context import LLMContext
 from pipecat.processors.frame_processor import FrameDirection, FrameProcessor
+from pipecat.services.llm_service import LLMService
 
 try:
     from ..library import Library
@@ -55,10 +57,11 @@ class State(enum.Enum):
 class BookReadingStateManager(FrameProcessor):
     """Function-call-driven state machine for book reading sessions."""
 
-    def __init__(self, library: Library, context: LLMContext, **kwargs):
+    def __init__(self, library: Library, context: LLMContext, llm: LLMService, **kwargs):
         super().__init__(**kwargs)
         self._library = library
         self._context = context
+        self._llm = llm
         self._state = State.BOOK_SELECTION
         self._reading_tts_active = False
         self._interrupted = False
@@ -157,7 +160,7 @@ class BookReadingStateManager(FrameProcessor):
         logger.info(f"{self._state.value} -> READING at chunk {self._library.current_chunk_index}")
         self._state = State.READING
         self._interrupted = False
-        self._replace_system_prompt(READING_SYSTEM)
+        await self._replace_system_prompt(READING_SYSTEM)
         await self._push_current_chunk()
 
     async def _handle_end_session(self, frame: EndSessionFrame, direction: FrameDirection) -> None:
@@ -183,7 +186,7 @@ class BookReadingStateManager(FrameProcessor):
                     current_chunk_preview=chunk.text[:200],
                     chapter_map=self._format_chapter_map(),
                 )
-                self._replace_system_prompt(prompt)
+                await self._replace_system_prompt(prompt)
 
         elif self._state == State.FINISHED:
             self._idle_event.set()
@@ -255,7 +258,7 @@ class BookReadingStateManager(FrameProcessor):
             book_index=book_index,
             another_book_hint=another_book_hint,
         )
-        self._replace_system_prompt(prompt)
+        await self._replace_system_prompt(prompt)
 
         await self.push_frame(
             LLMMessagesAppendFrame(
@@ -333,14 +336,15 @@ class BookReadingStateManager(FrameProcessor):
         lines = [f'- "{title}" -> chunk_id={idx}' for title, idx in chapter_map.items()]
         return "\nChapter map:\n" + "\n".join(lines)
 
-    def _replace_system_prompt(self, prompt: str) -> None:
-        system_msg = {"role": "system", "content": prompt}
-        conversation = [
-            m
-            for m in self._context.get_messages()
-            if not (isinstance(m, dict) and m.get("role") == "system")  # type: ignore[arg-type]
-        ]
-        self._context.set_messages([system_msg] + conversation)
+    async def _replace_system_prompt(self, prompt: str) -> None:
+        # `Settings` lives on concrete LLMService subclasses (e.g. OpenAILLMService),
+        # not on the base class — so the attribute is duck-typed here.
+        await self.push_frame(
+            LLMUpdateSettingsFrame(
+                delta=self._llm.Settings(system_instruction=prompt),  # ty: ignore[unresolved-attribute]
+            ),
+            FrameDirection.UPSTREAM,
+        )
 
     async def _push_current_chunk(self) -> None:
         chunk = self._library.current_chunk()

@@ -12,6 +12,7 @@ from pipecat.frames.frames import (
     LLMFullResponseStartFrame,
     LLMMessagesAppendFrame,
     LLMTextFrame,
+    LLMUpdateSettingsFrame,
     TTSSpeakFrame,
     UserStartedSpeakingFrame,
 )
@@ -77,13 +78,39 @@ class _FrameCollector:
     def clear(self):
         self.frames.clear()
 
+    def latest_system_instruction(self) -> str | None:
+        """Return the system_instruction of the most recent LLMUpdateSettingsFrame, if any."""
+        for frame, _ in reversed(self.frames):
+            if isinstance(frame, LLMUpdateSettingsFrame) and frame.delta is not None:
+                return getattr(frame.delta, "system_instruction", None)
+        return None
+
+
+def _make_llm_mock() -> MagicMock:
+    """Fake OpenAILLMService with a callable .Settings attribute.
+
+    Production code calls `self._llm.Settings(system_instruction=...)`.
+    We return a MagicMock for `Settings(...)` so tests can inspect the
+    `system_instruction` kwarg that was passed in.
+    """
+    llm = MagicMock(name="llm")
+
+    def _settings_factory(**kwargs):
+        settings = MagicMock(name="Settings")
+        settings.system_instruction = kwargs.get("system_instruction")
+        return settings
+
+    llm.Settings.side_effect = _settings_factory
+    return llm
+
 
 def _make_state_manager(
     progress: int = 0,
 ) -> tuple[BookReadingStateManager, Library, _FrameCollector]:
     context = LLMContext()
     library = Library(kid_id="test_kid")
-    sm = BookReadingStateManager(library=library, context=context)
+    llm = _make_llm_mock()
+    sm = BookReadingStateManager(library=library, context=context, llm=llm)
     collector = _FrameCollector()
     sm.push_frame = collector
     with _patch_supabase(progress=progress):
@@ -187,11 +214,10 @@ async def test_user_interrupt_updates_system_prompt():
 
     await sm.process_frame(UserStartedSpeakingFrame(), FrameDirection.DOWNSTREAM)
 
-    messages = sm._context.get_messages()
-    assert (
-        "interrupted" in messages[0]["content"].lower()
-        or "question" in messages[0]["content"].lower()
-    )
+    system_instruction = collector.latest_system_instruction()
+    assert system_instruction is not None, "expected an LLMUpdateSettingsFrame to be pushed"
+    lowered = system_instruction.lower()
+    assert "interrupted" in lowered or "question" in lowered
 
 
 @pytest.mark.asyncio
@@ -421,7 +447,7 @@ async def test_finished_user_speaking_resets_idle_event():
 
 @pytest.mark.asyncio
 async def test_finished_system_prompt_contains_book_info():
-    """FINISHED prompt includes book title and another_book_hint."""
+    """FINISHED prompt includes book title and end_session hint."""
     sm, library, collector = _make_state_manager(progress=2)
     sm._state = State.READING
     sm._reading_tts_active = True
@@ -429,10 +455,10 @@ async def test_finished_system_prompt_contains_book_info():
     with _patch_supabase():
         await sm.process_frame(BotStoppedSpeakingFrame(), FrameDirection.DOWNSTREAM)
 
-    messages = sm._context.get_messages()
-    system_prompt = messages[0]["content"]
-    assert "The Rabbit" in system_prompt
-    assert "end_session" in system_prompt
+    system_instruction = collector.latest_system_instruction()
+    assert system_instruction is not None
+    assert "The Rabbit" in system_instruction
+    assert "end_session" in system_instruction
 
 
 @pytest.mark.asyncio
@@ -445,7 +471,49 @@ async def test_finished_with_multiple_books_shows_alternatives():
     with _patch_supabase():
         await sm.process_frame(BotStoppedSpeakingFrame(), FrameDirection.DOWNSTREAM)
 
-    messages = sm._context.get_messages()
-    system_prompt = messages[0]["content"]
+    system_instruction = collector.latest_system_instruction()
+    assert system_instruction is not None
     # FAKE_BOOKS has 2 books: book_001 and book_002
-    assert "book_002" in system_prompt or "The Fox" in system_prompt
+    assert "book_002" in system_instruction or "The Fox" in system_instruction
+
+
+# ======================================================================
+# system_instruction frame propagation
+# ======================================================================
+
+
+@pytest.mark.asyncio
+async def test_start_reading_pushes_system_instruction_frame():
+    """Transitioning to READING pushes LLMUpdateSettingsFrame with READING_SYSTEM."""
+    sm, library, collector = _make_state_manager()
+    sm._state = State.BOOK_SELECTION
+
+    await sm.process_frame(
+        StartReadingFrame(book_id="book_001", chunk_index=0),
+        FrameDirection.DOWNSTREAM,
+    )
+
+    update_frames = [(f, d) for f, d in collector.frames if isinstance(f, LLMUpdateSettingsFrame)]
+    assert len(update_frames) == 1
+    frame, direction = update_frames[0]
+    # Must be UPSTREAM so the LLM service (which sits upstream of the StateManager)
+    # actually receives the updated system_instruction.
+    assert direction == FrameDirection.UPSTREAM
+    # READING_SYSTEM is a minimal prompt used during TTS reading.
+    assert frame.delta is not None
+    assert frame.delta.system_instruction is not None
+
+
+@pytest.mark.asyncio
+async def test_qa_transition_pushes_system_instruction_frame():
+    """Interrupt during READING pushes a QA system_instruction frame."""
+    sm, library, collector = _make_state_manager()
+    sm._state = State.READING
+
+    await sm.process_frame(UserStartedSpeakingFrame(), FrameDirection.DOWNSTREAM)
+
+    update_frames = [(f, d) for f, d in collector.frames if isinstance(f, LLMUpdateSettingsFrame)]
+    assert len(update_frames) == 1
+    frame, direction = update_frames[0]
+    assert direction == FrameDirection.UPSTREAM
+    assert frame.delta.system_instruction is not None
