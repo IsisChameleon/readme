@@ -87,7 +87,7 @@ export const ParentDashboardClient = ({ householdId, userEmail, userName, kids, 
     <div className="min-h-dvh bg-background">
       <AppHeader
         backHref={`/h/${householdId}`}
-        right={<ProfileAvatar userName={userName} userEmail={userEmail} />}
+        right={<ProfileAvatar userName={userName} userEmail={userEmail} householdId={householdId} />}
       />
       {tabs}
 
