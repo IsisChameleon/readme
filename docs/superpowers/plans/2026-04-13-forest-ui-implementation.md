@@ -2,13 +2,29 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Migrate the real app to match the approved wireframes in `/admin/design/*` — rework the header, split dashboard into Library + Readers routes, harmonize all card components, delete KidSelector, and add snapshot tests for every changed component.
+**Goal:** Migrate the real app to match the approved wireframes in `/admin/design/*` — rework the header, split dashboard into Library + Readers routes, rename kid→reader throughout, harmonize all card components, delete KidSelector, and add snapshot tests for every changed component.
 
-**Architecture:** Six sequential task groups: (1) test harness, (2) shared components, (3) page-level components, (4) new routes, (5) cleanup, (6) verification. Each task is one focused change with TDD where applicable.
+**Architecture:** Sequential task groups: (1) test harness, (2) shared components, (3) home strip cards, (4) page components, (5) new routes, (6) route rename + cleanup, (7) verification. Each task is one focused change with TDD where applicable.
 
 **Tech Stack:** Next.js 16, React 19, TypeScript, Tailwind v4, Framer Motion, Vitest + React Testing Library
 
 **Spec:** `docs/superpowers/specs/2026-04-13-forest-ui-implementation.md`
+
+### Naming conventions (all renames from prior codebase)
+
+| Old name | New name | New file |
+|---|---|---|
+| `KidCard` (in `HomeCard.tsx`) | `ReaderActionCard` | `components/ReaderActionCard.tsx` |
+| `UploadCard` (in `HomeCard.tsx`) | `UploadActionCard` | `components/UploadActionCard.tsx` |
+| `HomeCard.tsx` | *(deleted — split above)* | — |
+| `BookCard` variant `"kid"` | `BookCard` variant `"reader"` | `components/BookCard.tsx` |
+| `BookUpload` | `UploadCard` | `components/UploadCard.tsx` |
+| `HomePage` in `home-page.tsx` | `Home` in `home.tsx` | `app/h/[householdId]/home.tsx` |
+| `ParentDashboardClient` | *(deleted)* | — |
+| `LibraryClient` | `Library` | `app/h/[householdId]/library/library.tsx` |
+| `ReadersClient` | `Readers` | `app/h/[householdId]/readers/readers.tsx` |
+| `KidHomeClient` in `kid/[kidId]/kid-home-client.tsx` | `ReaderHome` | `app/h/[householdId]/reader/[readerId]/reader-home.tsx` |
+| route `/kid/[kidId]` | `/reader/[readerId]` | `app/h/[householdId]/reader/[readerId]/` |
 
 ---
 
@@ -107,12 +123,10 @@ import { render } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { AppHeader } from '../AppHeader';
 
-// Mock next/navigation
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
 }));
 
-// Mock EmberLogo to avoid SVG noise in snapshots
 vi.mock('../EmberLogo', () => ({
   EmberLogo: ({ size, className }: { size: number; className: string }) => (
     <div data-testid="ember-logo" data-size={size} className={className} />
@@ -168,13 +182,9 @@ import { ArrowLeft } from 'lucide-react';
 import { EmberLogo } from './EmberLogo';
 
 interface AppHeaderProps {
-  /** If provided, shows a back arrow that navigates to this route */
   backHref?: string;
-  /** Content rendered in the right slot (e.g. profile avatar) */
   right?: ReactNode;
-  /** Subtitle shown under the wordmark. Defaults to "Stories, read together" */
   subtitle?: string;
-  /** Hide the "EmberTales" wordmark on small screens (default true) */
   hideWordmarkSm?: boolean;
 }
 
@@ -189,7 +199,6 @@ export const AppHeader = ({
   return (
     <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex items-center justify-between px-4 py-4">
-        {/* Left: back arrow + logo + wordmark + subtitle */}
         <div className="flex items-center gap-3 shrink-0">
           {backHref && (
             <button
@@ -211,7 +220,6 @@ export const AppHeader = ({
           </div>
         </div>
 
-        {/* Right: optional slot */}
         {right && <div className="flex items-center gap-2 shrink-0">{right}</div>}
       </div>
     </header>
@@ -219,14 +227,7 @@ export const AppHeader = ({
 };
 ```
 
-Key changes vs current:
-- `EmberLogo size={40}` (was 32)
-- Wordmark `text-2xl font-bold` (was `text-lg`)
-- Added subtitle line (defaults to "Stories, read together")
-- `py-4` (was `h-16`)
-- Backdrop-blur matches admin/design header
-- Removed `center` prop + mobile center rail
-- Uses `bg-background/95` (was `bg-card`)
+Key changes: `EmberLogo size={40}` (was 32), `text-2xl font-bold` (was `text-lg`), added subtitle, `py-4` (was `h-16`), backdrop-blur, removed `center` prop + mobile center rail, `bg-background/95` (was `bg-card`).
 
 - [ ] **Step 4: Run tests — expect pass + snapshot creation**
 
@@ -262,7 +263,6 @@ import { ProfileAvatar } from '../ProfileAvatar';
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
-  usePathname: () => '/h/abc123',
 }));
 
 vi.mock('@/lib/supabase/client', () => ({
@@ -350,7 +350,6 @@ interface ProfileAvatarProps {
   userName: string;
   userEmail: string;
   householdId: string;
-  /** Which surface we're on — "library" or "readers". Matching row collapses. */
   currentPath?: 'library' | 'readers';
 }
 
@@ -413,7 +412,6 @@ export const ProfileAvatar = ({ userName, userEmail, householdId, currentPath }:
             </div>
 
             <div className="py-1">
-              {/* Library */}
               {isLibrary ? (
                 <div className={activeRow}>
                   <BookOpen className="w-4 h-4" />
@@ -429,7 +427,6 @@ export const ProfileAvatar = ({ userName, userEmail, householdId, currentPath }:
                 </button>
               )}
 
-              {/* Manage readers */}
               {isReaders ? (
                 <div className={activeRow}>
                   <Users className="w-4 h-4" />
@@ -445,16 +442,13 @@ export const ProfileAvatar = ({ userName, userEmail, householdId, currentPath }:
                 </button>
               )}
 
-              {/* Divider */}
               <div className="border-t border-border my-1" />
 
-              {/* Sign out */}
               <button onClick={handleSignOut} className={clickableRow}>
                 <LogOut className="w-4 h-4" />
                 Sign out
               </button>
 
-              {/* Delete account */}
               <button
                 onClick={() => { /* TODO: delete account flow */ }}
                 className={`${menuRowBase} text-destructive hover:bg-destructive/10 cursor-pointer`}
@@ -471,11 +465,7 @@ export const ProfileAvatar = ({ userName, userEmail, householdId, currentPath }:
 };
 ```
 
-Key changes vs current:
-- Removed hover tooltip `<div>` and `title` attribute (click-only per wireframe)
-- Replaced single `manageHref` with `householdId` + `currentPath`
-- Two nav rows: Library (BookOpen) + Manage readers (Users) with divider before Sign out
-- Page-aware: matching row renders italic + "(currently viewing)" + no click handler
+Key changes: removed hover tooltip, replaced `manageHref` with `householdId` + `currentPath`, two nav rows (Library + Manage readers) with divider, page-aware collapse.
 
 - [ ] **Step 4: Run tests — expect pass**
 
@@ -585,7 +575,7 @@ git commit -m "feat: add ReaderBookRow component matching design wireframe"
 
 ---
 
-## Task 5: Harmonize `BookCard` — kid variant h-44 hero + parent per-kid progress
+## Task 5: Harmonize `BookCard` — reader variant h-44 hero + parent per-kid progress
 
 **Files:**
 - Modify: `client/components/BookCard.tsx`
@@ -623,11 +613,11 @@ vi.mock('@/lib/supabase/client', () => ({
   }),
 }));
 
-describe('BookCard kid variant', () => {
+describe('BookCard reader variant', () => {
   it('renders with cover image and progress', () => {
     const { container } = render(
       <BookCard
-        variant="kid"
+        variant="reader"
         book={{
           id: 'book1',
           title: 'Where the Wild Things Are',
@@ -644,7 +634,7 @@ describe('BookCard kid variant', () => {
   it('renders without cover image (fallback)', () => {
     const { container } = render(
       <BookCard
-        variant="kid"
+        variant="reader"
         book={{
           id: 'book2',
           title: 'The Gruffalo',
@@ -659,7 +649,7 @@ describe('BookCard kid variant', () => {
   it('renders processing status', () => {
     const { container } = render(
       <BookCard
-        variant="kid"
+        variant="reader"
         book={{ id: 'book3', title: 'Test Book', status: 'processing' }}
       />
     );
@@ -711,7 +701,7 @@ describe('BookCard parent variant', () => {
 pnpm test -- components/__tests__/BookCard.test.tsx 2>&1
 ```
 
-Expected: FAIL — new props don't exist yet, kid variant still uses `aspect-[2/3]`.
+Expected: FAIL — variant `"reader"` doesn't exist yet, kid variant still uses `aspect-[2/3]`.
 
 - [ ] **Step 3: Rewrite BookCard.tsx**
 
@@ -745,8 +735,7 @@ interface KidProgressEntry {
 
 interface BookCardProps {
   book: Book;
-  variant?: 'parent' | 'kid';
-  /** Per-kid progress rows — parent variant only */
+  variant?: 'parent' | 'reader';
   kidProgress?: KidProgressEntry[];
   onStartReading?: (bookId: string) => void;
   onDelete?: (bookId: string) => void;
@@ -754,7 +743,7 @@ interface BookCardProps {
 
 export const BookCard = ({
   book,
-  variant = 'kid',
+  variant = 'reader',
   kidProgress,
   onStartReading,
   onDelete,
@@ -768,7 +757,7 @@ export const BookCard = ({
       ? 'Continue'
       : 'Start Reading';
 
-  if (variant === 'kid') {
+  if (variant === 'reader') {
     return (
       <motion.div
         whileHover={{ scale: 1.02 }}
@@ -776,7 +765,6 @@ export const BookCard = ({
         className="flex flex-col rounded-2xl border border-border bg-card overflow-hidden cursor-pointer touch-manipulation transition-all hover:border-primary"
         onClick={() => book.status === 'ready' && onStartReading?.(book.id)}
       >
-        {/* h-44 hero with gradient overlay + title */}
         <div
           className="relative h-44 overflow-hidden"
           style={{ backgroundColor: book.coverImageUrl ? undefined : coverColor }}
@@ -799,7 +787,6 @@ export const BookCard = ({
           </div>
         </div>
 
-        {/* Body: progress + CTA */}
         <div className="p-4 space-y-3">
           {progress > 0 && progress < 100 && (
             <div>
@@ -832,7 +819,6 @@ export const BookCard = ({
     );
   }
 
-  // Parent variant
   return (
     <ParentBookCard
       book={book}
@@ -844,7 +830,6 @@ export const BookCard = ({
   );
 };
 
-/* ── Parent variant ── */
 const ParentBookCard = ({
   book,
   coverColor,
@@ -920,7 +905,6 @@ const ParentBookCard = ({
 
   return (
     <div className="flex rounded-xl border border-border bg-card overflow-hidden hover:border-primary transition-colors">
-      {/* Cover thumbnail */}
       <div
         className="w-16 h-24 flex items-center justify-center shrink-0"
         style={{ backgroundColor: book.coverImageUrl ? undefined : coverColor }}
@@ -932,7 +916,6 @@ const ParentBookCard = ({
         )}
       </div>
 
-      {/* Content */}
       <div className="flex-1 p-4 flex flex-col justify-between min-w-0">
         <div>
           <div className="flex items-start justify-between gap-2">
@@ -971,7 +954,6 @@ const ParentBookCard = ({
                 </>
               )}
             </div>
-            {/* Menu */}
             <div className="relative shrink-0" ref={menuRef}>
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
@@ -1003,7 +985,6 @@ const ParentBookCard = ({
           </div>
         </div>
 
-        {/* Per-kid progress rows */}
         {kidProgress && kidProgress.length > 0 && (
           <div className="mt-3 space-y-1.5">
             {kidProgress.map(({ kidId, kidName, kidColor, progress: kidPct }) => (
@@ -1019,7 +1000,6 @@ const ParentBookCard = ({
           </div>
         )}
 
-        {/* Fallback: single aggregate progress bar when no kidProgress passed */}
         {(!kidProgress || kidProgress.length === 0) && progress > 0 && (
           <div className="mt-3 h-1.5 rounded-full bg-muted overflow-hidden">
             <div className="h-full bg-primary rounded-full" style={{ width: `${progress}%` }} />
@@ -1031,9 +1011,7 @@ const ParentBookCard = ({
 };
 ```
 
-Key changes vs current:
-- **Kid variant:** `aspect-[2/3]` → `h-44` hero with gradient overlay + title + author overlay. Body simplified: `h-1.5` progress bar (was `h-2`), amber CTA with `rounded-xl` (was `rounded-2xl h-14`).
-- **Parent variant:** cover `w-16 h-24` (was `w-24 h-32`). Author + status on one line. New `kidProgress` prop renders per-kid colored dots + progress rows matching wireframe. Fallback single bar for backward compat.
+Key changes: variant `"kid"` → `"reader"`, default variant now `"reader"`, `aspect-[2/3]` → `h-44` hero with gradient + title overlay, parent cover `w-16 h-24` (was `w-24 h-32`), new `kidProgress` prop for per-kid progress rows.
 
 - [ ] **Step 4: Run tests — expect pass**
 
@@ -1047,29 +1025,310 @@ Expected: PASS, 5 snapshots written.
 
 ```bash
 git add components/BookCard.tsx components/__tests__/BookCard.test.tsx
-git commit -m "feat: harmonize BookCard — h-44 kid hero, per-kid parent progress"
+git commit -m "feat: harmonize BookCard — h-44 reader hero, per-kid parent progress"
 ```
 
 ---
 
-## Task 6: Snapshot tests for `HomeCard` (KidCard + UploadCard)
-
-The `HomeCard` component was already rewritten to the Strip Companion anatomy in prior work. This task adds snapshot coverage without modifying the component — proving it matches the wireframe.
+## Task 6: Split `HomeCard.tsx` → `ReaderActionCard` + `UploadActionCard`
 
 **Files:**
-- Create: `client/components/__tests__/HomeCard.test.tsx`
+- Create: `client/components/ReaderActionCard.tsx`
+- Create: `client/components/UploadActionCard.tsx`
+- Delete: `client/components/HomeCard.tsx`
+- Create: `client/components/__tests__/ReaderActionCard.test.tsx`
+- Create: `client/components/__tests__/UploadActionCard.test.tsx`
 
-- [ ] **Step 1: Write snapshot tests**
+- [ ] **Step 1: Create ReaderActionCard.tsx**
 
-Create `client/components/__tests__/HomeCard.test.tsx`:
+Copy the `KidCard` component from `HomeCard.tsx` into `client/components/ReaderActionCard.tsx`. Change the export name from `KidCard` to `ReaderActionCard`. Also copy the `BookPlaceholder` helper and the `PALETTE` / `colorFromString` / `CARD_WIDTH` constants it depends on, as well as the `KidLastBook`, `ReadyBook`, and `KidCardProps` interfaces.
+
+Rename the props interface to `ReaderActionCardProps`. The file content:
+
+```tsx
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
+import { BookOpen } from 'lucide-react';
+
+const PALETTE = ['#E9A55F', '#5CB87A', '#6B8FD4', '#C56B8A', '#8FB56A', '#8B6DAF', '#5BAEC4'];
+
+const colorFromString = (s: string) => {
+  let hash = 0;
+  for (let i = 0; i < s.length; i++) hash = s.charCodeAt(i) + ((hash << 5) - hash);
+  return PALETTE[Math.abs(hash) % PALETTE.length];
+};
+
+const CARD_WIDTH = 'md:flex-1 md:min-w-80 md:max-w-[32rem]';
+
+interface KidLastBook {
+  bookId: string;
+  bookTitle: string;
+  coverUrl: string | null;
+  progress: number;
+}
+
+interface ReadyBook {
+  id: string;
+  title: string;
+  author: string;
+  cover_image_url: string | null;
+}
+
+interface ReaderActionCardProps {
+  householdId: string;
+  kid: {
+    id: string;
+    name: string;
+    avatar: string | null;
+    color: string | null;
+  };
+  lastBook: KidLastBook | null;
+  readyBooks: ReadyBook[];
+  index: number;
+}
+
+export const ReaderActionCard = ({ householdId, kid, lastBook, readyBooks, index }: ReaderActionCardProps) => {
+  const router = useRouter();
+  const color = kid.color ?? '#5CB87A';
+
+  const isResuming = lastBook && lastBook.progress > 0 && lastBook.progress < 100;
+  const isSingleBook = readyBooks.length === 1 && !isResuming && !lastBook;
+  const singleBook = isSingleBook ? readyBooks[0] : null;
+
+  const coverUrl = isResuming ? lastBook.coverUrl : singleBook?.cover_image_url ?? null;
+  const bookTitle = isResuming ? lastBook.bookTitle : singleBook?.title ?? null;
+  const bookAuthor = singleBook?.author ?? null;
+  const placeholderColor = bookTitle ? colorFromString(bookTitle) : color;
+
+  const handleAction = () => {
+    if (isResuming) {
+      router.push(`/h/${householdId}/reader/${kid.id}/call?bookId=${lastBook.bookId}`);
+    } else if (singleBook) {
+      router.push(`/h/${householdId}/reader/${kid.id}/call?bookId=${singleBook.id}`);
+    } else {
+      router.push(`/h/${householdId}/reader/${kid.id}`);
+    }
+  };
+
+  return (
+    <motion.button
+      onClick={handleAction}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.1 * index, type: 'spring', stiffness: 260, damping: 24 }}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      className={`w-full rounded-2xl border border-border bg-card text-left overflow-hidden cursor-pointer transition-all hover:border-primary ${CARD_WIDTH}`}
+    >
+      <div className="relative h-44 overflow-hidden">
+        {coverUrl ? (
+          <img src={coverUrl} alt="" className="w-full h-full object-cover" />
+        ) : (
+          <BookPlaceholder title={bookTitle} author={bookAuthor} color={placeholderColor} />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+
+        <div className="absolute bottom-3 left-4 flex items-center gap-3">
+          <div
+            className="h-10 w-10 rounded-full flex items-center justify-center text-lg font-bold text-white ring-2 ring-white/80"
+            style={{ backgroundColor: color }}
+          >
+            {kid.avatar ?? kid.name[0]?.toUpperCase()}
+          </div>
+          <div>
+            <p className="font-[family-name:var(--font-marcellus)] text-base font-bold text-white">
+              {kid.name}
+            </p>
+            <p className="text-xs text-white/80">
+              {isResuming ? 'Reading now' : singleBook ? 'New book ready' : readyBooks.length > 0 ? `${readyBooks.length} books` : 'No books yet'}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-5">
+        {isResuming ? (
+          <>
+            <p className="font-[family-name:var(--font-marcellus)] font-semibold truncate">
+              {lastBook.bookTitle}
+            </p>
+            <div className="mt-3 h-2 rounded-full bg-muted overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all"
+                style={{ width: `${lastBook.progress}%`, backgroundColor: color }}
+              />
+            </div>
+            <div className="mt-2 flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">{lastBook.progress}% complete</span>
+              <span className="text-sm font-semibold" style={{ color }}>Continue &rarr;</span>
+            </div>
+          </>
+        ) : singleBook ? (
+          <>
+            <p className="font-[family-name:var(--font-marcellus)] font-semibold truncate">
+              {singleBook.title}
+            </p>
+            <div className="mt-2 flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">
+                {singleBook.author && singleBook.author !== 'Unknown' ? `by ${singleBook.author}` : ''}
+              </span>
+              <span className="text-sm font-semibold" style={{ color }}>Start reading &rarr;</span>
+            </div>
+          </>
+        ) : readyBooks.length > 0 ? (
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">
+              {lastBook?.progress === 100 ? 'Finished! Pick another' : `${readyBooks.length} books`}
+            </span>
+            <span className="text-sm font-semibold" style={{ color }}>Browse &rarr;</span>
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">Upload a book to get started</p>
+        )}
+      </div>
+    </motion.button>
+  );
+};
+
+const BookPlaceholder = ({ title, author, color }: { title: string | null; author: string | null; color: string }) => (
+  <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center" style={{ backgroundColor: color }}>
+    <BookOpen className="w-10 h-10 text-white/40 mb-3" />
+    {title && (
+      <p className="font-[family-name:var(--font-marcellus)] text-white/90 font-bold text-sm leading-tight line-clamp-2">
+        {title}
+      </p>
+    )}
+    {author && author !== 'Unknown' && (
+      <p className="text-white/60 text-xs mt-1 truncate max-w-full">{author}</p>
+    )}
+  </div>
+);
+```
+
+Note: all internal route links use `/reader/` (not `/kid/`).
+
+- [ ] **Step 2: Create UploadActionCard.tsx**
+
+Copy the `UploadCard` component from `HomeCard.tsx` into `client/components/UploadActionCard.tsx`. Rename to `UploadActionCard`. Copy the `CARD_WIDTH` constant. The file content:
+
+```tsx
+'use client';
+
+import { useRef, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
+import { Upload, FileText } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
+import { apiClient } from '@/lib/api/client';
+
+const CARD_WIDTH = 'md:flex-1 md:min-w-80 md:max-w-[32rem]';
+
+interface UploadActionCardProps {
+  householdId: string;
+  index: number;
+}
+
+export const UploadActionCard = ({ householdId, index }: UploadActionCardProps) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const router = useRouter();
+
+  const uploadFile = useCallback(async (file: File) => {
+    if (file.type !== 'application/pdf') {
+      toast({ title: 'Only PDF files are supported', variant: 'destructive' });
+      return;
+    }
+    setUploading(true);
+    setFileName(file.name);
+    try {
+      const { error } = await apiClient.POST('/books/upload', {
+        body: { file: file as unknown as string, household_id: householdId },
+        bodySerializer: (body) => {
+          const fd = new FormData();
+          fd.append('file', (body as Record<string, unknown>).file as File);
+          fd.append('household_id', (body as Record<string, unknown>).household_id as string);
+          return fd;
+        },
+      });
+      if (error) throw new Error('Upload failed');
+      toast({ title: 'Book uploaded!' });
+      router.refresh();
+    } catch {
+      toast({ title: 'Upload failed', variant: 'destructive' });
+    } finally {
+      setUploading(false);
+      setFileName(null);
+    }
+  }, [householdId, router]);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) uploadFile(file);
+  }, [uploadFile]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) uploadFile(file);
+    e.target.value = '';
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.1 * index, type: 'spring', stiffness: 260, damping: 24 }}
+      className={CARD_WIDTH}
+    >
+      <input ref={inputRef} type="file" accept=".pdf" className="hidden" onChange={handleChange} />
+      <button
+        onClick={() => inputRef.current?.click()}
+        onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+        onDragLeave={() => setIsDragging(false)}
+        onDrop={handleDrop}
+        disabled={uploading}
+        className={`w-full h-full cursor-pointer rounded-2xl border-2 border-dashed p-6 text-left transition-colors flex flex-col gap-4 items-center justify-center ${
+          isDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-primary/5'
+        } ${uploading ? 'opacity-60' : ''}`}
+      >
+        {uploading ? (
+          <>
+            <FileText className="w-8 h-8 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">Uploading {fileName}...</span>
+          </>
+        ) : (
+          <>
+            <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+              <Upload className="w-7 h-7" />
+            </div>
+            <div className="text-center">
+              <p className="font-[family-name:var(--font-marcellus)] font-semibold text-foreground">Add a Book</p>
+              <p className="text-sm text-muted-foreground mt-1">Drop PDF or click to browse</p>
+            </div>
+          </>
+        )}
+      </button>
+    </motion.div>
+  );
+};
+```
+
+- [ ] **Step 3: Write snapshot tests for both**
+
+Create `client/components/__tests__/ReaderActionCard.test.tsx`:
 
 ```tsx
 import { render } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { KidCard, UploadCard } from '../HomeCard';
+import { ReaderActionCard } from '../ReaderActionCard';
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+  useRouter: () => ({ push: vi.fn() }),
 }));
 
 vi.mock('framer-motion', () => ({
@@ -1078,29 +1337,17 @@ vi.mock('framer-motion', () => ({
       const { initial: _i, animate: _a, whileHover: _wh, whileTap: _wt, transition: _t, ...rest } = props;
       return <button {...rest}>{children as React.ReactNode}</button>;
     },
-    div: ({ children, ...props }: Record<string, unknown>) => {
-      const { initial: _i, animate: _a, transition: _t, ...rest } = props;
-      return <div {...rest}>{children as React.ReactNode}</div>;
-    },
   },
 }));
 
-vi.mock('@/hooks/use-toast', () => ({
-  toast: vi.fn(),
-}));
-
-vi.mock('@/lib/api/client', () => ({
-  apiClient: { POST: vi.fn() },
-}));
-
-describe('KidCard', () => {
-  const basekid = { id: 'k1', name: 'Fynn', avatar: null, color: '#C56B8A' };
+describe('ReaderActionCard', () => {
+  const baseKid = { id: 'k1', name: 'Fynn', avatar: null, color: '#C56B8A' };
 
   it('renders populated — resuming a book', () => {
     const { container } = render(
-      <KidCard
+      <ReaderActionCard
         householdId="h1"
-        kid={basekid}
+        kid={baseKid}
         lastBook={{ bookId: 'b1', bookTitle: 'Where the Wild Things Are', coverUrl: 'https://example.com/cover.jpg', progress: 67 }}
         readyBooks={[]}
         index={0}
@@ -1111,7 +1358,7 @@ describe('KidCard', () => {
 
   it('renders empty — no books', () => {
     const { container } = render(
-      <KidCard
+      <ReaderActionCard
         householdId="h1"
         kid={{ id: 'k2', name: 'Luca', avatar: null, color: '#6B8FD4' }}
         lastBook={null}
@@ -1124,9 +1371,9 @@ describe('KidCard', () => {
 
   it('renders single-book shortcut', () => {
     const { container } = render(
-      <KidCard
+      <ReaderActionCard
         householdId="h1"
-        kid={basekid}
+        kid={baseKid}
         lastBook={null}
         readyBooks={[{ id: 'b1', title: 'The Gruffalo', author: 'Julia Donaldson', cover_image_url: null }]}
         index={0}
@@ -1135,42 +1382,111 @@ describe('KidCard', () => {
     expect(container.firstChild).toMatchSnapshot();
   });
 });
+```
 
-describe('UploadCard', () => {
+Create `client/components/__tests__/UploadActionCard.test.tsx`:
+
+```tsx
+import { render } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { UploadActionCard } from '../UploadActionCard';
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+}));
+
+vi.mock('framer-motion', () => ({
+  motion: {
+    div: ({ children, ...props }: Record<string, unknown>) => {
+      const { initial: _i, animate: _a, transition: _t, ...rest } = props;
+      return <div {...rest}>{children as React.ReactNode}</div>;
+    },
+  },
+}));
+
+vi.mock('@/hooks/use-toast', () => ({ toast: vi.fn() }));
+vi.mock('@/lib/api/client', () => ({ apiClient: { POST: vi.fn() } }));
+
+describe('UploadActionCard', () => {
   it('renders default state', () => {
-    const { container } = render(
-      <UploadCard householdId="h1" index={0} />
-    );
+    const { container } = render(<UploadActionCard householdId="h1" index={0} />);
     expect(container.firstChild).toMatchSnapshot();
   });
 });
 ```
 
-- [ ] **Step 2: Run tests — expect pass (component already matches)**
+- [ ] **Step 4: Run tests — expect pass**
 
 ```bash
-pnpm test -- components/__tests__/HomeCard.test.tsx 2>&1
+pnpm test -- components/__tests__/ReaderActionCard.test.tsx components/__tests__/UploadActionCard.test.tsx 2>&1
 ```
 
-Expected: PASS, 4 snapshots written. These lock down the existing Strip Companion anatomy.
+Expected: PASS, 4 snapshots written.
 
-- [ ] **Step 3: Commit**
+- [ ] **Step 5: Delete HomeCard.tsx**
 
 ```bash
-git add components/__tests__/HomeCard.test.tsx
-git commit -m "test: add snapshot tests for HomeCard (KidCard + UploadCard)"
+rm components/HomeCard.tsx
+```
+
+- [ ] **Step 6: Verify lint + types pass**
+
+```bash
+pnpm lint 2>&1 | grep -c 'error' ; pnpm typecheck 2>&1 | tail -5
+```
+
+Expected: may fail on `home-page.tsx` which still imports from `HomeCard` — that's fixed in Task 7.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add components/ReaderActionCard.tsx components/UploadActionCard.tsx components/__tests__/ReaderActionCard.test.tsx components/__tests__/UploadActionCard.test.tsx
+git rm components/HomeCard.tsx
+git commit -m "feat: split HomeCard into ReaderActionCard + UploadActionCard"
 ```
 
 ---
 
-## Task 7: Update Home page — drop kid circles + footer
+## Task 7: Rename `BookUpload` → `UploadCard`
 
 **Files:**
-- Modify: `client/app/h/[householdId]/home-page.tsx`
+- Create: `client/components/UploadCard.tsx` (copy of `BookUpload.tsx` with renamed export)
+- Delete: `client/components/BookUpload.tsx`
 
-- [ ] **Step 1: Rewrite home-page.tsx**
+- [ ] **Step 1: Copy BookUpload.tsx → UploadCard.tsx, rename export**
 
-Replace the full content of `client/app/h/[householdId]/home-page.tsx`:
+Create `client/components/UploadCard.tsx` with the exact content of `BookUpload.tsx`, changing:
+- The export name from `BookUpload` to `UploadCard`
+- The interface name from `BookUploadProps` to `UploadCardProps`
+
+(The full file content is identical to the current `BookUpload.tsx` at `client/components/BookUpload.tsx` — just the two name changes above.)
+
+- [ ] **Step 2: Delete BookUpload.tsx**
+
+```bash
+rm components/BookUpload.tsx
+```
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add components/UploadCard.tsx
+git rm components/BookUpload.tsx
+git commit -m "refactor: rename BookUpload → UploadCard"
+```
+
+---
+
+## Task 8: Update Home page — rename to `Home`, drop kid circles + footer
+
+**Files:**
+- Delete: `client/app/h/[householdId]/home-page.tsx`
+- Create: `client/app/h/[householdId]/home.tsx`
+- Modify: `client/app/h/[householdId]/page.tsx` (update import)
+
+- [ ] **Step 1: Create home.tsx**
+
+Create `client/app/h/[householdId]/home.tsx`:
 
 ```tsx
 'use client';
@@ -1178,7 +1494,8 @@ Replace the full content of `client/app/h/[householdId]/home-page.tsx`:
 import { useRouter } from 'next/navigation';
 import { AppHeader } from '@/components/AppHeader';
 import { ProfileAvatar } from '@/components/ProfileAvatar';
-import { KidCard, UploadCard } from '@/components/HomeCard';
+import { ReaderActionCard } from '@/components/ReaderActionCard';
+import { UploadActionCard } from '@/components/UploadActionCard';
 
 interface KidLastBook {
   bookId: string;
@@ -1202,7 +1519,7 @@ interface Kid {
   lastBook: KidLastBook | null;
 }
 
-interface HomePageProps {
+interface HomeProps {
   householdId: string;
   userEmail: string;
   userName: string;
@@ -1210,7 +1527,7 @@ interface HomePageProps {
   readyBooks: ReadyBook[];
 }
 
-export const HomePage = ({ householdId, userEmail, userName, kids, readyBooks }: HomePageProps) => {
+export const Home = ({ householdId, userEmail, userName, kids, readyBooks }: HomeProps) => {
   const router = useRouter();
 
   return (
@@ -1228,7 +1545,7 @@ export const HomePage = ({ householdId, userEmail, userName, kids, readyBooks }:
       <main className="flex-1 container mx-auto px-4 py-8">
         <div className="flex flex-col gap-5 md:flex-row md:flex-wrap">
           {kids.map((kid, i) => (
-            <KidCard
+            <ReaderActionCard
               key={kid.id}
               householdId={householdId}
               kid={kid}
@@ -1237,7 +1554,7 @@ export const HomePage = ({ householdId, userEmail, userName, kids, readyBooks }:
               index={i}
             />
           ))}
-          <UploadCard householdId={householdId} index={kids.length} />
+          <UploadActionCard householdId={householdId} index={kids.length} />
         </div>
 
         {kids.length === 0 && (
@@ -1257,13 +1574,29 @@ export const HomePage = ({ householdId, userEmail, userName, kids, readyBooks }:
 };
 ```
 
-Key changes vs current:
-- Removed `rightSlot` with kid avatar circles (lines 42-56 of old file)
-- `ProfileAvatar` now passes `householdId` instead of `manageHref`
-- Removed `<footer>Stories, read together</footer>` (now in header subtitle)
-- Empty state links to `/readers` instead of `/dashboard`
+- [ ] **Step 2: Update page.tsx import**
 
-- [ ] **Step 2: Verify lint + types pass**
+In `client/app/h/[householdId]/page.tsx`, change:
+
+```tsx
+import { HomePage } from './home-page';
+```
+
+to:
+
+```tsx
+import { Home } from './home';
+```
+
+And update the JSX from `<HomePage` to `<Home`.
+
+- [ ] **Step 3: Delete home-page.tsx**
+
+```bash
+rm app/h/\[householdId\]/home-page.tsx
+```
+
+- [ ] **Step 4: Verify lint + types pass**
 
 ```bash
 pnpm lint 2>&1 | grep -E 'error|Error' ; pnpm typecheck 2>&1 | tail -5
@@ -1271,20 +1604,21 @@ pnpm lint 2>&1 | grep -E 'error|Error' ; pnpm typecheck 2>&1 | tail -5
 
 Expected: 0 errors.
 
-- [ ] **Step 3: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
-git add app/h/\[householdId\]/home-page.tsx
-git commit -m "feat: update home page — drop kid circles, remove footer"
+git add app/h/\[householdId\]/home.tsx app/h/\[householdId\]/page.tsx
+git rm app/h/\[householdId\]/home-page.tsx
+git commit -m "feat: rename HomePage→Home, drop kid circles + footer, use ReaderActionCard"
 ```
 
 ---
 
-## Task 8: Create Library route
+## Task 9: Create Library route
 
 **Files:**
 - Create: `client/app/h/[householdId]/library/page.tsx`
-- Create: `client/app/h/[householdId]/library/library-client.tsx`
+- Create: `client/app/h/[householdId]/library/library.tsx`
 - Create: `client/app/h/[householdId]/library/loading.tsx`
 - Create: `client/app/h/[householdId]/library/error.tsx`
 
@@ -1333,9 +1667,9 @@ export default function ErrorBoundary({
 }
 ```
 
-- [ ] **Step 3: Create library-client.tsx**
+- [ ] **Step 3: Create library.tsx (client component)**
 
-Create `client/app/h/[householdId]/library/library-client.tsx`:
+Create `client/app/h/[householdId]/library/library.tsx`:
 
 ```tsx
 'use client';
@@ -1344,7 +1678,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { AppHeader } from '@/components/AppHeader';
 import { ProfileAvatar } from '@/components/ProfileAvatar';
-import { BookUpload } from '@/components/BookUpload';
+import { UploadCard } from '@/components/UploadCard';
 import { BookCard } from '@/components/BookCard';
 import { createClient } from '@/lib/supabase/client';
 
@@ -1378,7 +1712,7 @@ interface Props {
   books: Book[];
 }
 
-export const LibraryClient = ({ householdId, userEmail, userName, kids, books }: Props) => {
+export const Library = ({ householdId, userEmail, userName, kids, books }: Props) => {
   const router = useRouter();
   const kidMap = new Map(kids.map((k) => [k.id, k]));
 
@@ -1404,7 +1738,7 @@ export const LibraryClient = ({ householdId, userEmail, userName, kids, books }:
 
       <main className="container mx-auto px-4 py-6 max-w-4xl">
         <div className="space-y-6">
-          <BookUpload householdId={householdId} compact />
+          <UploadCard householdId={householdId} compact />
 
           <div className="space-y-3">
             {books.map((book, index) => (
@@ -1452,12 +1786,12 @@ export const LibraryClient = ({ householdId, userEmail, userName, kids, books }:
 
 - [ ] **Step 4: Create library page.tsx (server component)**
 
-Create `client/app/h/[householdId]/library/page.tsx`:
+Create `client/app/h/[householdId]/library/page.tsx` — identical data-fetching logic as current `dashboard/page.tsx`, but imports `Library` from `./library` and redirects to `/h/${user.id}/library` on mismatch:
 
 ```tsx
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import { LibraryClient } from './library-client';
+import { Library } from './library';
 
 export default async function LibraryPage({
   params,
@@ -1516,7 +1850,7 @@ export default async function LibraryPage({
   });
 
   return (
-    <LibraryClient
+    <Library
       householdId={householdId}
       userEmail={user.email ?? ''}
       userName={user.user_metadata?.full_name ?? user.email?.split('@')[0] ?? ''}
@@ -1536,8 +1870,6 @@ export default async function LibraryPage({
 pnpm lint 2>&1 | grep -E 'error|Error' ; pnpm typecheck 2>&1 | tail -5
 ```
 
-Expected: 0 errors.
-
 - [ ] **Step 6: Commit**
 
 ```bash
@@ -1547,62 +1879,21 @@ git commit -m "feat: add /library route — standalone books page"
 
 ---
 
-## Task 9: Create Readers route
+## Task 10: Create Readers route
 
 **Files:**
 - Create: `client/app/h/[householdId]/readers/page.tsx`
-- Create: `client/app/h/[householdId]/readers/readers-client.tsx`
+- Create: `client/app/h/[householdId]/readers/readers.tsx`
 - Create: `client/app/h/[householdId]/readers/loading.tsx`
 - Create: `client/app/h/[householdId]/readers/error.tsx`
 
-- [ ] **Step 1: Create loading.tsx**
+- [ ] **Step 1: Create loading.tsx + error.tsx**
 
-Create `client/app/h/[householdId]/readers/loading.tsx`:
+Same pattern as library (see Task 9 steps 1–2). Create both files identically.
 
-```tsx
-export default function Loading() {
-  return (
-    <div className="min-h-dvh flex items-center justify-center bg-background">
-      <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-    </div>
-  );
-}
-```
+- [ ] **Step 2: Create readers.tsx (client component)**
 
-- [ ] **Step 2: Create error.tsx**
-
-Create `client/app/h/[householdId]/readers/error.tsx`:
-
-```tsx
-'use client';
-
-export default function ErrorBoundary({
-  error,
-  reset,
-}: {
-  error: Error & { digest?: string };
-  reset: () => void;
-}) {
-  return (
-    <div className="min-h-dvh flex flex-col items-center justify-center bg-background gap-4">
-      <h2 className="text-xl font-[family-name:var(--font-marcellus)] font-bold text-destructive">
-        Something went wrong
-      </h2>
-      <p className="text-muted-foreground text-sm">{error.message}</p>
-      <button
-        onClick={reset}
-        className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold"
-      >
-        Try again
-      </button>
-    </div>
-  );
-}
-```
-
-- [ ] **Step 3: Create readers-client.tsx**
-
-Create `client/app/h/[householdId]/readers/readers-client.tsx`:
+Create `client/app/h/[householdId]/readers/readers.tsx`:
 
 ```tsx
 'use client';
@@ -1642,7 +1933,7 @@ interface Props {
   books: Book[];
 }
 
-export const ReadersClient = ({ householdId, userEmail, userName, kids, books }: Props) => {
+export const Readers = ({ householdId, userEmail, userName, kids, books }: Props) => {
   const [showAddKid, setShowAddKid] = useState(false);
   const [editingKid, setEditingKid] = useState<Kid | null>(null);
 
@@ -1753,14 +2044,14 @@ export const ReadersClient = ({ householdId, userEmail, userName, kids, books }:
 };
 ```
 
-- [ ] **Step 4: Create readers page.tsx (server component)**
+- [ ] **Step 3: Create readers page.tsx (server component)**
 
-Create `client/app/h/[householdId]/readers/page.tsx`:
+Create `client/app/h/[householdId]/readers/page.tsx` — same data-fetching pattern as library but passes less data (no `cover_image_url`, `author`, `status` needed):
 
 ```tsx
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import { ReadersClient } from './readers-client';
+import { Readers } from './readers';
 
 export default async function ReadersPage({
   params,
@@ -1819,7 +2110,7 @@ export default async function ReadersPage({
   });
 
   return (
-    <ReadersClient
+    <Readers
       householdId={householdId}
       userEmail={user.email ?? ''}
       userName={user.user_metadata?.full_name ?? user.email?.split('@')[0] ?? ''}
@@ -1834,33 +2125,303 @@ export default async function ReadersPage({
 }
 ```
 
-- [ ] **Step 5: Verify lint + types pass**
+- [ ] **Step 4: Verify lint + types pass**
 
 ```bash
 pnpm lint 2>&1 | grep -E 'error|Error' ; pnpm typecheck 2>&1 | tail -5
 ```
 
-Expected: 0 errors.
-
-- [ ] **Step 6: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
 git add app/h/\[householdId\]/readers/
-git commit -m "feat: add /readers route — standalone kid panels page"
+git commit -m "feat: add /readers route — standalone reader panels page"
 ```
 
 ---
 
-## Task 10: Redirect `/dashboard` → `/library` + update kid home header
+## Task 11: Move `/kid/[kidId]` → `/reader/[readerId]` + rename `ReaderHome`
+
+**Files:**
+- Create: `client/app/h/[householdId]/reader/[readerId]/page.tsx`
+- Create: `client/app/h/[householdId]/reader/[readerId]/reader-home.tsx`
+- Create: `client/app/h/[householdId]/reader/[readerId]/loading.tsx`
+- Create: `client/app/h/[householdId]/reader/[readerId]/error.tsx`
+- Move: `client/app/h/[householdId]/kid/[kidId]/call/page.tsx` → `client/app/h/[householdId]/reader/[readerId]/call/page.tsx`
+- Delete: `client/app/h/[householdId]/kid/` (entire directory)
+
+- [ ] **Step 1: Create reader-home.tsx**
+
+Create `client/app/h/[householdId]/reader/[readerId]/reader-home.tsx` — content based on current `kid-home-client.tsx` with renames:
+
+```tsx
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
+import { Sparkles } from 'lucide-react';
+import { AppHeader } from '@/components/AppHeader';
+import { EmberDragon } from '@/components/EmberDragon';
+import { BookCard } from '@/components/BookCard';
+
+interface Reader {
+  id: string;
+  name: string;
+  avatar: string | null;
+  color: string | null;
+}
+
+interface Book {
+  id: string;
+  title: string;
+  status: string;
+  cover_image_url: string | null;
+  progress: number;
+}
+
+interface ReaderHomeProps {
+  householdId: string;
+  reader: Reader;
+  books: Book[];
+}
+
+export const ReaderHome = ({ householdId, reader, books }: ReaderHomeProps) => {
+  const router = useRouter();
+
+  const inProgress = books.filter((b) => b.progress > 0 && b.progress < 100);
+
+  const handleStartReading = (bookId: string) => {
+    router.push(`/h/${householdId}/reader/${reader.id}/call?bookId=${bookId}`);
+  };
+
+  return (
+    <div className="min-h-dvh bg-background">
+      <AppHeader backHref={`/h/${householdId}`} />
+
+      <section className="container mx-auto px-4 py-8">
+        <div className="flex flex-col md:flex-row items-center gap-6 mb-8">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+          >
+            <EmberDragon size="md" />
+          </motion.div>
+          <div className="text-center md:text-left">
+            <motion.h2
+              className="font-[family-name:var(--font-marcellus)] text-3xl md:text-4xl font-bold text-foreground mb-2"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              Hi, {reader.name}!
+            </motion.h2>
+            <motion.p
+              className="text-lg text-muted-foreground flex items-center justify-center md:justify-start gap-2"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <Sparkles className="w-5 h-5 text-accent" />
+              Ready to read?
+            </motion.p>
+          </div>
+        </div>
+
+        {inProgress.length > 0 && (
+          <div className="mb-8">
+            <h3 className="font-[family-name:var(--font-marcellus)] text-xl font-bold text-foreground mb-4">Continue Reading</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {inProgress.map((book, index) => (
+                <motion.div
+                  key={book.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 * index }}
+                >
+                  <BookCard
+                    book={{
+                      id: book.id,
+                      title: book.title,
+                      status: book.status,
+                      coverImageUrl: book.cover_image_url,
+                      progress: book.progress,
+                    }}
+                    variant="reader"
+                    onStartReading={handleStartReading}
+                  />
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div>
+          <h3 className="font-[family-name:var(--font-marcellus)] text-xl font-bold text-foreground mb-4">My Books</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {books.map((book, index) => (
+              <motion.div
+                key={book.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.05 * index }}
+              >
+                <BookCard
+                  book={{
+                    id: book.id,
+                    title: book.title,
+                    status: book.status,
+                    coverImageUrl: book.cover_image_url,
+                    progress: book.progress,
+                  }}
+                  variant="reader"
+                  onStartReading={handleStartReading}
+                />
+              </motion.div>
+            ))}
+            {books.length === 0 && (
+              <div className="col-span-full flex flex-col items-center py-12 gap-4">
+                <EmberDragon size="sm" />
+                <p className="text-center text-muted-foreground text-lg">
+                  No books here yet
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+};
+```
+
+Key changes vs `kid-home-client.tsx`: export name `ReaderHome`, prop `kid` → `reader`, `Reader` interface, all routes use `/reader/`, variant `"reader"`, `font-display` → `font-[family-name:var(--font-marcellus)]`.
+
+- [ ] **Step 2: Create page.tsx (server component)**
+
+Create `client/app/h/[householdId]/reader/[readerId]/page.tsx` — same as current `kid/[kidId]/page.tsx` but uses `readerId` param and imports `ReaderHome`:
+
+```tsx
+import { createClient } from '@/lib/supabase/server';
+import { redirect } from 'next/navigation';
+import { ReaderHome } from './reader-home';
+
+export default async function ReaderHomePage({
+  params,
+}: {
+  params: Promise<{ householdId: string; readerId: string }>;
+}) {
+  const { householdId, readerId } = await params;
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect('/auth/login');
+  }
+  if (householdId !== user.id) {
+    redirect(`/h/${user.id}`);
+  }
+
+  const { data: reader } = await supabase
+    .from('kids')
+    .select('id, name, avatar, color')
+    .eq('id', readerId)
+    .single();
+
+  if (!reader) {
+    redirect(`/h/${householdId}`);
+  }
+
+  const { data: books } = await supabase
+    .from('books')
+    .select('id, title, status, cover_image_url')
+    .eq('household_id', householdId)
+    .eq('status', 'ready')
+    .order('created_at', { ascending: false });
+
+  const { data: progress } = await supabase
+    .from('reading_progress')
+    .select('book_id, current_chunk_index')
+    .eq('kid_id', readerId);
+
+  const bookIds = (books ?? []).map((b) => b.id);
+  const { data: chunkCounts } = bookIds.length > 0
+    ? await supabase
+        .from('book_chunks')
+        .select('book_id')
+        .in('book_id', bookIds)
+    : { data: [] };
+
+  const totalChunksMap: Record<string, number> = {};
+  (chunkCounts ?? []).forEach((row) => {
+    totalChunksMap[row.book_id] = (totalChunksMap[row.book_id] ?? 0) + 1;
+  });
+
+  const progressMap: Record<string, number> = {};
+  (progress ?? []).forEach((p) => {
+    const total = totalChunksMap[p.book_id] ?? 1;
+    progressMap[p.book_id] = Math.round((p.current_chunk_index / total) * 100);
+  });
+
+  return (
+    <ReaderHome
+      householdId={householdId}
+      reader={reader}
+      books={(books ?? []).map((b) => ({
+        ...b,
+        progress: progressMap[b.id] ?? 0,
+      }))}
+    />
+  );
+}
+```
+
+- [ ] **Step 3: Create loading.tsx + error.tsx**
+
+Same pattern as library (see Task 9 steps 1–2). Create both files identically under `reader/[readerId]/`.
+
+- [ ] **Step 4: Move the call route**
+
+```bash
+mkdir -p app/h/\[householdId\]/reader/\[readerId\]/call
+cp app/h/\[householdId\]/kid/\[kidId\]/call/page.tsx app/h/\[householdId\]/reader/\[readerId\]/call/page.tsx
+```
+
+Then edit the copied file: replace `kidId` param references with `readerId`. The param destructuring changes from `{ householdId, kidId }` to `{ householdId, readerId }`. Update any route references from `/kid/` to `/reader/`.
+
+- [ ] **Step 5: Delete entire kid/ directory**
+
+```bash
+rm -rf app/h/\[householdId\]/kid/
+```
+
+- [ ] **Step 6: Verify lint + types pass**
+
+```bash
+pnpm lint 2>&1 | grep -E 'error|Error' ; pnpm typecheck 2>&1 | tail -5
+```
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add app/h/\[householdId\]/reader/
+git rm -r app/h/\[householdId\]/kid/
+git commit -m "feat: rename /kid/[kidId] → /reader/[readerId], component ReaderHome"
+```
+
+---
+
+## Task 12: Redirect `/dashboard` → `/library` + delete old files
 
 **Files:**
 - Modify: `client/app/h/[householdId]/dashboard/page.tsx`
 - Delete: `client/app/h/[householdId]/dashboard/dashboard-client.tsx`
-- Modify: `client/app/h/[householdId]/kid/[kidId]/kid-home-client.tsx`
+- Delete: `client/app/h/[householdId]/dashboard/loading.tsx`
+- Delete: `client/app/h/[householdId]/dashboard/error.tsx`
 
 - [ ] **Step 1: Replace dashboard page.tsx with redirect**
 
-Replace `client/app/h/[householdId]/dashboard/page.tsx` with:
+Replace `client/app/h/[householdId]/dashboard/page.tsx`:
 
 ```tsx
 import { redirect } from 'next/navigation';
@@ -1875,101 +2436,44 @@ export default async function DashboardPage({
 }
 ```
 
-- [ ] **Step 2: Delete dashboard-client.tsx**
+- [ ] **Step 2: Delete old dashboard files**
 
 ```bash
-rm client/app/h/\[householdId\]/dashboard/dashboard-client.tsx
+rm app/h/\[householdId\]/dashboard/dashboard-client.tsx
+rm app/h/\[householdId\]/dashboard/loading.tsx
+rm app/h/\[householdId\]/dashboard/error.tsx
 ```
 
-- [ ] **Step 3: Update kid-home-client.tsx — confirm header has no right slot**
-
-The current `kid-home-client.tsx` already uses `<AppHeader backHref={...} />` with no right slot — which matches the wireframe (kid surface, no parent menu). However, update the heading font class from `font-display` to the correct token:
-
-In `client/app/h/[householdId]/kid/[kidId]/kid-home-client.tsx`, replace:
-
-```tsx
-            <motion.h2
-              className="font-display text-3xl md:text-4xl font-bold text-foreground mb-2"
-```
-
-with:
-
-```tsx
-            <motion.h2
-              className="font-[family-name:var(--font-marcellus)] text-3xl md:text-4xl font-bold text-foreground mb-2"
-```
-
-Also replace both instances of `font-display` in section headings:
-
-```tsx
-            <h3 className="font-display text-xl font-bold text-foreground mb-4">Continue Reading</h3>
-```
-
-with:
-
-```tsx
-            <h3 className="font-[family-name:var(--font-marcellus)] text-xl font-bold text-foreground mb-4">Continue Reading</h3>
-```
-
-And:
-
-```tsx
-          <h3 className="font-display text-xl font-bold text-foreground mb-4">My Books</h3>
-```
-
-with:
-
-```tsx
-          <h3 className="font-[family-name:var(--font-marcellus)] text-xl font-bold text-foreground mb-4">My Books</h3>
-```
-
-- [ ] **Step 4: Verify lint + types pass**
+- [ ] **Step 3: Commit**
 
 ```bash
-pnpm lint 2>&1 | grep -E 'error|Error' ; pnpm typecheck 2>&1 | tail -5
-```
-
-Expected: 0 errors.
-
-- [ ] **Step 5: Commit**
-
-```bash
-git add app/h/\[householdId\]/dashboard/page.tsx app/h/\[householdId\]/kid/\[kidId\]/kid-home-client.tsx
-git rm app/h/\[householdId\]/dashboard/dashboard-client.tsx
-git commit -m "feat: redirect /dashboard → /library, clean kid-home font tokens"
+git add app/h/\[householdId\]/dashboard/page.tsx
+git rm app/h/\[householdId\]/dashboard/dashboard-client.tsx app/h/\[householdId\]/dashboard/loading.tsx app/h/\[householdId\]/dashboard/error.tsx
+git commit -m "feat: redirect /dashboard → /library, delete old dashboard files"
 ```
 
 ---
 
-## Task 11: Delete KidSelector
+## Task 13: Delete `KidSelector`
 
 **Files:**
 - Delete: `client/components/KidSelector.tsx`
 
-- [ ] **Step 1: Verify no imports exist**
+- [ ] **Step 1: Verify no imports**
 
 ```bash
-cd /Users/isabelleredactive/tmp/worktrees/readme/bot-ui/client
-grep -r "KidSelector" --include="*.tsx" --include="*.ts" -l | grep -v "__tests__" | grep -v "admin/design"
+grep -r "KidSelector" --include="*.tsx" --include="*.ts" -l | grep -v "admin/design"
 ```
 
-Expected: only `components/KidSelector.tsx` (definition only, no imports).
+Expected: only `components/KidSelector.tsx`.
 
-- [ ] **Step 2: Delete the file**
+- [ ] **Step 2: Delete**
 
 ```bash
 rm components/KidSelector.tsx
 ```
 
-- [ ] **Step 3: Verify lint + types still pass**
-
-```bash
-pnpm lint 2>&1 | grep -E 'error|Error' ; pnpm typecheck 2>&1 | tail -5
-```
-
-Expected: 0 errors.
-
-- [ ] **Step 4: Commit**
+- [ ] **Step 3: Commit**
 
 ```bash
 git rm components/KidSelector.tsx
@@ -1978,7 +2482,7 @@ git commit -m "chore: remove unused KidSelector component"
 
 ---
 
-## Task 12: Full verification pass
+## Task 14: Full verification
 
 - [ ] **Step 1: Run full lint**
 
@@ -1986,7 +2490,7 @@ git commit -m "chore: remove unused KidSelector component"
 pnpm lint 2>&1
 ```
 
-Expected: 0 errors (warnings for `<img>` are pre-existing and acceptable).
+Expected: 0 errors.
 
 - [ ] **Step 2: Run full typecheck**
 
@@ -1996,56 +2500,54 @@ pnpm typecheck 2>&1
 
 Expected: 0 errors.
 
-- [ ] **Step 3: Run all snapshot tests**
+- [ ] **Step 3: Run all tests**
 
 ```bash
 pnpm test 2>&1
 ```
 
-Expected: all tests PASS, all snapshots committed.
+Expected: all PASS, all snapshots committed.
 
-- [ ] **Step 4: Verify snapshot files exist and are committed**
+- [ ] **Step 4: Verify snapshot files exist**
 
 ```bash
 ls components/__tests__/__snapshots__/
-git status
 ```
 
-Expected: 5 `.snap` files (AppHeader, ProfileAvatar, BookCard, HomeCard, ReaderBookRow). All tracked.
+Expected: `AppHeader.test.tsx.snap`, `ProfileAvatar.test.tsx.snap`, `BookCard.test.tsx.snap`, `ReaderActionCard.test.tsx.snap`, `UploadActionCard.test.tsx.snap`, `ReaderBookRow.test.tsx.snap`.
 
-- [ ] **Step 5: Manual smoke test (if dev server running)**
-
-Visit each route and verify against wireframes:
-- `/h/{id}` — home page with strip cards, no footer, taller header with subtitle
-- `/h/{id}/library` — books list with per-kid progress dots, back arrow + avatar
-- `/h/{id}/readers` — kid panels with ReaderBookRow, back arrow + avatar
-- `/h/{id}/kid/{kidId}` — kid greeting + h-44 book grid, back arrow only
-- `/h/{id}/dashboard` — redirects to `/library`
-- ProfileAvatar: click opens popover with Library + Manage readers + divider + Sign out + Delete
-- On `/library`: "Library" row shows italic "(currently viewing)"
-- On `/readers`: "Manage readers" row shows italic "(currently viewing)"
-
-- [ ] **Step 6: Final commit with snapshots**
+- [ ] **Step 5: Commit snapshots**
 
 ```bash
 git add -A components/__tests__/__snapshots__/
-git status
 git commit -m "chore: commit snapshot files for review"
 ```
 
+- [ ] **Step 6: Manual smoke test**
+
+Visit each route:
+- `/h/{id}` — home with ReaderActionCard strip, taller header, no footer
+- `/h/{id}/library` — books list with per-kid progress dots
+- `/h/{id}/readers` — reader panels with ReaderBookRow
+- `/h/{id}/reader/{readerId}` — greeting + h-44 BookCard reader grid
+- `/h/{id}/dashboard` — redirects to `/library`
+- ProfileAvatar page-aware collapse on `/library` and `/readers`
+
 ---
 
-## Summary of all commits (expected 12)
+## Summary of all commits (expected 14)
 
 1. `chore: add Vitest + React Testing Library test harness`
 2. `feat: rework AppHeader — taller, subtitle, drop center slot`
 3. `feat: rework ProfileAvatar — split menu, page-aware collapse, click-only`
 4. `feat: add ReaderBookRow component matching design wireframe`
-5. `feat: harmonize BookCard — h-44 kid hero, per-kid parent progress`
-6. `test: add snapshot tests for HomeCard (KidCard + UploadCard)`
-7. `feat: update home page — drop kid circles, remove footer`
-8. `feat: add /library route — standalone books page`
-9. `feat: add /readers route — standalone kid panels page`
-10. `feat: redirect /dashboard → /library, clean kid-home font tokens`
-11. `chore: remove unused KidSelector component`
-12. `chore: commit snapshot files for review`
+5. `feat: harmonize BookCard — h-44 reader hero, per-kid parent progress`
+6. `feat: split HomeCard into ReaderActionCard + UploadActionCard`
+7. `refactor: rename BookUpload → UploadCard`
+8. `feat: rename HomePage→Home, drop kid circles + footer, use ReaderActionCard`
+9. `feat: add /library route — standalone books page`
+10. `feat: add /readers route — standalone reader panels page`
+11. `feat: rename /kid/[kidId] → /reader/[readerId], component ReaderHome`
+12. `feat: redirect /dashboard → /library, delete old dashboard files`
+13. `chore: remove unused KidSelector component`
+14. `chore: commit snapshot files for review`
