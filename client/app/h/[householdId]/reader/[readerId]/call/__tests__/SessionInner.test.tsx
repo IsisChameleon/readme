@@ -84,9 +84,18 @@ describe('SessionInner auto-connect', () => {
     expect(handleConnect).toHaveBeenCalledTimes(1);
   });
 
-  it('does not fire when canAutoConnect transitions false → true after handleConnect already succeeded once', () => {
+  it('does not fire handleConnect a second time if canAutoConnect toggles after initial success', () => {
     const handleConnect = vi.fn();
     const { rerender } = render(
+      <SessionInner
+        handleConnect={handleConnect}
+        handleDisconnect={vi.fn()}
+        visualMode="dragon"
+        canAutoConnect={true}
+      />
+    );
+    // Ref should now be set; further true→false→true transitions must not re-fire.
+    rerender(
       <SessionInner
         handleConnect={handleConnect}
         handleDisconnect={vi.fn()}

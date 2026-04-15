@@ -73,7 +73,6 @@ export const SessionInner = ({
   }, [canAutoConnect, handleConnect]);
 
   const onUserDisconnect = useCallback(() => {
-    autoConnectAttempted.current = false;
     return handleDisconnect?.();
   }, [handleDisconnect]);
 
@@ -93,6 +92,7 @@ export const SessionInner = ({
         </div>
         <button
           onClick={handleBack}
+          aria-label="Close reading session"
           style={{ color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}
         >
           <X size={20} />
