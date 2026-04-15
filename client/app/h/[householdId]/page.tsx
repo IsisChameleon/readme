@@ -24,16 +24,15 @@ export default async function HouseholdPage({
     .eq('household_id', householdId)
     .order('created_at', { ascending: true });
 
-  // Fetch reading progress per kid with book info
   const kidIds = (kids ?? []).map((k) => k.id);
   const { data: progressRows } = kidIds.length > 0
     ? await supabase
         .from('reading_progress')
-        .select('kid_id, book_id, current_chunk_index, books(id, title, cover_image_url)')
+        .select('kid_id, book_id, current_chunk_index, updated_at, books(id, title)')
         .in('kid_id', kidIds)
+        .order('updated_at', { ascending: false })
     : { data: [] };
 
-  // Get total chunk counts for books in progress
   const bookIds = [...new Set((progressRows ?? []).map((r) => r.book_id))];
   const { data: chunkRows } = bookIds.length > 0
     ? await supabase.from('book_chunks').select('book_id').in('book_id', bookIds)
@@ -44,33 +43,26 @@ export default async function HouseholdPage({
     totalChunksMap[row.book_id] = (totalChunksMap[row.book_id] ?? 0) + 1;
   });
 
-  // Build per-kid last book info
-  const kidProgress: Record<string, { bookId: string; bookTitle: string; coverUrl: string | null; progress: number }> = {};
+  // Pick each kid's most-recently-updated book (rows are ordered by updated_at desc)
+  const kidLastBook: Record<string, { bookId: string; bookTitle: string; progress: number }> = {};
   (progressRows ?? []).forEach((row) => {
+    if (kidLastBook[row.kid_id]) return;
     const total = totalChunksMap[row.book_id] ?? 1;
     const pct = Math.round((row.current_chunk_index / total) * 100);
-    const existing = kidProgress[row.kid_id];
-    if (!existing || pct > existing.progress) {
-      const books = row.books as unknown as { id: string; title: string; cover_image_url: string | null }[] | null;
-      const book = books?.[0] ?? null;
-      kidProgress[row.kid_id] = {
-        bookId: row.book_id,
-        bookTitle: book?.title ?? 'Untitled',
-        coverUrl: book?.cover_image_url ?? null,
-        progress: pct,
-      };
-    }
+    const books = row.books as unknown as { id: string; title: string }[] | null;
+    const book = books?.[0] ?? null;
+    kidLastBook[row.kid_id] = {
+      bookId: row.book_id,
+      bookTitle: book?.title ?? 'Untitled',
+      progress: pct,
+    };
   });
 
-  // Fetch all ready books (needed for book count + single-book shortcut)
-  const { data: allBooks } = await supabase
+  const { count: bookCount } = await supabase
     .from('books')
-    .select('id, title, author, cover_image_url')
+    .select('id', { count: 'exact', head: true })
     .eq('household_id', householdId)
-    .eq('status', 'ready')
-    .order('created_at', { ascending: false });
-
-  const readyBooks = allBooks ?? [];
+    .eq('status', 'ready');
 
   return (
     <Home
@@ -79,9 +71,9 @@ export default async function HouseholdPage({
       userName={user.user_metadata?.full_name ?? user.email?.split('@')[0] ?? ''}
       kids={(kids ?? []).map((k) => ({
         ...k,
-        lastBook: kidProgress[k.id] ?? null,
+        lastBook: kidLastBook[k.id] ?? null,
       }))}
-      readyBooks={readyBooks}
+      bookCount={bookCount ?? 0}
     />
   );
 }

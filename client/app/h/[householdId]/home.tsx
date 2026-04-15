@@ -4,20 +4,12 @@ import { useRouter } from 'next/navigation';
 import { AppHeader } from '@/components/AppHeader';
 import { ProfileAvatar } from '@/components/ProfileAvatar';
 import { ReaderActionCard } from '@/components/ReaderActionCard';
-import { UploadActionCard } from '@/components/UploadActionCard';
+import { LibraryActionCard } from '@/components/LibraryActionCard';
 
 interface KidLastBook {
   bookId: string;
   bookTitle: string;
-  coverUrl: string | null;
   progress: number;
-}
-
-interface ReadyBook {
-  id: string;
-  title: string;
-  author: string;
-  cover_image_url: string | null;
 }
 
 interface Kid {
@@ -33,10 +25,10 @@ interface HomeProps {
   userEmail: string;
   userName: string;
   kids: Kid[];
-  readyBooks: ReadyBook[];
+  bookCount: number;
 }
 
-export const Home = ({ householdId, userEmail, userName, kids, readyBooks }: HomeProps) => {
+export const Home = ({ householdId, userEmail, userName, kids, bookCount }: HomeProps) => {
   const router = useRouter();
 
   return (
@@ -55,11 +47,15 @@ export const Home = ({ householdId, userEmail, userName, kids, readyBooks }: Hom
               householdId={householdId}
               kid={kid}
               lastBook={kid.lastBook}
-              readyBooks={readyBooks}
+              bookCount={bookCount}
               index={i}
             />
           ))}
-          <UploadActionCard householdId={householdId} index={kids.length} />
+          <LibraryActionCard
+            householdId={householdId}
+            bookCount={bookCount}
+            index={kids.length}
+          />
         </div>
 
         {kids.length === 0 && (
