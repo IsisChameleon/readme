@@ -71,7 +71,9 @@ Execute in this order unless the spec defines a different sequence:
 2. **Create new files** — in the order listed in the spec's "Create" inventory.
 3. **Modify existing files** — in the order listed in the spec's "Modify" inventory.
 4. **Delete files** — only after confirming no live imports remain. Fix any dangling imports before deleting.
-5. **Run verification** — every check listed in the spec's verification section must pass before committing.
+5. **Run unit tests and pre-commit checks** — all checks must be green before proceeding.
+6. **Call the tester subagent** — delegate manual / E2E verification; wait for its report.
+7. **Commit and push** — only after the tester returns READY TO COMMIT.
 
 ### 5.2 Task granularity
 
@@ -147,31 +149,36 @@ All code written by this agent must follow the patterns in `AGENTS.md`. Key rule
 
 ---
 
-## 8. Verification
+## 8. Verification — unit tests and pre-commit checks
 
-After all file changes are complete, run every check listed in the spec's verification section. Common checks in this codebase:
+After all file changes are complete, run these checks before calling the tester:
 
 | Command | Must pass |
 |---|---|
 | `pnpm lint` | 0 errors |
 | `pnpm typecheck` | 0 errors |
 | `pnpm test` or `pnpm test:update` | 0 failures, snapshots committed |
-| `pytest` (backend) | 0 failures |
+| `pytest` (if backend changed) | 0 failures |
+| `ruff check` / `ruff format --check` (if Python changed) | 0 errors |
 
-If any check fails:
-
-1. Read the error output in full.
-2. Diagnose the root cause — do not retry blindly.
-3. Fix the issue in the appropriate file.
-4. Re-run the failing check before moving on.
-
-Do not move to the commit step until all checks pass.
+If any check fails: read the error, diagnose the root cause, fix it, re-run. Do not proceed until clean.
 
 ---
 
-## 9. Commit protocol
+## 9. Tester handoff
 
-When all verification checks pass:
+Once all unit tests and pre-commit checks are green, spawn the **tester** subagent (`.claude/agents/tester.md`) via the Agent tool. Pass it:
+- The spec path.
+- The list of user-facing surfaces changed by this spec.
+- The current branch name.
+
+Wait for the tester's report. If the report ends with **NEEDS FIXES**, address every listed failure, re-run unit tests, then call the tester again. Only proceed to commit when the report ends with **READY TO COMMIT**.
+
+---
+
+## 10. Commit protocol
+
+Use the commit structure specified in the spec if one is given. Otherwise decide it yourself:
 
 1. Stage only the files listed in the spec's file inventory (created, modified, and deleted).
 2. Do not stage unrelated files, `.env` files, or large binaries.
@@ -183,7 +190,7 @@ When all verification checks pass:
 
 ---
 
-## 10. What this agent does NOT do
+## 11. What this agent does NOT do
 
 - It does not write specs or plans. That is a separate planning agent's job.
 - It does not evaluate whether the spec's decisions are correct or optimal.
@@ -193,7 +200,7 @@ When all verification checks pass:
 
 ---
 
-## 11. Example invocation prompt
+## 12. Example invocation prompt
 
 The parent agent spawns this subagent using the `Agent` tool with `subagent_type: "general-purpose"` and `model: "sonnet"`. Example prompt:
 
