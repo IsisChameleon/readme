@@ -65,7 +65,8 @@ Wait for the tester's report before proceeding. If the tester reports failures, 
 ## Commit protocol
 
 Use the commit structure specified in the spec if one is given. Otherwise choose the structure yourself:
-- Stage only the files in the spec's file inventory (no `.env`, no unrelated files).
+- Stage the files in the spec's file inventory **plus any `client/e2e/*.spec.ts` files written or updated by the tester**.
+- Do not stage `.env` files or unrelated files.
 - Write a commit message that names the spec (date + title) and summarises the change in one or two sentences.
 - End the commit message with the session URL.
 - Push to the branch named in the spec (or the current branch).
