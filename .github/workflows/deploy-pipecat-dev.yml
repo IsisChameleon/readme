@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "server/bot/**"
+      - "server/shared/**"
       - "server/bot/Dockerfile"
       - "server/pyproject.toml"
       - "server/uv.lock"
@@ -19,102 +20,35 @@ concurrency:
 
 jobs:
   deploy:
-    name: Build + Deploy Dev Agent
+    name: Deploy Dev Agent (cloud build)
     runs-on: ubuntu-latest
-    environment: dev
+    environment: readme / dev
     permissions:
       contents: read
     defaults:
       run:
         working-directory: server
-    env:
-      UV_PYTHON: "3.13"
-      PIPECAT_TOKEN: ${{ secrets.PIPECAT_TOKEN }}
-      PIPECAT_ORG: stormy-badger-olive-971
-      PIPECAT_DEFAULT_PUBLIC_KEY_NAME: readme-dev
-      DOCKERHUB_USERNAME: isischameleon
-      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-      PCC_SECRET_SET: readme-dev
-      IMAGE_TAG: sha-${{ github.sha }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python 3.13
-        uses: actions/setup-python@v5
+      - name: Build and Deploy to Pipecat Cloud
+        uses: daily-co/pipecat-cloud-deploy-action@v2
         with:
-          python-version: "3.13"
+          api-key: ${{ secrets.PCC_API_KEY }}
+          agent-name: readme-bot-dev
+          cloud-build: true
+          secret-set: readme-dev
+          build-context: server
+          dockerfile: bot/Dockerfile
 
-      - name: Setup uv
-        uses: astral-sh/setup-uv@v6
-        with:
-          enable-cache: true
-
-      - name: Validate required secrets
+      - name: Smoke test start endpoint
+        env:
+          PIPECAT_DEFAULT_PUBLIC_KEY: ${{ secrets.PIPECAT_DEFAULT_PUBLIC_KEY }}
         run: |
           set -euo pipefail
-          for key in PIPECAT_TOKEN DOCKERHUB_TOKEN; do
-            if [ -z "${!key:-}" ]; then
-              echo "Missing required secret: $key" >&2
-              exit 1
-            fi
-          done
-
-      - name: Resolve public API key (readme-dev)
-        run: |
-          set -euo pipefail
-          echo "DEBUG: listing keys for org ${PIPECAT_ORG}..."
-          uv run pcc organizations keys list --organization "${PIPECAT_ORG}" || { echo "pcc keys list command failed"; exit 1; }
-          echo "DEBUG: raw output above. Looking for key named '${PIPECAT_DEFAULT_PUBLIC_KEY_NAME}'..."
-          KEY_VALUE="$(uv run pcc organizations keys list --organization "${PIPECAT_ORG}" | awk -v keyname="${PIPECAT_DEFAULT_PUBLIC_KEY_NAME}" 'index($0,keyname){if (match($0,/pk_[0-9a-f-]+/)) {print substr($0,RSTART,RLENGTH); exit}}')"
-          if [ -z "${KEY_VALUE}" ]; then
-            echo "Could not resolve public API key named '${PIPECAT_DEFAULT_PUBLIC_KEY_NAME}' in organization '${PIPECAT_ORG}'." >&2
-            exit 1
-          fi
-          echo "PIPECAT_DEFAULT_PUBLIC_KEY=${KEY_VALUE}" >> "${GITHUB_ENV}"
-
-      - name: Docker login
-        run: |
-          set -euo pipefail
-          echo "${DOCKERHUB_TOKEN}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
-
-      - name: Build and push image
-        run: |
-          set -euo pipefail
-          IMAGE_REF="${DOCKERHUB_USERNAME}/readme-bot:${IMAGE_TAG}"
-          LATEST_REF="${DOCKERHUB_USERNAME}/readme-bot:latest"
-          docker build -f bot/Dockerfile -t "${IMAGE_REF}" -t "${LATEST_REF}" .
-          docker push "${IMAGE_REF}"
-          docker push "${LATEST_REF}"
-
-      - name: Smoke test image boots (import check)
-        run: |
-          set -euo pipefail
-          IMAGE_REF="${DOCKERHUB_USERNAME}/readme-bot:${IMAGE_TAG}"
-          docker pull "${IMAGE_REF}"
-          docker run --rm "${IMAGE_REF}" python -c "import bot; print('bot import ok')"
-
-      - name: Deploy dev agent
-        run: |
-          set -euo pipefail
-          uv run pcc deploy \
-            --organization "${PIPECAT_ORG}" \
-            --secrets "${PCC_SECRET_SET}" \
-            --no-credentials \
-            --force
-
-      - name: Verify status
-        run: |
-          set -euo pipefail
-          AGENT_NAME="$(grep '^agent_name' pcc-deploy.toml | head -1 | cut -d '"' -f2)"
-          uv run pcc agent status "${AGENT_NAME}" --organization "${PIPECAT_ORG}"
-
-      - name: Smoke test start endpoint with readme-dev key
-        run: |
-          set -euo pipefail
-          AGENT_NAME="$(grep '^agent_name' pcc-deploy.toml | head -1 | cut -d '"' -f2)"
-          curl -fsS -X POST "https://api.pipecat.daily.co/v1/public/${AGENT_NAME}/start" \
+          curl -fsS -X POST "https://api.pipecat.daily.co/v1/public/readme-bot-dev/start" \
             -H "Authorization: Bearer ${PIPECAT_DEFAULT_PUBLIC_KEY}" \
             -H "Content-Type: application/json" \
             -d '{"createDailyRoom": true}' \

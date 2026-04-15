@@ -20,6 +20,7 @@ start_url = "http://bot:7860/start"
 [modal]
 app_name = "${MODAL_APP_NAME}"
 
+
 [upload]
 max_bytes = 26214400
 

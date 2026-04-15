@@ -4,7 +4,7 @@ import modal
 
 from infra.common import app, bootstrap_repo, bot_image, config, secrets, worker_image
 
-# ── Bot (one voice call per container, with memory snapshot) ─────────
+# ── Bot (DEPRECATED: voice sessions moving to Pipecat Cloud) ─────────
 
 
 @app.cls(
@@ -37,7 +37,11 @@ class BotSession:
         from pipecat.runner.types import DailyRunnerArguments
 
         await bot(
-            DailyRunnerArguments(room_url=room_url, token=token), book_id=book_id, kid_id=kid_id
+            DailyRunnerArguments(
+                room_url=room_url,
+                token=token,
+                body={"book_id": book_id, "kid_id": kid_id},
+            )
         )
 
 

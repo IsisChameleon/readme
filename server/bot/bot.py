@@ -31,6 +31,7 @@ try:
         StartReadingFrame,
     )
     from .processors.state_manager import BookReadingStateManager
+    from .prompt import BOOK_BROWSE_SYSTEM, BOOK_PRESELECTED_SYSTEM
 except ImportError:
     from library import Library  # type: ignore[assignment]
     from processors.frames import (  # type: ignore[assignment]
@@ -39,41 +40,59 @@ except ImportError:
         StartReadingFrame,
     )
     from processors.state_manager import BookReadingStateManager  # type: ignore[assignment]
+    from prompt import BOOK_BROWSE_SYSTEM, BOOK_PRESELECTED_SYSTEM  # type: ignore[assignment]
 
 load_dotenv(override=True)
 
 
-def _build_tools() -> ToolsSchema:
-    return ToolsSchema(
-        standard_tools=[
-            FunctionSchema(
-                name="select_book",
-                description="Select a book for the child to read.",
-                properties={
-                    "book_id": {"type": "string", "description": "The ID of the book to select."},
+def _build_tools(has_book: bool) -> ToolsSchema:
+    tools = [
+        FunctionSchema(
+            name="select_book",
+            description="Select and load a book by its numeric index.",
+            properties={
+                "book_id": {
+                    "type": "string",
+                    "description": "The numeric index of the book (e.g. '0') as shown in the book list.",
                 },
-                required=["book_id"],
-            ),
-            FunctionSchema(
-                name="start_reading",
-                description="Start or resume reading the selected book aloud. If chunk_id is omitted, resumes from the current position.",
-                properties={
-                    "book_id": {"type": "string", "description": "The ID of the book to read."},
-                    "chunk_id": {
-                        "type": "integer",
-                        "description": "The chunk index to start reading from (0-based). Omit to resume from current position.",
-                    },
+            },
+            required=["book_id"],
+        ),
+        FunctionSchema(
+            name="start_reading",
+            description="Start or resume reading the selected book aloud. If chunk_id is omitted, resumes from the current position.",
+            properties={
+                "book_id": {
+                    "type": "string",
+                    "description": "The numeric index of the book (e.g. '0').",
                 },
-                required=["book_id"],
-            ),
+                "chunk_id": {
+                    "type": "integer",
+                    "description": "The chunk index to start reading from (0-based). Omit to resume from current position.",
+                },
+            },
+            required=["book_id"],
+        ),
+        FunctionSchema(
+            name="end_session",
+            description="End the reading session and disconnect. Only call AFTER the child has confirmed they want to leave.",
+            properties={},
+            required=[],
+        ),
+    ]
+
+    if not has_book:
+        tools.insert(
+            0,
             FunctionSchema(
-                name="end_session",
-                description="End the reading session and disconnect. Only call AFTER the child has confirmed they want to leave.",
+                name="list_books",
+                description="Fetch the list of available books for this child. Call this first when no book is pre-selected.",
                 properties={},
                 required=[],
             ),
-        ]
-    )
+        )
+
+    return ToolsSchema(standard_tools=tools)
 
 
 async def run_bot(
@@ -97,13 +116,26 @@ async def run_bot(
         model="sonic-2",
     )
 
+    # -- Build the initial system prompt (lives in LLM Settings, not context messages) --
+    if book_id:
+        system_prompt = BOOK_PRESELECTED_SYSTEM
+    else:
+        system_prompt = BOOK_BROWSE_SYSTEM
+
     llm = OpenAILLMService(
         api_key=os.environ["OPENAI_API_KEY"],
-        model="gpt-4",
+        settings=OpenAILLMService.Settings(
+            model="gpt-4",
+            system_instruction=system_prompt,
+        ),
     )
 
-    tools = _build_tools()
-    context = LLMContext(tools=tools)
+    tools = _build_tools(has_book=bool(book_id))
+    context = LLMContext(
+        messages=[],
+        tools=tools,
+    )
+
     agg_pair = LLMContextAggregatorPair(
         context,
         user_params=LLMUserAggregatorParams(
@@ -114,19 +146,60 @@ async def run_bot(
     assistant_agg = agg_pair.assistant()
 
     library = Library(kid_id=kid_id)
-    state_manager = BookReadingStateManager(library=library, context=context)
+    state_manager = BookReadingStateManager(library=library, context=context, llm=llm)
+
+    # Pre-populate index map if book_id was provided
+    if book_id:
+        state_manager.populate_index("0", book_id)
 
     # -- Register function call handlers on the LLM --
 
+    async def handle_list_books(params):
+        books_with_progress = library.get_books_with_progress()
+        if not books_with_progress:
+            await params.result_callback("No books available for this child.")
+            return
+
+        lines = []
+        for i, b in enumerate(books_with_progress):
+            idx = str(i)
+            state_manager.populate_index(idx, b["id"])
+            line = f'{idx}. "{b["title"]}"'
+            if "current_chunk_index" in b:
+                line += (
+                    f' (in progress — chapter: "{b.get("chapter_title", "unknown")}"'
+                    f', last passage: "{b.get("chunk_text", "")[:80]}...")'
+                )
+            else:
+                line += " (new)"
+            lines.append(line)
+
+        await params.result_callback("Available books:\n" + "\n".join(lines))
+
     async def handle_select_book(params):
-        book = library.initialize_book(params.arguments["book_id"])
+        raw_id = params.arguments["book_id"]
+        resolved_id = state_manager.resolve_book_id(raw_id)
+        book = library.initialize_book(resolved_id)
         if book:
-            await params.result_callback(f"Book '{book.title}' selected.")
+            # Register index if not already mapped
+            if raw_id not in state_manager._book_index_map:
+                state_manager.populate_index(raw_id, resolved_id)
+
+            progress = library.current_chunk_index
+            if progress > 0:
+                chunk = library.current_chunk()
+                chunk_preview = chunk.text[:100] if chunk else ""
+                await params.result_callback(
+                    f'Book "{book.title}" loaded. '
+                    f"Child has progress — resuming at chunk {progress}. "
+                    f'Last passage: "{chunk_preview}..."'
+                )
+            else:
+                await params.result_callback(
+                    f'Book "{book.title}" loaded. This is a new book — no prior progress.'
+                )
             await state_manager.queue_frame(
-                BookSelectedFrame(
-                    book_id=book.id,
-                    book_title=book.title,
-                ),
+                BookSelectedFrame(book_id=book.id, book_title=book.title),
                 FrameDirection.DOWNSTREAM,
             )
             logger.info(f"[Bot] BookSelected frame queued: {book.id}")
@@ -134,15 +207,17 @@ async def run_bot(
             await params.result_callback("Book not found.")
 
     async def handle_start_reading(params):
+        raw_id = params.arguments["book_id"]
+        resolved_id = state_manager.resolve_book_id(raw_id)
         await params.result_callback("Starting to read.")
         await state_manager.queue_frame(
             StartReadingFrame(
-                book_id=params.arguments["book_id"],
+                book_id=resolved_id,
                 chunk_index=params.arguments.get("chunk_id"),
             ),
             FrameDirection.DOWNSTREAM,
         )
-        logger.info(f"[Bot] StartReading frame queued: {params.arguments['book_id']}")
+        logger.info(f"[Bot] StartReading frame queued: {resolved_id}")
 
     async def handle_end_session(params):
         await params.result_callback("Ending session.")
@@ -152,6 +227,8 @@ async def run_bot(
         )
         logger.info("[Bot] EndSession frame queued")
 
+    if not book_id:
+        llm.register_function("list_books", handle_list_books)
     llm.register_function("select_book", handle_select_book)
     llm.register_function("start_reading", handle_start_reading)
     llm.register_function("end_session", handle_end_session)
@@ -187,11 +264,11 @@ async def run_bot(
     @task.rtvi.event_handler("on_client_ready")
     async def on_client_ready(rtvi):
         logger.info("RTVI client-ready received")
-        await state_manager.enter_book_selection()
 
     @transport.event_handler("on_client_connected")
     async def on_client_connected(transport, participant):
-        logger.info("Client connected")
+        logger.info("Client connected — triggering greeting")
+        await state_manager.greet_child()
 
     @transport.event_handler("on_client_disconnected")
     async def on_client_disconnected(transport, client):
@@ -203,9 +280,15 @@ async def run_bot(
     await runner.run(task)
 
 
-async def bot(runner_args: RunnerArguments, book_id: str | None = None, kid_id: str | None = None):
-    """Main bot entry point compatible with Pipecat Cloud."""
-    logger.info(f"bot() invoked with runner_args={type(runner_args).__name__}")
+async def bot(runner_args: RunnerArguments):
+    """Main bot entry point — compatible with Pipecat Cloud, Modal, and local runner."""
+    body = runner_args.body or {}
+    book_id = body.get("book_id")
+    kid_id = body.get("kid_id")
+
+    logger.info(
+        f"bot() invoked with runner_args={type(runner_args).__name__}, book_id={book_id}, kid_id={kid_id}"
+    )
     transport_params = {
         "daily": lambda: DailyParams(
             audio_in_enabled=True,
