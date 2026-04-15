@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, LogOut, Trash2, Users } from 'lucide-react';
+import { BookOpen, LogOut, Moon, Sun, Trash2, Users } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { useTheme } from '@/components/ThemeProvider';
 
 interface ProfileAvatarProps {
   userName: string;
@@ -17,6 +18,7 @@ export const ProfileAvatar = ({ userName, userEmail, householdId, currentPath }:
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     if (!open) return;
@@ -101,6 +103,13 @@ export const ProfileAvatar = ({ userName, userEmail, householdId, currentPath }:
                   Manage readers
                 </button>
               )}
+
+              <div className="border-t border-border my-1" />
+
+              <button onClick={toggleTheme} className={clickableRow}>
+                {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                {theme === 'dark' ? 'Light mode' : 'Dark mode'}
+              </button>
 
               <div className="border-t border-border my-1" />
 
