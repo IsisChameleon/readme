@@ -27,7 +27,8 @@ export interface ChapterInfo {
   firstChunkIndex: number;
 }
 
-/** Cover color palette — deterministic pick based on book ID */
+/** Cover color palette — deterministic pick based on book ID.
+ *  Uses the woodland kid palette (see globals.css `--cover-N`). */
 export const COVER_COLORS = [
   'var(--cover-1)',
   'var(--cover-2)',
@@ -35,6 +36,7 @@ export const COVER_COLORS = [
   'var(--cover-4)',
   'var(--cover-5)',
   'var(--cover-6)',
+  'var(--cover-7)',
 ] as const;
 
 export const getCoverColor = (bookId: string): string => {

@@ -19,6 +19,24 @@
   --magic: #7C6DAF;
   --magic-light: #9B8EC4;
 
+  /* Woodland kid / cover palette — used for book placeholders and kid accents */
+  --kid-firefly: #E9A55F;
+  --kid-fern: #5CB87A;
+  --kid-bluebell: #6B8FD4;
+  --kid-berry: #C56B8A;
+  --kid-moss: #8FB56A;
+  --kid-plum: #8B6DAF;
+  --kid-stream: #5BAEC4;
+
+  /* Book cover placeholder colors (aliases into the woodland palette) */
+  --cover-1: var(--kid-firefly);
+  --cover-2: var(--kid-fern);
+  --cover-3: var(--kid-bluebell);
+  --cover-4: var(--kid-berry);
+  --cover-5: var(--kid-moss);
+  --cover-6: var(--kid-plum);
+  --cover-7: var(--kid-stream);
+
   /* Semantic tokens */
   --background: #F5F7F2;
   --foreground: #1B4332;
