@@ -19,56 +19,78 @@ You will be given:
 
 ## Pre-flight
 
-Before writing any code:
-1. Read the spec end-to-end. Understand goals, all decisions, file inventory (create / modify / delete), and verification criteria.
-2. If a companion plan exists, read it too.
-3. Read `AGENTS.md` at the repo root.
-4. Read every file you will modify — never edit a file you haven't read this session.
-5. Confirm the working branch matches whatever the spec names (if it names one).
+Issue all of the following reads **in a single parallel batch** before writing any code:
+- The spec document
+- The companion plan (if provided)
+- `AGENTS.md` at the repo root
+- Every file listed in the spec's "Modify" inventory
+
+One round-trip. Do not read them sequentially.
+
+After reading, load the spec's task list into **TodoWrite** — one todo per checkbox task (if a plan exists) or one todo per file-inventory entry (if no plan). Use this as your progress tracker for the rest of the session; do not re-read the plan file to know where you are.
+
+Confirm the working branch matches whatever the spec names (if it names one).
 
 ## Execution order
 
 Unless the spec defines a different sequence:
 1. Install / configure dependencies (package.json, config files, test harness).
-2. Create new files — in the order listed in the spec's "Create" inventory.
+2. Create new files — batch independent Writes in parallel where files don't depend on each other.
 3. Modify existing files — in the order listed in the spec's "Modify" inventory.
-4. Delete files — only after removing all imports pointing to them.
+4. Delete files — only after removing all imports (see below).
 5. Run unit tests and pre-commit checks (see below).
-6. Call the **tester** subagent for manual / E2E verification.
+6. Call the **tester** subagent.
 7. Commit and push.
 
-If a companion plan uses checkbox (`- [ ]`) syntax, work through tasks sequentially and mark each `- [x]` as soon as it is done.
+Mark each todo complete in TodoWrite as soon as the task is done.
+
+If a companion plan uses checkbox (`- [ ]`) syntax, mark the plan file checkboxes too (`- [x]`).
+
+## Parallel file creation
+
+When creating multiple independent new files (e.g. `loading.tsx`, `error.tsx`, `page.tsx` for several new routes), issue all the Writes in a single parallel batch. Only serialize when a file depends on the content of another you haven't written yet.
+
+## Deletions — Grep first
+
+Before deleting any file:
+1. Use **Grep** (not Read) to find every import of that file across the repo.
+2. Read only the files Grep identified.
+3. Update those callsites to point to the replacement.
+4. Grep again to confirm zero remaining references.
+5. Then delete.
 
 ## Unit tests and pre-commit checks
 
-Run all of these before calling the tester:
+Run as a single chained command to fail fast:
 
-| Command | Must pass |
-|---|---|
-| `pnpm lint` | 0 errors |
-| `pnpm typecheck` | 0 errors |
-| `pnpm test` / `pnpm test:update` | 0 failures |
-| `pytest` (if backend changed) | 0 failures |
-| `ruff check` / `ruff format --check` (if Python changed) | 0 errors |
+```bash
+pnpm lint && pnpm typecheck && pnpm test
+```
 
-If any check fails: read the error, diagnose the root cause, fix it, re-run. Do not move forward until clean.
+If Python files changed, append:
+
+```bash
+&& ruff check . && pytest
+```
+
+If any step fails: read the error, diagnose the root cause, fix it, re-run the full chain. Do not move forward until the chain exits 0.
 
 ## Calling the tester subagent
 
-Once unit tests and pre-commit checks are green, spawn the **tester** subagent via the Agent tool. Pass it:
-- The spec path (so it knows what the feature is supposed to do).
-- The list of user-facing surfaces or flows changed by this spec.
-- The branch name.
+Once the check chain is green, spawn the **tester** subagent via the Agent tool. Pass it:
+- `spec_path` — path to the spec.
+- `surfaces` — list of user-facing routes / flows changed.
+- `changed_files` — the exact list of files you created or modified (the tester uses this for precise regression scoping via Grep).
+- `branch` — current branch name.
 
-Wait for the tester's report before proceeding. If the tester reports failures, fix them and re-run unit tests, then call the tester again.
+Wait for the tester's report. If the report ends with **NEEDS FIXES**, address every listed failure, re-run the check chain, then call the tester again.
 
 ## Commit protocol
 
-Use the commit structure specified in the spec if one is given. Otherwise choose the structure yourself:
+Use the commit structure specified in the spec if one is given. Otherwise choose it yourself:
 - Stage the files in the spec's file inventory **plus any `client/e2e/*.spec.ts` files written or updated by the tester**.
 - Do not stage `.env` files or unrelated files.
-- Write a commit message that names the spec (date + title) and summarises the change in one or two sentences.
-- End the commit message with the session URL.
+- Commit message: spec date + title, one or two sentence summary, session URL at the end.
 - Push to the branch named in the spec (or the current branch).
 
 ## Constraints
