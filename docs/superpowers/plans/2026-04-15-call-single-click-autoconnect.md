@@ -51,7 +51,7 @@ No new UI components are added. All visual state uses kit exports.
 **Files:**
 - Modify: `client/app/h/[householdId]/reader/[readerId]/call/page.tsx`
 
-### - [ ] Step 1.1: Extend `SessionInner` prop type
+### - [x] Step 1.1: Extend `SessionInner` prop type
 
 Replace the existing props block (lines 40–48):
 
@@ -69,7 +69,7 @@ const SessionInner = ({
 }) => {
 ```
 
-### - [ ] Step 1.2: Replace the legacy `?autoconnect=true` effect
+### - [x] Step 1.2: Replace the legacy `?autoconnect=true` effect
 
 Delete the effect currently at lines 56–61 and the `const searchParams = useSearchParams();` at line 53 (it is not used elsewhere in `SessionInner`; `CallPageInner` still has its own import at line 132). Replace with:
 
@@ -85,7 +85,7 @@ useEffect(() => {
 }, [canAutoConnect, handleConnect]);
 ```
 
-### - [ ] Step 1.3: Compute `canAutoConnect` in `CallPageInner`
+### - [x] Step 1.3: Compute `canAutoConnect` in `CallPageInner`
 
 After the existing `connectHeaders` useMemo (around line 152), add:
 
@@ -107,7 +107,7 @@ Pass it in the render-prop child (lines 204–208):
 />
 ```
 
-### - [ ] Step 1.4: Static checks
+### - [x] Step 1.4: Static checks
 
 ```bash
 cd client && pnpm typecheck && pnpm lint
@@ -115,7 +115,7 @@ cd client && pnpm typecheck && pnpm lint
 
 Expected: both pass. If TS flags the `useSearchParams` import as unused in `SessionInner`, remove that line — but the `CallPageInner` usage should keep it present.
 
-### - [ ] Step 1.5: Commit
+### - [x] Step 1.5: Commit
 
 ```bash
 git add client/app/h/[householdId]/reader/[readerId]/call/page.tsx
@@ -129,7 +129,7 @@ git commit -m "feat(call): auth-gated auto-connect on mount"
 **Files:**
 - Modify: `client/app/h/[householdId]/reader/[readerId]/call/page.tsx`
 
-### - [ ] Step 2.1: Import the additional kit exports
+### - [x] Step 2.1: Import the additional kit exports
 
 Update the `@pipecat-ai/voice-ui-kit` import block at the top of the file:
 
@@ -144,7 +144,7 @@ import {
 } from '@pipecat-ai/voice-ui-kit';
 ```
 
-### - [ ] Step 2.2: Add Ember-flavoured `stateContent` for `ConnectButton`
+### - [x] Step 2.2: Add Ember-flavoured `stateContent` for `ConnectButton`
 
 Above the `SessionInner` declaration (alongside `PLASMA_CONFIG` / `STATUS_COLORS`), add:
 
@@ -161,7 +161,7 @@ const CONNECT_BUTTON_STATE_CONTENT = {
 
 If TypeScript rejects `'primary'` / `'destructive'` because `ButtonVariant` uses different names in the installed version, open `client/node_modules/@pipecat-ai/voice-ui-kit/dist/index.d.ts`, search for `ButtonVariant`, and substitute the closest semantic match (the kit is under active development; variants occasionally rename). Do not cast to `any`; pick real variant strings.
 
-### - [ ] Step 2.3: Conditional bottom-controls block
+### - [x] Step 2.3: Conditional bottom-controls block
 
 Replace the bottom-controls row (currently lines 116–122) with:
 
@@ -196,7 +196,7 @@ Notes:
 - `UserAudioControl` only appears once connected — before then it has no mic to control.
 - On `disconnected` (after a user-initiated end), `ConnectButton` reappears with the `Start reading` label so the user can rejoin. Also reset `autoConnectAttempted.current` when the user-initiated disconnect happens — see step 2.4.
 
-### - [ ] Step 2.4: Reset the auto-connect guard on explicit disconnect
+### - [x] Step 2.4: Reset the auto-connect guard on explicit disconnect
 
 Inside `SessionInner`, wrap the `handleDisconnect` handed to `ConnectButton` so that clicking End Reading allows Reconnect via the same auto-path should the user stay on the page:
 
@@ -209,7 +209,7 @@ const onUserDisconnect = useCallback(() => {
 
 Add `useCallback` to the `react` import at the top. Use `onUserDisconnect` in the `ConnectButton` `onDisconnect` slot in step 2.3 (replace `onDisconnect={handleDisconnect}` with `onDisconnect={onUserDisconnect}`).
 
-### - [ ] Step 2.5: Show `SpinLoader` while the Pipecat client is initialising
+### - [x] Step 2.5: Show `SpinLoader` while the Pipecat client is initialising
 
 In `CallPageInner`'s render-prop child (currently around line 201), branch on `client`:
 
@@ -234,7 +234,7 @@ In `CallPageInner`'s render-prop child (currently around line 201), branch on `c
 }}
 ```
 
-### - [ ] Step 2.6: (Optional polish) Replace the hand-rolled status dot with `LED`
+### - [ ] Step 2.6: (Optional polish) Replace the hand-rolled status dot with `LED` — SKIPPED (optional)
 
 Currently the top-bar dot is a hand-styled `<span>` (line 72). Replace with:
 
@@ -244,7 +244,7 @@ Currently the top-bar dot is a hand-styled `<span>` (line 72). Replace with:
 
 And add `LED` to the voice-ui-kit import. If this adds complexity (e.g. the `LED` default colour clashes with the existing palette and you can't override via classNames without adding Tailwind utilities), skip this step — it is optional and bounded to Task 2. The kit-first rule applies, but layout bugs are a worse outcome than reusing the custom span.
 
-### - [ ] Step 2.7: Static checks
+### - [x] Step 2.7: Static checks
 
 ```bash
 cd client && pnpm typecheck && pnpm lint
@@ -252,7 +252,7 @@ cd client && pnpm typecheck && pnpm lint
 
 Expected: pass.
 
-### - [ ] Step 2.8: Commit
+### - [x] Step 2.8: Commit
 
 ```bash
 git add client/app/h/[householdId]/reader/[readerId]/call/page.tsx
@@ -268,11 +268,11 @@ The test covers the two regressions that matter: (a) connecting before auth is r
 **Files:**
 - Create: `client/app/h/[householdId]/reader/[readerId]/call/__tests__/SessionInner.test.tsx`
 
-### - [ ] Step 3.1: Export `SessionInner` from the page module
+### - [x] Step 3.1: Export `SessionInner` from the page module
 
 At its declaration in `page.tsx`, change `const SessionInner = ...` to `export const SessionInner = ...`. Keep `CallPageInner` non-exported and `CallPage` default-exported. Rerun `pnpm typecheck` to catch any accidental shadowing.
 
-### - [ ] Step 3.2: Write the test
+### - [x] Step 3.2: Write the test
 
 ```tsx
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -384,7 +384,7 @@ describe('SessionInner auto-connect', () => {
 });
 ```
 
-### - [ ] Step 3.3: Run just this test file
+### - [x] Step 3.3: Run just this test file
 
 ```bash
 cd client && pnpm test -- SessionInner
@@ -392,7 +392,7 @@ cd client && pnpm test -- SessionInner
 
 Expected: 4 passing. If a mock is missing an export your component actually imports, add it to the mock object (keep minimal).
 
-### - [ ] Step 3.4: Run the full gate
+### - [x] Step 3.4: Run the full gate
 
 ```bash
 cd client && pnpm github-checks
@@ -400,7 +400,7 @@ cd client && pnpm github-checks
 
 Expected: green.
 
-### - [ ] Step 3.5: Commit
+### - [x] Step 3.5: Commit
 
 ```bash
 git add client/app/h/[householdId]/reader/[readerId]/call/__tests__/SessionInner.test.tsx client/app/h/[householdId]/reader/[readerId]/call/page.tsx
