@@ -1,9 +1,14 @@
 'use client';
 
-import { Suspense, useState, useRef, useEffect, useMemo, useCallback } from 'react';
+/**
+ * DailyTransport : See https://github.com/pipecat-ai/pipecat-client-web-transports/blob/main/transports/daily/src/transport.ts
+ * PipecatClient : See https://github.com/pipecat-ai/pipecat-client-web/blob/main/client-js/client/client.ts
+ * PipecatAppBase: See https://github.com/pipecat-ai/voice-ui-kit/blob/main/package/src/components/PipecatAppBase.tsx
+ *  **/
+
+import { Suspense, useMemo, useCallback, useRef, useState } from 'react';
 import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { X, Eye, EyeOff } from 'lucide-react';
-import { getAccessToken } from '@/lib/api/client';
 import { usePipecatClientMediaTrack } from '@pipecat-ai/client-react';
 import {
   ConnectButton,
@@ -39,7 +44,10 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 const CONNECT_BUTTON_STATE_CONTENT = {
+  initializing: { children: 'Start reading', variant: 'primary' as const },
+  initialized: { children: 'Start reading', variant: 'primary' as const },
   disconnected: { children: 'Start reading', variant: 'primary' as const },
+  disconnecting: { children: 'Ending…', variant: 'secondary' as const },
   connecting: { children: 'Waking Ember…', variant: 'secondary' as const },
   authenticating: { children: 'Waking Ember…', variant: 'secondary' as const },
   authenticated: { children: 'Waking Ember…', variant: 'secondary' as const },
@@ -51,26 +59,15 @@ export const SessionInner = ({
   handleConnect,
   handleDisconnect,
   visualMode,
-  canAutoConnect,
 }: {
   handleConnect?: () => void | Promise<void>;
   handleDisconnect?: () => void | Promise<void>;
   visualMode: VisualMode;
-  canAutoConnect: boolean;
 }) => {
   const remoteAudioTrack = usePipecatClientMediaTrack('audio', 'bot');
   const { state: connectionState } = usePipecatConnectionState();
   const router = useRouter();
   const params = useParams<{ householdId: string; readerId: string }>();
-  const autoConnectAttempted = useRef(false);
-
-  useEffect(() => {
-    if (!canAutoConnect) return;
-    if (!handleConnect) return;
-    if (autoConnectAttempted.current) return;
-    autoConnectAttempted.current = true;
-    void handleConnect();
-  }, [canAutoConnect, handleConnect]);
 
   const onUserDisconnect = useCallback(() => {
     return handleDisconnect?.();
@@ -131,9 +128,7 @@ export const SessionInner = ({
           className="text-center"
         />
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '8px', minHeight: 44 }}>
-          {connectionState === 'connected' && (
-            <UserAudioControl visualizerProps={{ barCount: 5 }} />
-          )}
+          <UserAudioControl visualizerProps={{ barCount: 5 }} />
           {connectionState !== 'connecting' && (
             <ConnectButton
               size="lg"
@@ -161,33 +156,19 @@ export const SessionInner = ({
 const CallPageInner = () => {
   const handleDisconnectRef = useRef<(() => void | Promise<void>) | undefined>(undefined);
   const [visualMode, setVisualMode] = useState<VisualMode>('dragon');
-  const [authToken, setAuthToken] = useState<string | undefined>(undefined);
   const searchParams = useSearchParams();
   const bookId = searchParams.get('bookId');
   const params = useParams<{ readerId: string }>();
 
-  useEffect(() => {
-    getAccessToken().then(setAuthToken);
-  }, []);
-
   const connectEndpoint =
     process.env.NEXT_PUBLIC_CONNECT_ENDPOINT || 'http://localhost:7860/start';
 
+  const pipecatKey = process.env.NEXT_PUBLIC_PIPECAT_PUBLIC_KEY;
   const connectHeaders = useMemo(() => {
     const h = new Headers();
-    const pipecatKey = process.env.NEXT_PUBLIC_PIPECAT_PUBLIC_KEY;
-    if (pipecatKey) {
-      h.set('Authorization', `Bearer ${pipecatKey}`);
-    } else if (authToken) {
-      h.set('Authorization', `Bearer ${authToken}`);
-    }
+    if (pipecatKey) h.set('Authorization', `Bearer ${pipecatKey}`);
     return h;
-  }, [authToken]);
-
-  const canAutoConnect = useMemo(() => {
-    const pipecatKey = process.env.NEXT_PUBLIC_PIPECAT_PUBLIC_KEY;
-    return Boolean(pipecatKey) || Boolean(authToken);
-  }, [authToken]);
+  }, [pipecatKey]);
 
   return (
     <div className="vkui-root dark voice-ui-kit" style={{ width: '100%', height: '100dvh' }}>
@@ -224,6 +205,7 @@ const CallPageInner = () => {
           },
         }}
         initDevicesOnMount
+        connectOnMount
         themeProps={{ defaultTheme: 'dark' }}
         clientOptions={{
           callbacks: {
@@ -250,7 +232,6 @@ const CallPageInner = () => {
               handleConnect={handleConnect}
               handleDisconnect={handleDisconnect}
               visualMode={visualMode}
-              canAutoConnect={canAutoConnect}
             />
           );
         }}

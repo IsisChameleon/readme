@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
 import { SessionInner } from '../page';
 
 vi.mock('next/navigation', () => ({
@@ -20,7 +20,6 @@ vi.mock('@pipecat-ai/voice-ui-kit', () => ({
   TranscriptOverlay: () => null,
   UserAudioControl: () => <div data-testid="mic-control" />,
   usePipecatConnectionState: () => ({ state: 'disconnected' }),
-  // Not imported by SessionInner itself but safe to stub:
   LED: () => <i data-testid="led" />,
 }));
 
@@ -32,85 +31,28 @@ vi.mock('@/components/AnimatedOrb', () => ({
   AnimatedOrb: () => <div data-testid="orb" />,
 }));
 
-describe('SessionInner auto-connect', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it('does not fire handleConnect when canAutoConnect is false', () => {
+describe('SessionInner', () => {
+  it('does not auto-fire handleConnect (PipecatAppBase connectOnMount owns that)', () => {
     const handleConnect = vi.fn();
     render(
       <SessionInner
         handleConnect={handleConnect}
         handleDisconnect={vi.fn()}
         visualMode="dragon"
-        canAutoConnect={false}
       />
     );
     expect(handleConnect).not.toHaveBeenCalled();
   });
 
-  it('fires handleConnect once when canAutoConnect is true', () => {
-    const handleConnect = vi.fn();
+  it('renders mic control and orb', () => {
     render(
       <SessionInner
-        handleConnect={handleConnect}
+        handleConnect={vi.fn()}
         handleDisconnect={vi.fn()}
         visualMode="dragon"
-        canAutoConnect={true}
       />
     );
-    expect(handleConnect).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not fire handleConnect again on re-render', () => {
-    const handleConnect = vi.fn();
-    const { rerender } = render(
-      <SessionInner
-        handleConnect={handleConnect}
-        handleDisconnect={vi.fn()}
-        visualMode="dragon"
-        canAutoConnect={true}
-      />
-    );
-    rerender(
-      <SessionInner
-        handleConnect={handleConnect}
-        handleDisconnect={vi.fn()}
-        visualMode="plasma"
-        canAutoConnect={true}
-      />
-    );
-    expect(handleConnect).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not fire handleConnect a second time if canAutoConnect toggles after initial success', () => {
-    const handleConnect = vi.fn();
-    const { rerender } = render(
-      <SessionInner
-        handleConnect={handleConnect}
-        handleDisconnect={vi.fn()}
-        visualMode="dragon"
-        canAutoConnect={true}
-      />
-    );
-    // Ref should now be set; further true→false→true transitions must not re-fire.
-    rerender(
-      <SessionInner
-        handleConnect={handleConnect}
-        handleDisconnect={vi.fn()}
-        visualMode="dragon"
-        canAutoConnect={false}
-      />
-    );
-    rerender(
-      <SessionInner
-        handleConnect={handleConnect}
-        handleDisconnect={vi.fn()}
-        visualMode="dragon"
-        canAutoConnect={true}
-      />
-    );
-    expect(handleConnect).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId('mic-control')).toBeInTheDocument();
+    expect(screen.getByTestId('orb')).toBeInTheDocument();
   });
 });
