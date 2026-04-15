@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState, useRef, useEffect, useMemo } from 'react';
+import { Suspense, useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { X, Eye, EyeOff } from 'lucide-react';
 import { getAccessToken } from '@/lib/api/client';
@@ -8,6 +8,7 @@ import { usePipecatClientMediaTrack } from '@pipecat-ai/client-react';
 import {
   ConnectButton,
   PipecatAppBase,
+  SpinLoader,
   TranscriptOverlay,
   UserAudioControl,
   usePipecatConnectionState,
@@ -37,28 +38,44 @@ const STATUS_COLORS: Record<string, string> = {
   disconnected: '#FF6B6B',
 };
 
-const SessionInner = ({
+const CONNECT_BUTTON_STATE_CONTENT = {
+  disconnected: { children: 'Start reading', variant: 'primary' as const },
+  connecting: { children: 'Waking Ember…', variant: 'secondary' as const },
+  authenticating: { children: 'Waking Ember…', variant: 'secondary' as const },
+  authenticated: { children: 'Waking Ember…', variant: 'secondary' as const },
+  connected: { children: 'End reading', variant: 'destructive' as const },
+  ready: { children: 'End reading', variant: 'destructive' as const },
+};
+
+export const SessionInner = ({
   handleConnect,
   handleDisconnect,
   visualMode,
+  canAutoConnect,
 }: {
   handleConnect?: () => void | Promise<void>;
   handleDisconnect?: () => void | Promise<void>;
   visualMode: VisualMode;
+  canAutoConnect: boolean;
 }) => {
   const remoteAudioTrack = usePipecatClientMediaTrack('audio', 'bot');
   const { state: connectionState } = usePipecatConnectionState();
   const router = useRouter();
   const params = useParams<{ householdId: string; readerId: string }>();
-  const searchParams = useSearchParams();
   const autoConnectAttempted = useRef(false);
 
   useEffect(() => {
-    if (searchParams.get('autoconnect') === 'true' && handleConnect && !autoConnectAttempted.current) {
-      autoConnectAttempted.current = true;
-      handleConnect();
-    }
-  }, [searchParams, handleConnect]);
+    if (!canAutoConnect) return;
+    if (!handleConnect) return;
+    if (autoConnectAttempted.current) return;
+    autoConnectAttempted.current = true;
+    void handleConnect();
+  }, [canAutoConnect, handleConnect]);
+
+  const onUserDisconnect = useCallback(() => {
+    autoConnectAttempted.current = false;
+    return handleDisconnect?.();
+  }, [handleDisconnect]);
 
   const handleBack = () => {
     router.push(`/h/${params.householdId}/reader/${params.readerId}`);
@@ -113,12 +130,28 @@ const SessionInner = ({
           fadeOutDuration={1500}
           className="text-center"
         />
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '8px' }}>
-          <UserAudioControl visualizerProps={{ barCount: 5 }} />
-          <ConnectButton
-            onConnect={handleConnect}
-            onDisconnect={handleDisconnect}
-          />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '8px', minHeight: 44 }}>
+          {connectionState === 'connected' && (
+            <UserAudioControl visualizerProps={{ barCount: 5 }} />
+          )}
+          {connectionState !== 'connecting' && (
+            <ConnectButton
+              size="lg"
+              onConnect={handleConnect}
+              onDisconnect={onUserDisconnect}
+              stateContent={CONNECT_BUTTON_STATE_CONTENT}
+            />
+          )}
+          {connectionState === 'connecting' && (
+            <div
+              role="status"
+              aria-live="polite"
+              style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#CAB8EB', fontFamily: 'var(--font-nunito)' }}
+            >
+              <SpinLoader />
+              <span>Waking Ember…</span>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -149,6 +182,11 @@ const CallPageInner = () => {
       h.set('Authorization', `Bearer ${authToken}`);
     }
     return h;
+  }, [authToken]);
+
+  const canAutoConnect = useMemo(() => {
+    const pipecatKey = process.env.NEXT_PUBLIC_PIPECAT_PUBLIC_KEY;
+    return Boolean(pipecatKey) || Boolean(authToken);
   }, [authToken]);
 
   return (
@@ -198,13 +236,21 @@ const CallPageInner = () => {
           },
         }}
       >
-        {({ handleConnect, handleDisconnect }) => {
+        {({ client, handleConnect, handleDisconnect }) => {
           handleDisconnectRef.current = handleDisconnect;
+          if (!client) {
+            return (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100dvh' }}>
+                <SpinLoader />
+              </div>
+            );
+          }
           return (
             <SessionInner
               handleConnect={handleConnect}
               handleDisconnect={handleDisconnect}
               visualMode={visualMode}
+              canAutoConnect={canAutoConnect}
             />
           );
         }}
