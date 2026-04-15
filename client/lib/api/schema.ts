@@ -4,6 +4,23 @@
  */
 
 export interface paths {
+    "/admin/is-admin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Is Admin */
+        get: operations["is_admin_admin_is_admin_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/books/upload": {
         parameters: {
             query?: never;
@@ -186,13 +203,30 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    is_admin_admin_is_admin_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
     upload_book_books_upload_post: {
         parameters: {
             query?: never;
-            header: {
-                /** @description Bearer <supabase_access_token> */
-                authorization: string;
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };
@@ -225,10 +259,7 @@ export interface operations {
     create_kid_kids_post: {
         parameters: {
             query?: never;
-            header: {
-                /** @description Bearer <supabase_access_token> */
-                authorization: string;
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };
@@ -261,10 +292,7 @@ export interface operations {
     delete_kid_kids__kid_id__delete: {
         parameters: {
             query?: never;
-            header: {
-                /** @description Bearer <supabase_access_token> */
-                authorization: string;
-            };
+            header?: never;
             path: {
                 kid_id: string;
             };
@@ -293,10 +321,7 @@ export interface operations {
     update_kid_kids__kid_id__patch: {
         parameters: {
             query?: never;
-            header: {
-                /** @description Bearer <supabase_access_token> */
-                authorization: string;
-            };
+            header?: never;
             path: {
                 kid_id: string;
             };
@@ -331,10 +356,7 @@ export interface operations {
     start_session_start_post: {
         parameters: {
             query?: never;
-            header: {
-                /** @description Bearer <supabase_access_token> */
-                authorization: string;
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };

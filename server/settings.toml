@@ -24,6 +24,11 @@ app_name = "${MODAL_APP_NAME}"
 [upload]
 max_bytes = 26214400
 
+[admin]
+allowed_emails = [
+    "isabelledebacker@live.com.au",
+]
+
 [cors]
 allowed_origins = "${CORS_ALLOWED_ORIGINS}"
 allowed_origin_regex = 'https://.*\.vusercontent\.net'

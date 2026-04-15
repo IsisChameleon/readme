@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { apiClient, getAccessToken } from '@/lib/api/client';
+import { apiClient } from '@/lib/api/client';
 import { toast } from '@/hooks/use-toast';
 import { BookUploadOnboarding } from './book-upload-onboarding';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
@@ -42,9 +42,7 @@ export const OnboardingFlow = ({ householdId, existingKids }: OnboardingFlowProp
 
     setIsSubmitting(true);
     try {
-      const token = await getAccessToken();
       const { error } = await apiClient.POST('/kids', {
-        params: { header: { authorization: `Bearer ${token}` } },
         body: {
           household_id: householdId,
           name: kidName.trim(),

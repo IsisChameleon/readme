@@ -1,0 +1,91 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ReaderBookRow > renders at 0% 1`] = `
+<div
+  class="rounded-lg bg-secondary/60 px-3 py-2"
+>
+  <div
+    class="flex justify-between text-sm mb-1"
+  >
+    <span
+      class="truncate text-foreground"
+    >
+      Unread Book
+    </span>
+    <span
+      class="text-xs text-muted-foreground ml-2"
+    >
+      0
+      %
+    </span>
+  </div>
+  <div
+    class="h-1.5 rounded-full bg-muted overflow-hidden"
+  >
+    <div
+      class="h-full rounded-full"
+      style="width: 0%; background-color: rgb(255, 107, 107);"
+    />
+  </div>
+</div>
+`;
+
+exports[`ReaderBookRow > renders at 100% 1`] = `
+<div
+  class="rounded-lg bg-secondary/60 px-3 py-2"
+>
+  <div
+    class="flex justify-between text-sm mb-1"
+  >
+    <span
+      class="truncate text-foreground"
+    >
+      Finished
+    </span>
+    <span
+      class="text-xs text-muted-foreground ml-2"
+    >
+      100
+      %
+    </span>
+  </div>
+  <div
+    class="h-1.5 rounded-full bg-muted overflow-hidden"
+  >
+    <div
+      class="h-full rounded-full"
+      style="width: 100%; background-color: rgb(167, 139, 218);"
+    />
+  </div>
+</div>
+`;
+
+exports[`ReaderBookRow > renders with partial progress 1`] = `
+<div
+  class="rounded-lg bg-secondary/60 px-3 py-2"
+>
+  <div
+    class="flex justify-between text-sm mb-1"
+  >
+    <span
+      class="truncate text-foreground"
+    >
+      The Little Prince
+    </span>
+    <span
+      class="text-xs text-muted-foreground ml-2"
+    >
+      42
+      %
+    </span>
+  </div>
+  <div
+    class="h-1.5 rounded-full bg-muted overflow-hidden"
+  >
+    <div
+      class="h-full rounded-full"
+      style="width: 42%; background-color: rgb(92, 184, 122);"
+    />
+  </div>
+</div>
+`;

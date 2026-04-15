@@ -1,0 +1,523 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ProfileAvatar > collapses Library row when currentPath is library 1`] = `
+<div
+  class="relative"
+>
+  <button
+    aria-label="Account menu"
+    class="h-10 w-10 rounded-full ring-[3px] ring-primary/50 hover:ring-primary transition-all bg-primary flex items-center justify-center text-sm font-bold text-primary-foreground cursor-pointer"
+  >
+    J
+  </button>
+  <div
+    class="absolute right-0 top-14 w-72 rounded-xl border border-border bg-card shadow-lg z-30 overflow-hidden"
+  >
+    <div
+      class="p-4 text-center border-b border-border"
+    >
+      <div
+        class="h-16 w-16 rounded-full bg-primary flex items-center justify-center text-2xl font-bold text-primary-foreground mx-auto ring-[3px] ring-primary/20"
+      >
+        J
+      </div>
+      <p
+        class="font-[family-name:var(--font-marcellus)] font-bold mt-2"
+      >
+        Hi, 
+        Jane
+        !
+      </p>
+      <p
+        class="text-xs text-muted-foreground"
+      >
+        jane@example.com
+      </p>
+    </div>
+    <div
+      class="py-1"
+    >
+      <div
+        class="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-muted-foreground cursor-default italic"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-book-open w-4 h-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12 7v14"
+          />
+          <path
+            d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"
+          />
+        </svg>
+        <span>
+          Library 
+          <span
+            class="text-xs"
+          >
+            (currently viewing)
+          </span>
+        </span>
+      </div>
+      <button
+        class="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-muted-foreground hover:bg-secondary cursor-pointer"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-users w-4 h-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"
+          />
+          <path
+            d="M16 3.128a4 4 0 0 1 0 7.744"
+          />
+          <path
+            d="M22 21v-2a4 4 0 0 0-3-3.87"
+          />
+          <circle
+            cx="9"
+            cy="7"
+            r="4"
+          />
+        </svg>
+        Manage readers
+      </button>
+      <div
+        class="border-t border-border my-1"
+      />
+      <button
+        class="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-muted-foreground hover:bg-secondary cursor-pointer"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-log-out w-4 h-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="m16 17 5-5-5-5"
+          />
+          <path
+            d="M21 12H9"
+          />
+          <path
+            d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
+          />
+        </svg>
+        Sign out
+      </button>
+      <button
+        class="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-destructive hover:bg-destructive/10 cursor-pointer"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-trash2 lucide-trash-2 w-4 h-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M10 11v6"
+          />
+          <path
+            d="M14 11v6"
+          />
+          <path
+            d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"
+          />
+          <path
+            d="M3 6h18"
+          />
+          <path
+            d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+          />
+        </svg>
+        Delete account
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ProfileAvatar > collapses Manage readers row when currentPath is readers 1`] = `
+<div
+  class="relative"
+>
+  <button
+    aria-label="Account menu"
+    class="h-10 w-10 rounded-full ring-[3px] ring-primary/50 hover:ring-primary transition-all bg-primary flex items-center justify-center text-sm font-bold text-primary-foreground cursor-pointer"
+  >
+    J
+  </button>
+  <div
+    class="absolute right-0 top-14 w-72 rounded-xl border border-border bg-card shadow-lg z-30 overflow-hidden"
+  >
+    <div
+      class="p-4 text-center border-b border-border"
+    >
+      <div
+        class="h-16 w-16 rounded-full bg-primary flex items-center justify-center text-2xl font-bold text-primary-foreground mx-auto ring-[3px] ring-primary/20"
+      >
+        J
+      </div>
+      <p
+        class="font-[family-name:var(--font-marcellus)] font-bold mt-2"
+      >
+        Hi, 
+        Jane
+        !
+      </p>
+      <p
+        class="text-xs text-muted-foreground"
+      >
+        jane@example.com
+      </p>
+    </div>
+    <div
+      class="py-1"
+    >
+      <button
+        class="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-muted-foreground hover:bg-secondary cursor-pointer"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-book-open w-4 h-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12 7v14"
+          />
+          <path
+            d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"
+          />
+        </svg>
+        Library
+      </button>
+      <div
+        class="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-muted-foreground cursor-default italic"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-users w-4 h-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"
+          />
+          <path
+            d="M16 3.128a4 4 0 0 1 0 7.744"
+          />
+          <path
+            d="M22 21v-2a4 4 0 0 0-3-3.87"
+          />
+          <circle
+            cx="9"
+            cy="7"
+            r="4"
+          />
+        </svg>
+        <span>
+          Manage readers 
+          <span
+            class="text-xs"
+          >
+            (currently viewing)
+          </span>
+        </span>
+      </div>
+      <div
+        class="border-t border-border my-1"
+      />
+      <button
+        class="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-muted-foreground hover:bg-secondary cursor-pointer"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-log-out w-4 h-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="m16 17 5-5-5-5"
+          />
+          <path
+            d="M21 12H9"
+          />
+          <path
+            d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
+          />
+        </svg>
+        Sign out
+      </button>
+      <button
+        class="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-destructive hover:bg-destructive/10 cursor-pointer"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-trash2 lucide-trash-2 w-4 h-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M10 11v6"
+          />
+          <path
+            d="M14 11v6"
+          />
+          <path
+            d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"
+          />
+          <path
+            d="M3 6h18"
+          />
+          <path
+            d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+          />
+        </svg>
+        Delete account
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ProfileAvatar > renders closed state — no hover tooltip 1`] = `
+<div
+  class="relative"
+>
+  <button
+    aria-label="Account menu"
+    class="h-10 w-10 rounded-full ring-[3px] ring-primary/50 hover:ring-primary transition-all bg-primary flex items-center justify-center text-sm font-bold text-primary-foreground cursor-pointer"
+  >
+    J
+  </button>
+</div>
+`;
+
+exports[`ProfileAvatar > renders open popover with Library + Manage readers + Sign out + Delete 1`] = `
+<div
+  class="relative"
+>
+  <button
+    aria-label="Account menu"
+    class="h-10 w-10 rounded-full ring-[3px] ring-primary/50 hover:ring-primary transition-all bg-primary flex items-center justify-center text-sm font-bold text-primary-foreground cursor-pointer"
+  >
+    J
+  </button>
+  <div
+    class="absolute right-0 top-14 w-72 rounded-xl border border-border bg-card shadow-lg z-30 overflow-hidden"
+  >
+    <div
+      class="p-4 text-center border-b border-border"
+    >
+      <div
+        class="h-16 w-16 rounded-full bg-primary flex items-center justify-center text-2xl font-bold text-primary-foreground mx-auto ring-[3px] ring-primary/20"
+      >
+        J
+      </div>
+      <p
+        class="font-[family-name:var(--font-marcellus)] font-bold mt-2"
+      >
+        Hi, 
+        Jane
+        !
+      </p>
+      <p
+        class="text-xs text-muted-foreground"
+      >
+        jane@example.com
+      </p>
+    </div>
+    <div
+      class="py-1"
+    >
+      <button
+        class="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-muted-foreground hover:bg-secondary cursor-pointer"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-book-open w-4 h-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12 7v14"
+          />
+          <path
+            d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"
+          />
+        </svg>
+        Library
+      </button>
+      <button
+        class="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-muted-foreground hover:bg-secondary cursor-pointer"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-users w-4 h-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"
+          />
+          <path
+            d="M16 3.128a4 4 0 0 1 0 7.744"
+          />
+          <path
+            d="M22 21v-2a4 4 0 0 0-3-3.87"
+          />
+          <circle
+            cx="9"
+            cy="7"
+            r="4"
+          />
+        </svg>
+        Manage readers
+      </button>
+      <div
+        class="border-t border-border my-1"
+      />
+      <button
+        class="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-muted-foreground hover:bg-secondary cursor-pointer"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-log-out w-4 h-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="m16 17 5-5-5-5"
+          />
+          <path
+            d="M21 12H9"
+          />
+          <path
+            d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
+          />
+        </svg>
+        Sign out
+      </button>
+      <button
+        class="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-destructive hover:bg-destructive/10 cursor-pointer"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-trash2 lucide-trash-2 w-4 h-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M10 11v6"
+          />
+          <path
+            d="M14 11v6"
+          />
+          <path
+            d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"
+          />
+          <path
+            d="M3 6h18"
+          />
+          <path
+            d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+          />
+        </svg>
+        Delete account
+      </button>
+    </div>
+  </div>
+</div>
+`;
