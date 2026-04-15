@@ -1,33 +1,25 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { BookOpen } from 'lucide-react';
-
-/** Woodland kid palette — deterministic color from a string */
-const PALETTE = ['#E9A55F', '#5CB87A', '#6B8FD4', '#C56B8A', '#8FB56A', '#8B6DAF', '#5BAEC4'];
-
-const colorFromString = (s: string) => {
-  let hash = 0;
-  for (let i = 0; i < s.length; i++) hash = s.charCodeAt(i) + ((hash << 5) - hash);
-  return PALETTE[Math.abs(hash) % PALETTE.length];
-};
+import { BookOpen, ChevronRight, Play } from 'lucide-react';
 
 /** Shared sizing for all strip cards — grow to fill, cap at 32rem */
 export const STRIP_CARD_WIDTH = 'md:flex-1 md:min-w-80 md:max-w-[32rem]';
 
+const darken = (hex: string, amt: number) => {
+  const n = parseInt(hex.replace('#', ''), 16);
+  const r = Math.max(0, ((n >> 16) & 0xff) - Math.round(255 * amt));
+  const g = Math.max(0, ((n >> 8) & 0xff) - Math.round(255 * amt));
+  const b = Math.max(0, (n & 0xff) - Math.round(255 * amt));
+  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
+};
+
 interface KidLastBook {
   bookId: string;
   bookTitle: string;
-  coverUrl: string | null;
   progress: number;
-}
-
-interface ReadyBook {
-  id: string;
-  title: string;
-  author: string;
-  cover_image_url: string | null;
 }
 
 interface ReaderActionCardProps {
@@ -39,7 +31,7 @@ interface ReaderActionCardProps {
     color: string | null;
   };
   lastBook: KidLastBook | null;
-  readyBooks: ReadyBook[];
+  bookCount: number;
   index: number;
 }
 
@@ -47,145 +39,104 @@ export const ReaderActionCard = ({
   householdId,
   kid,
   lastBook,
-  readyBooks,
+  bookCount,
   index,
 }: ReaderActionCardProps) => {
   const router = useRouter();
   const color = kid.color ?? '#5CB87A';
+  const readerHref = `/h/${householdId}/reader/${kid.id}`;
 
-  const isResuming = lastBook && lastBook.progress > 0 && lastBook.progress < 100;
-  const isSingleBook = readyBooks.length === 1 && !isResuming && !lastBook;
-  const singleBook = isSingleBook ? readyBooks[0] : null;
+  const isResuming = !!lastBook && lastBook.progress > 0 && lastBook.progress < 100;
+  const isFinished = !!lastBook && lastBook.progress >= 100;
 
-  const coverUrl = isResuming ? lastBook.coverUrl : singleBook?.cover_image_url ?? null;
-  const bookTitle = isResuming ? lastBook.bookTitle : singleBook?.title ?? null;
-  const bookAuthor = singleBook?.author ?? null;
-  const placeholderColor = bookTitle ? colorFromString(bookTitle) : color;
+  const metaLabel = isResuming ? 'Reading now' : isFinished ? 'Finished!' : 'Ready to begin';
+  const title = isResuming || isFinished ? lastBook!.bookTitle : 'Pick a first story';
+  const ctaLabel = isResuming ? 'Continue reading' : isFinished ? 'Pick another' : 'Pick a story';
+  const CtaIcon = isResuming ? Play : BookOpen;
 
-  const handleAction = () => {
-    if (isResuming) {
-      router.push(`/h/${householdId}/reader/${kid.id}/call?bookId=${lastBook.bookId}`);
-    } else if (singleBook) {
-      router.push(`/h/${householdId}/reader/${kid.id}/call?bookId=${singleBook.id}`);
+  const handleCta = () => {
+    if (isResuming && lastBook) {
+      router.push(`${readerHref}/call?bookId=${lastBook.bookId}`);
     } else {
-      router.push(`/h/${householdId}/reader/${kid.id}`);
+      router.push(readerHref);
     }
   };
 
   return (
-    <motion.button
-      onClick={handleAction}
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 * index, type: 'spring', stiffness: 260, damping: 24 }}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      className={`w-full rounded-2xl border border-border bg-card text-left overflow-hidden cursor-pointer transition-all hover:border-primary ${STRIP_CARD_WIDTH}`}
+      className={`rounded-2xl border border-border bg-card overflow-hidden ${STRIP_CARD_WIDTH}`}
     >
-      <div className="relative h-44 overflow-hidden">
-        {coverUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={coverUrl} alt="" className="w-full h-full object-cover" />
-        ) : (
-          <BookPlaceholder title={bookTitle} author={bookAuthor} color={placeholderColor} />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+      <div
+        className="relative h-40 overflow-hidden"
+        style={{ background: `linear-gradient(135deg, ${color}, ${darken(color, 0.2)})` }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
-        <div className="absolute bottom-3 left-4 flex items-center gap-3">
+        <Link
+          href={readerHref}
+          className="absolute top-3 left-3 flex items-center gap-2 rounded-full bg-black/30 backdrop-blur-sm pl-1 pr-3 py-1 ring-1 ring-white/30 hover:bg-black/40 transition-colors"
+        >
           <div
-            className="h-10 w-10 rounded-full flex items-center justify-center text-lg font-bold text-white ring-2 ring-white/80"
+            className="h-7 w-7 rounded-full flex items-center justify-center text-xs font-bold text-white ring-2 ring-white/80"
             style={{ backgroundColor: color }}
           >
             {kid.avatar ?? kid.name[0]?.toUpperCase()}
           </div>
-          <div>
-            <p className="font-[family-name:var(--font-marcellus)] text-base font-bold text-white">
-              {kid.name}
-            </p>
-            <p className="text-xs text-white/80">
-              {isResuming
-                ? 'Reading now'
-                : singleBook
-                ? 'New book ready'
-                : readyBooks.length > 0
-                ? `${readyBooks.length} books`
-                : 'No books yet'}
-            </p>
-          </div>
+          <span className="text-xs font-semibold text-white">{kid.name}</span>
+          <ChevronRight className="w-3 h-3 text-white/80" />
+        </Link>
+
+        <div className="absolute bottom-3 left-4 right-4">
+          <p className="text-xs text-white/70 mb-0.5">{metaLabel}</p>
+          <p className="font-[family-name:var(--font-marcellus)] text-lg font-bold text-white leading-tight drop-shadow line-clamp-2">
+            {title}
+          </p>
         </div>
       </div>
 
-      <div className="p-5">
-        {isResuming ? (
-          <>
-            <p className="font-[family-name:var(--font-marcellus)] font-semibold truncate">
-              {lastBook.bookTitle}
-            </p>
-            <div className="mt-3 h-2 rounded-full bg-muted overflow-hidden">
+      <div className="p-4 space-y-3">
+        <div>
+          {isResuming || isFinished ? (
+            <div className="h-1.5 rounded-full bg-muted overflow-hidden">
               <div
                 className="h-full rounded-full transition-all"
-                style={{ width: `${lastBook.progress}%`, backgroundColor: color }}
+                style={{ width: `${lastBook!.progress}%`, backgroundColor: color }}
               />
             </div>
-            <div className="mt-2 flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">{lastBook.progress}% complete</span>
-              <span className="text-sm font-semibold" style={{ color }}>
-                Continue &rarr;
-              </span>
-            </div>
-          </>
-        ) : singleBook ? (
-          <>
-            <p className="font-[family-name:var(--font-marcellus)] font-semibold truncate">
-              {singleBook.title}
-            </p>
-            <div className="mt-2 flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">
-                {singleBook.author && singleBook.author !== 'Unknown' ? `by ${singleBook.author}` : ''}
-              </span>
-              <span className="text-sm font-semibold" style={{ color }}>
-                Start reading &rarr;
-              </span>
-            </div>
-          </>
-        ) : readyBooks.length > 0 ? (
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">
-              {lastBook?.progress === 100 ? 'Finished! Pick another' : `${readyBooks.length} books`}
-            </span>
-            <span className="text-sm font-semibold" style={{ color }}>
-              Browse &rarr;
-            </span>
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground">Upload a book to get started</p>
-        )}
+          ) : (
+            <div className="h-1.5 rounded-full bg-muted/60 border border-dashed border-border" />
+          )}
+          <p className="mt-1.5 text-xs text-muted-foreground">
+            {isResuming
+              ? `${lastBook!.progress}% complete`
+              : isFinished
+              ? 'Finished — pick another'
+              : 'No book started yet'}
+          </p>
+        </div>
+
+        <button
+          onClick={handleCta}
+          className="w-full cursor-pointer font-[family-name:var(--font-marcellus)] inline-flex items-center justify-center gap-2 rounded-xl bg-accent px-4 py-3 text-base font-bold text-accent-foreground shadow-[0_4px_14px] shadow-accent/30 hover:opacity-90 transition-opacity"
+        >
+          <CtaIcon className="h-4 w-4" />
+          {ctaLabel}
+        </button>
+
+        <Link
+          href={readerHref}
+          className="w-full flex items-center justify-between rounded-lg bg-secondary/60 px-3 py-2 text-sm text-foreground hover:bg-secondary transition-colors"
+        >
+          <span>
+            See all {bookCount} of {kid.name}
+            {kid.name.endsWith('s') ? "'" : "'s"} books
+          </span>
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+        </Link>
       </div>
-    </motion.button>
+    </motion.div>
   );
 };
-
-const BookPlaceholder = ({
-  title,
-  author,
-  color,
-}: {
-  title: string | null;
-  author: string | null;
-  color: string;
-}) => (
-  <div
-    className="w-full h-full flex flex-col items-center justify-center p-6 text-center"
-    style={{ backgroundColor: color }}
-  >
-    <BookOpen className="w-10 h-10 text-white/40 mb-3" />
-    {title && (
-      <p className="font-[family-name:var(--font-marcellus)] text-white/90 font-bold text-sm leading-tight line-clamp-2">
-        {title}
-      </p>
-    )}
-    {author && author !== 'Unknown' && (
-      <p className="text-white/60 text-xs mt-1 truncate max-w-full">{author}</p>
-    )}
-  </div>
-);
