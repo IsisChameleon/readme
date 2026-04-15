@@ -1,10 +1,10 @@
 'use client';
 
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
 import { AppHeader } from '@/components/AppHeader';
-import { EmberDragon } from '@/components/EmberDragon';
 import { BookCard } from '@/components/BookCard';
 
 interface Kid {
@@ -47,8 +47,16 @@ export const ReaderHomeClient = ({ householdId, kid, books }: ReaderHomeClientPr
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+            className="w-32 h-32 md:w-40 md:h-40 flex-shrink-0"
           >
-            <EmberDragon size="md" />
+            <Image
+              src="/images/ember-dragon.png"
+              alt="Ember the dragon"
+              width={160}
+              height={160}
+              className="w-full h-full object-cover"
+              priority
+            />
           </motion.div>
           <div className="text-center md:text-left">
             <motion.h2
@@ -126,7 +134,15 @@ export const ReaderHomeClient = ({ householdId, kid, books }: ReaderHomeClientPr
             ))}
             {books.length === 0 && (
               <div className="col-span-full flex flex-col items-center py-12 gap-4">
-                <EmberDragon size="sm" />
+                <div className="w-20 h-20 md:w-24 md:h-24">
+                <Image
+                  src="/images/ember-dragon.png"
+                  alt="Ember the dragon"
+                  width={96}
+                  height={96}
+                  className="w-full h-full object-cover"
+                />
+              </div>
                 <p className="text-center text-muted-foreground text-lg">
                   No books here yet
                 </p>
