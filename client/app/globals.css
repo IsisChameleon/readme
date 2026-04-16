@@ -112,17 +112,6 @@
   --sidebar-ring: #40916C;
 }
 
-/* ── Voice session dark background ── */
-.voice-session-bg {
-  --vs-bg: oklch(0.15 0.02 290);
-  --vs-card: oklch(0.2 0.02 290);
-  --vs-fg: oklch(0.88 0.02 290);
-  --vs-primary: oklch(0.8 0.06 290);
-  --vs-muted: oklch(0.3 0.02 290);
-  --vs-muted-fg: oklch(0.65 0.03 290);
-  --vs-border: oklch(0.35 0.04 290);
-}
-
 @theme inline {
   /* EmberTales Typography - Marcellus + Nunito */
   --font-sans: var(--font-nunito), 'Nunito', sans-serif;
@@ -179,44 +168,33 @@
   }
 }
 
-/* Retheme voice-ui-kit — use voice session dark tokens */
+/* Retheme voice-ui-kit to track app design tokens (light + dark) */
 @layer base {
-  .vkui-root.dark {
-    --color-active: var(--vs-primary);
-    --color-active-foreground: var(--vs-fg);
-    --color-active-accent: oklch(from var(--vs-primary) l c h / 0.12);
-    --color-active-ring: oklch(from var(--vs-primary) l c h / 0.2);
-    --color-primary: var(--vs-primary);
-    --color-primary-foreground: var(--vs-bg);
-    --color-destructive: oklch(0.65 0.18 25);
-    --color-destructive-foreground: oklch(1 0 0);
-    --color-secondary: oklch(from var(--vs-primary) l c h / 0.15);
-    --color-secondary-foreground: var(--vs-primary);
-    --color-inactive: var(--vs-muted-fg);
-    --color-inactive-foreground: var(--vs-primary);
-    --color-border: var(--vs-border);
-    --color-input: oklch(from var(--vs-primary) l c h / 0.15);
-    --color-popover: var(--vs-card);
-    --color-popover-foreground: var(--vs-fg);
-    --color-card: var(--vs-card);
-    --color-card-foreground: var(--vs-fg);
-    --color-accent: oklch(from var(--vs-primary) l c h / 0.12);
-    --color-accent-foreground: var(--vs-primary);
-    --color-muted: var(--vs-muted);
-    --color-muted-foreground: var(--vs-muted-fg);
-    --color-foreground: var(--vs-fg);
-    --color-background: var(--vs-bg);
-    --color-ring: oklch(from var(--vs-primary) l c h / 0.3);
+  .vkui-root {
+    --color-active: var(--primary);
+    --color-active-foreground: var(--primary-foreground);
+    --color-active-accent: color-mix(in srgb, var(--primary) 12%, transparent);
+    --color-active-ring: color-mix(in srgb, var(--primary) 20%, transparent);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-destructive: var(--destructive);
+    --color-destructive-foreground: var(--destructive-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-inactive: var(--muted-foreground);
+    --color-inactive-foreground: var(--foreground);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --color-ring: var(--ring);
   }
-}
-
-.voice-ui-kit [data-slot="button"] {
-  background: transparent;
-  border: 1.5px solid oklch(from var(--vs-primary) l c h / 0.6);
-  color: var(--vs-primary);
-}
-
-.voice-ui-kit [data-slot="button"]:hover {
-  background: oklch(from var(--vs-primary) l c h / 0.1);
-  border-color: oklch(from var(--vs-primary) l c h / 0.85);
 }

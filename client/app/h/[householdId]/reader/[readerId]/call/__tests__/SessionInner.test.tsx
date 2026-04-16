@@ -24,11 +24,11 @@ vi.mock('@pipecat-ai/voice-ui-kit', () => ({
 }));
 
 vi.mock('@pipecat-ai/voice-ui-kit/webgl', () => ({
-  Plasma: () => null,
+  Plasma: () => <div data-testid="plasma" />,
 }));
 
-vi.mock('@/components/AnimatedOrb', () => ({
-  AnimatedOrb: () => <div data-testid="orb" />,
+vi.mock('@/components/ThemeProvider', () => ({
+  useTheme: () => ({ theme: 'light', toggleTheme: vi.fn() }),
 }));
 
 describe('SessionInner', () => {
@@ -38,21 +38,19 @@ describe('SessionInner', () => {
       <SessionInner
         handleConnect={handleConnect}
         handleDisconnect={vi.fn()}
-        visualMode="dragon"
       />
     );
     expect(handleConnect).not.toHaveBeenCalled();
   });
 
-  it('renders mic control and orb', () => {
+  it('renders mic control and plasma orb', () => {
     render(
       <SessionInner
         handleConnect={vi.fn()}
         handleDisconnect={vi.fn()}
-        visualMode="dragon"
       />
     );
     expect(screen.getByTestId('mic-control')).toBeInTheDocument();
-    expect(screen.getByTestId('orb')).toBeInTheDocument();
+    expect(screen.getByTestId('plasma')).toBeInTheDocument();
   });
 });
