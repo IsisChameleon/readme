@@ -1,100 +1,123 @@
 'use client';
 
-import { Suspense, useState, useRef, useEffect, useMemo } from 'react';
+/**
+ * DailyTransport : See https://github.com/pipecat-ai/pipecat-client-web-transports/blob/main/transports/daily/src/transport.ts
+ * PipecatClient : See https://github.com/pipecat-ai/pipecat-client-web/blob/main/client-js/client/client.ts
+ * PipecatAppBase: See https://github.com/pipecat-ai/voice-ui-kit/blob/main/package/src/components/PipecatAppBase.tsx
+ *  **/
+
+import { Suspense, useMemo, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams, useParams } from 'next/navigation';
-import { X, Eye, EyeOff } from 'lucide-react';
-import { getAccessToken } from '@/lib/api/client';
+import { X } from 'lucide-react';
 import { usePipecatClientMediaTrack } from '@pipecat-ai/client-react';
 import {
   ConnectButton,
   PipecatAppBase,
+  SpinLoader,
   TranscriptOverlay,
   UserAudioControl,
   usePipecatConnectionState,
 } from '@pipecat-ai/voice-ui-kit';
 import { Plasma } from '@pipecat-ai/voice-ui-kit/webgl';
 import '@pipecat-ai/voice-ui-kit/styles.scoped';
-import { AnimatedOrb } from '@/components/AnimatedOrb';
+import { useTheme } from '@/components/ThemeProvider';
 
-type VisualMode = 'plasma' | 'dragon';
+const PLASMA_LIGHT = {
+  color1: '#2D6A4F', // --primary (light)
+  color2: '#E9A55F', // --accent (light)
+  color3: '#7C6DAF', // --magic (light)
+  backgroundColor: '#F5F7F2', // --background (light)
+};
 
-const PLASMA_CONFIG = {
-  useCustomColors: true,
-  color1: '#FF6B6B',
-  color2: '#7DC4A6',
-  color3: '#A78BDA',
-  intensity: 1.2,
-  radius: 1.0,
-  ringCount: 4,
-  backgroundColor: '#150f20',
-  audioEnabled: true,
-  audioSensitivity: 1.5,
+const PLASMA_DARK = {
+  color1: '#40916C', // --primary (dark)
+  color2: '#E9A55F', // --accent (dark)
+  color3: '#9B8EC4', // --magic-light (dark)
+  backgroundColor: '#141F1A', // --background (dark)
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  connected: '#7DC4A6',
-  connecting: '#CAB8EB',
-  disconnected: '#FF6B6B',
+  connected: 'var(--primary)',
+  connecting: 'var(--magic)',
+  disconnected: 'var(--destructive)',
 };
 
-const SessionInner = ({
+const CONNECT_BUTTON_STATE_CONTENT = {
+  initializing: { children: 'Start reading', variant: 'primary' as const },
+  initialized: { children: 'Start reading', variant: 'primary' as const },
+  disconnected: { children: 'Start reading', variant: 'primary' as const },
+  disconnecting: { children: 'Ending…', variant: 'secondary' as const },
+  connecting: { children: 'Waking Ember…', variant: 'secondary' as const },
+  authenticating: { children: 'Waking Ember…', variant: 'secondary' as const },
+  authenticated: { children: 'Waking Ember…', variant: 'secondary' as const },
+  connected: { children: 'End reading', variant: 'destructive' as const },
+  ready: { children: 'End reading', variant: 'destructive' as const },
+};
+
+export const SessionInner = ({
   handleConnect,
   handleDisconnect,
-  visualMode,
 }: {
   handleConnect?: () => void | Promise<void>;
   handleDisconnect?: () => void | Promise<void>;
-  visualMode: VisualMode;
 }) => {
   const remoteAudioTrack = usePipecatClientMediaTrack('audio', 'bot');
   const { state: connectionState } = usePipecatConnectionState();
   const router = useRouter();
   const params = useParams<{ householdId: string; readerId: string }>();
-  const searchParams = useSearchParams();
-  const autoConnectAttempted = useRef(false);
+  const { theme } = useTheme();
 
-  useEffect(() => {
-    if (searchParams.get('autoconnect') === 'true' && handleConnect && !autoConnectAttempted.current) {
-      autoConnectAttempted.current = true;
-      handleConnect();
-    }
-  }, [searchParams, handleConnect]);
+  const onUserDisconnect = useCallback(() => {
+    return handleDisconnect?.();
+  }, [handleDisconnect]);
 
   const handleBack = () => {
     router.push(`/h/${params.householdId}/reader/${params.readerId}`);
   };
 
+  const plasmaConfig = useMemo(() => {
+    const palette = theme === 'dark' ? PLASMA_DARK : PLASMA_LIGHT;
+    return {
+      useCustomColors: true,
+      ...palette,
+      intensity: 1.2,
+      radius: 1.0,
+      ringCount: 4,
+      audioEnabled: true,
+      audioSensitivity: 1.5,
+    };
+  }, [theme]);
+
   return (
-    <div className="voice-session-bg" style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100dvh', background: 'var(--vs-bg, #150f20)', position: 'relative' }}>
+    <div className="bg-background text-foreground" style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100dvh', position: 'relative' }}>
       {/* Top bar */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', zIndex: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ width: 8, height: 8, borderRadius: '50%', background: STATUS_COLORS[connectionState] ?? '#FF6B6B' }} />
-          <span style={{ fontSize: '12px', color: STATUS_COLORS[connectionState] ?? '#FF6B6B', fontFamily: 'var(--font-nunito)' }}>
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: STATUS_COLORS[connectionState] ?? 'var(--destructive)' }} />
+          <span style={{ fontSize: '12px', color: 'var(--muted-foreground)', fontFamily: 'var(--font-nunito)' }}>
             {connectionState}
           </span>
         </div>
         <button
           onClick={handleBack}
-          style={{ color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}
+          aria-label="End session"
+          className="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
+          style={{ border: 'none', cursor: 'pointer' }}
         >
-          <X size={20} />
+          <X size={18} strokeWidth={2.5} />
         </button>
       </div>
 
       {/* Visual area */}
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 0 }}>
-        {visualMode === 'plasma' ? (
-          <Plasma
-            width={600}
-            height={600}
-            initialConfig={PLASMA_CONFIG}
-            audioTrack={remoteAudioTrack ?? undefined}
-            style={{ width: '100%', height: '100%' }}
-          />
-        ) : (
-          <AnimatedOrb isActive={connectionState === 'connected'} isSpeaking={false} />
-        )}
+        <Plasma
+          key={theme}
+          width={600}
+          height={600}
+          initialConfig={plasmaConfig}
+          audioTrack={remoteAudioTrack ?? undefined}
+          style={{ width: '100%', height: '100%' }}
+        />
       </div>
 
       {/* Bottom controls */}
@@ -113,12 +136,26 @@ const SessionInner = ({
           fadeOutDuration={1500}
           className="text-center"
         />
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '8px', minHeight: 44 }}>
           <UserAudioControl visualizerProps={{ barCount: 5 }} />
-          <ConnectButton
-            onConnect={handleConnect}
-            onDisconnect={handleDisconnect}
-          />
+          {connectionState !== 'connecting' && (
+            <ConnectButton
+              size="lg"
+              onConnect={handleConnect}
+              onDisconnect={onUserDisconnect}
+              stateContent={CONNECT_BUTTON_STATE_CONTENT}
+            />
+          )}
+          {connectionState === 'connecting' && (
+            <div
+              role="status"
+              aria-live="polite"
+              style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--magic)', fontFamily: 'var(--font-nunito)' }}
+            >
+              <SpinLoader />
+              <span>Waking Ember…</span>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -127,51 +164,23 @@ const SessionInner = ({
 
 const CallPageInner = () => {
   const handleDisconnectRef = useRef<(() => void | Promise<void>) | undefined>(undefined);
-  const [visualMode, setVisualMode] = useState<VisualMode>('dragon');
-  const [authToken, setAuthToken] = useState<string | undefined>(undefined);
   const searchParams = useSearchParams();
   const bookId = searchParams.get('bookId');
   const params = useParams<{ readerId: string }>();
-
-  useEffect(() => {
-    getAccessToken().then(setAuthToken);
-  }, []);
+  const { theme } = useTheme();
 
   const connectEndpoint =
     process.env.NEXT_PUBLIC_CONNECT_ENDPOINT || 'http://localhost:7860/start';
 
+  const pipecatKey = process.env.NEXT_PUBLIC_PIPECAT_PUBLIC_KEY;
   const connectHeaders = useMemo(() => {
     const h = new Headers();
-    const pipecatKey = process.env.NEXT_PUBLIC_PIPECAT_PUBLIC_KEY;
-    if (pipecatKey) {
-      h.set('Authorization', `Bearer ${pipecatKey}`);
-    } else if (authToken) {
-      h.set('Authorization', `Bearer ${authToken}`);
-    }
+    if (pipecatKey) h.set('Authorization', `Bearer ${pipecatKey}`);
     return h;
-  }, [authToken]);
+  }, [pipecatKey]);
 
   return (
-    <div className="vkui-root dark voice-ui-kit" style={{ width: '100%', height: '100dvh' }}>
-      {/* Visual mode toggle */}
-      <button
-        onClick={() => setVisualMode((m) => (m === 'plasma' ? 'dragon' : 'plasma'))}
-        style={{
-          position: 'fixed',
-          top: 16,
-          right: 60,
-          zIndex: 20,
-          color: '#9ca3af',
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          padding: '8px',
-        }}
-        title={`Switch to ${visualMode === 'plasma' ? 'dragon' : 'plasma'} mode`}
-      >
-        {visualMode === 'plasma' ? <Eye size={18} /> : <EyeOff size={18} />}
-      </button>
-
+    <div className="vkui-root voice-ui-kit bg-background" style={{ width: '100%', height: '100dvh' }}>
       <PipecatAppBase
         transportType="daily"
         startBotParams={{
@@ -186,7 +195,8 @@ const CallPageInner = () => {
           },
         }}
         initDevicesOnMount
-        themeProps={{ defaultTheme: 'dark' }}
+        connectOnMount
+        themeProps={{ defaultTheme: theme }}
         clientOptions={{
           callbacks: {
             onServerMessage: (data: unknown) => {
@@ -198,13 +208,19 @@ const CallPageInner = () => {
           },
         }}
       >
-        {({ handleConnect, handleDisconnect }) => {
+        {({ client, handleConnect, handleDisconnect }) => {
           handleDisconnectRef.current = handleDisconnect;
+          if (!client) {
+            return (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100dvh' }}>
+                <SpinLoader />
+              </div>
+            );
+          }
           return (
             <SessionInner
               handleConnect={handleConnect}
               handleDisconnect={handleDisconnect}
-              visualMode={visualMode}
             />
           );
         }}
@@ -215,7 +231,7 @@ const CallPageInner = () => {
 
 export default function CallPage() {
   return (
-    <Suspense fallback={<div style={{ width: '100%', height: '100dvh', background: 'var(--vs-bg, #150f20)' }} />}>
+    <Suspense fallback={<div className="bg-background" style={{ width: '100%', height: '100dvh' }} />}>
       <CallPageInner />
     </Suspense>
   );
