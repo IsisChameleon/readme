@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class PageContent(BaseModel):
@@ -27,7 +27,7 @@ class Manuscript(BaseModel):
 
     book_id: str
     title: str
-    chapters: list[Chapter]  # ordered, always >= 1
+    chapters: Annotated[list[Chapter], Field(min_length=1)]  # ordered, always >= 1
     extraction_model: str
     pages_total: int
     image_pages: int

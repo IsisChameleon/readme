@@ -1,5 +1,8 @@
 """Unit tests for pdf_pipeline models."""
 
+import pytest
+from pydantic import ValidationError
+
 from workers.pdf_pipeline.models import (
     Chapter,
     Chunk,
@@ -45,6 +48,17 @@ class TestManuscript:
         assert m.book_id == "book_001"
         assert len(m.chapters) == 1
         assert m.chapters[0].text == "Once upon a time."
+
+    def test_empty_chapters_raises(self):
+        with pytest.raises(ValidationError):
+            Manuscript(
+                book_id="book_001",
+                title="Test Book",
+                chapters=[],
+                extraction_model="gemini-2.5-flash",
+                pages_total=0,
+                image_pages=0,
+            )
 
     def test_serialization_roundtrip(self):
         m = Manuscript(
