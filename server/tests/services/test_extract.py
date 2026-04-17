@@ -110,6 +110,33 @@ class TestExtractManuscript:
         assert result.chapters[0].title is None
         assert result.chapters[0].text == "Once upon a time there was a rabbit."
 
+    @patch("workers.pdf_pipeline.extract._detect_chapters")
+    @patch("workers.pdf_pipeline.extract._clean_batch")
+    @patch("workers.pdf_pipeline.extract._extract_pages")
+    def test_multiple_batches_are_joined(self, mock_pages, mock_clean, mock_detect):
+        # 25 pages -> two batches with size=20 (20 + 5)
+        mock_pages.return_value = [
+            PageContent(page_number=i + 1, text=f"page {i}") for i in range(25)
+        ]
+        mock_clean.side_effect = [
+            "Chapter 1\nFirst batch body.",
+            "Chapter 2\nSecond batch body.",
+        ]
+        mock_detect.return_value = ["Chapter 1", "Chapter 2"]
+
+        result = extract_manuscript("book_003", "Two Batch Book", b"%PDF-fake")
+
+        assert mock_clean.call_count == 2
+        # Cleaned text from both batches is joined with "\n\n"
+        joined_text_passed_to_detect = mock_detect.call_args.args[0]
+        assert (
+            joined_text_passed_to_detect
+            == "Chapter 1\nFirst batch body.\n\nChapter 2\nSecond batch body."
+        )
+        assert [c.title for c in result.chapters] == ["Chapter 1", "Chapter 2"]
+        assert result.chapters[0].text == "First batch body."
+        assert result.chapters[1].text == "Second batch body."
+
 
 from workers.pdf_pipeline.extract import _page_batches  # noqa: E402
 
