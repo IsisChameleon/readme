@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-from workers.pdf_pipeline.models import Chapter, Chunk, LLMChunk, Manuscript
+from workers.pdf_pipeline.models import Chapter, Chunk, Manuscript
 
 FAKE_MANUSCRIPT = Manuscript(
     book_id="book_001",
@@ -19,10 +19,6 @@ FAKE_MANUSCRIPT = Manuscript(
     pages_total=5,
     image_pages=1,
 )
-
-FAKE_BODY_CHUNKS = [
-    LLMChunk(chunk_hint="Opening.", text="Body text."),
-]
 
 
 @patch("workers.book_processor_jobs.upsert_chunks")
