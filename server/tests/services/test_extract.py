@@ -224,6 +224,16 @@ class TestSliceIntoChapters:
         assert chapters[0].text == "First body."
         assert chapters[1].text == "Second body."
 
+    def test_title_substring_in_body_is_skipped(self):
+        # The word "Magic" appears mid-paragraph before the actual chapter heading.
+        text = "She felt the Magic in the air.\n\nMagic\nThe real chapter starts here."
+        chapters = _slice_into_chapters(text, ["Magic"])
+        assert len(chapters) == 2
+        assert chapters[0].title is None
+        assert "She felt the Magic in the air." in chapters[0].text
+        assert chapters[1].title == "Magic"
+        assert chapters[1].text == "The real chapter starts here."
+
 
 class TestDetectChapters:
     @patch("workers.pdf_pipeline.extract.generate_structured")

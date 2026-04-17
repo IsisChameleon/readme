@@ -63,9 +63,18 @@ def _slice_into_chapters(text: str, titles: list[str]) -> list[Chapter]:
         if not title.strip():
             logger.warning("Empty chapter title in detected list | skipping")
             continue
-        idx = text.find(title, cursor)
+        search_start = cursor
+        idx = -1
+        while True:
+            candidate = text.find(title, search_start)
+            if candidate < 0:
+                break
+            if candidate == 0 or text[candidate - 1] == "\n":
+                idx = candidate
+                break
+            search_start = candidate + 1
         if idx < 0:
-            logger.warning("Detected chapter title not found in text | title={}", title)
+            logger.warning("Detected chapter title not found at line boundary | title={}", title)
             continue
         found.append((title, idx))
         cursor = idx + len(title)
