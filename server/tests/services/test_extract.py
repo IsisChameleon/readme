@@ -5,7 +5,6 @@ from __future__ import annotations
 from unittest.mock import MagicMock, patch
 
 from workers.pdf_pipeline.extract import (
-    _clean_text_with_llm,
     _extract_pages,
     extract_manuscript,
 )
@@ -48,21 +47,34 @@ class TestExtractPages:
         assert pages[0].image_bytes == b"\x89PNG-fake"
 
 
-class TestCleanTextWithLLM:
+class TestCleanBatch:
     @patch("workers.pdf_pipeline.extract._gemini_generate")
     def test_returns_cleaned_text(self, mock_gemini):
+        from workers.pdf_pipeline.extract import _clean_batch
+
         mock_gemini.return_value = "Once upon a time there was a story."
         pages = [
             PageContent(page_number=1, text="Copyright 2024.\nOnce upon a time"),
             PageContent(page_number=2, text="there was a story.\nAbout the author..."),
         ]
-        result = _clean_text_with_llm(pages)
+        result = _clean_batch(pages)
         assert result == "Once upon a time there was a story."
         mock_gemini.assert_called_once()
 
+    @patch("workers.pdf_pipeline.extract._gemini_generate")
+    def test_image_page_includes_image_part(self, mock_gemini):
+        from workers.pdf_pipeline.extract import _clean_batch
+
+        mock_gemini.return_value = "ok"
+        pages = [PageContent(page_number=1, text="short", image_bytes=b"\x89PNG")]
+        _clean_batch(pages)
+        # The parts list passed to the LLM should be non-trivial (prompt + marker + image)
+        called_parts = mock_gemini.call_args.args[0]
+        assert any("[[PAGE 1 — image]]" in p for p in called_parts if isinstance(p, str))
+
 
 class TestExtractManuscript:
-    @patch("workers.pdf_pipeline.extract._clean_text_with_llm")
+    @patch("workers.pdf_pipeline.extract._clean_batch")
     @patch("workers.pdf_pipeline.extract._extract_pages")
     def test_returns_manuscript(self, mock_pages, mock_clean):
         mock_pages.return_value = [

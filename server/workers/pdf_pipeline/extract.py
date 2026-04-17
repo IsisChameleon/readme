@@ -88,17 +88,18 @@ def _slice_into_chapters(text: str, titles: list[str]) -> list[Chapter]:
     return chapters
 
 
-def _clean_text_with_llm(pages: list[PageContent]) -> str:
-    """Send all page texts (and images) to Gemini for cleaning and concatenation."""
+def _clean_batch(pages: list[PageContent]) -> str:
+    """Clean one page-range batch. Returns the cleaned text for just that batch."""
     parts: list[types.Part | str] = []
 
     parts.append(
-        """You are cleaning extracted text from a children's book PDF.
+        """You are cleaning a page range from a children's book PDF. This may be the entire
+book or only part of it.
 
 Instructions:
 - Concatenate all pages into one continuous story text.
 - Strip front matter: title page, copyright, ISBN, dedication, publisher info.
-- Strip back matter: glossary, author bio, discussion guide, FAQs, marketing, ads.
+- Strip back matter: glossary, author bio, discussion guide, FAQs, marketing.
 - Fix OCR/extraction artifacts: broken words, stray mid-sentence capitals, garbled text.
 - Preserve the story text VERBATIM — do not paraphrase, summarize, or rewrite.
 - Output ONLY the cleaned story text, nothing else. No commentary, no labels."""
@@ -130,7 +131,7 @@ def extract_manuscript(book_id: str, title: str, pdf_bytes: bytes) -> Manuscript
     )
 
     logger.info("Cleaning text with LLM | book_id={}", book_id)
-    cleaned_text = _clean_text_with_llm(pages)
+    cleaned_text = _clean_batch(pages)
 
     return Manuscript(  # type: ignore[call-arg]
         book_id=book_id,
