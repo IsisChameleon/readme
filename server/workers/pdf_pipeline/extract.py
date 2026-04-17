@@ -42,6 +42,11 @@ def _extract_pages(pdf_bytes: bytes) -> list[PageContent]:
     return pages
 
 
+def _page_batches(pages: list[PageContent], size: int) -> list[list[PageContent]]:
+    """Group pages into consecutive windows of `size`. Last window may be smaller."""
+    return [pages[i : i + size] for i in range(0, len(pages), size)]
+
+
 def _clean_text_with_llm(pages: list[PageContent]) -> str:
     """Send all page texts (and images) to Gemini for cleaning and concatenation."""
     parts: list[types.Part | str] = []
@@ -86,10 +91,10 @@ def extract_manuscript(book_id: str, title: str, pdf_bytes: bytes) -> Manuscript
     logger.info("Cleaning text with LLM | book_id={}", book_id)
     cleaned_text = _clean_text_with_llm(pages)
 
-    return Manuscript(
+    return Manuscript(  # type: ignore[call-arg]
         book_id=book_id,
         title=title,
-        text=cleaned_text,
+        text=cleaned_text,  # type: ignore[call-arg]
         extraction_model=LLM_MODEL,
         pages_total=len(pages),
         image_pages=image_pages,

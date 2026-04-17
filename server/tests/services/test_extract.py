@@ -79,3 +79,33 @@ class TestExtractManuscript:
         assert result.text == "Hello world. The end."
         assert result.pages_total == 2
         assert result.image_pages == 1
+
+
+from workers.pdf_pipeline.extract import _page_batches  # noqa: E402
+
+
+class TestPageBatches:
+    def _pages(self, n: int) -> list[PageContent]:
+        return [PageContent(page_number=i + 1, text=f"p{i}") for i in range(n)]
+
+    def test_single_batch_when_smaller_than_size(self):
+        batches = list(_page_batches(self._pages(5), size=20))
+        assert len(batches) == 1
+        assert len(batches[0]) == 5
+
+    def test_exact_multiple(self):
+        batches = list(_page_batches(self._pages(40), size=20))
+        assert [len(b) for b in batches] == [20, 20]
+
+    def test_last_batch_smaller(self):
+        batches = list(_page_batches(self._pages(45), size=20))
+        assert [len(b) for b in batches] == [20, 20, 5]
+
+    def test_empty_input(self):
+        batches = list(_page_batches([], size=20))
+        assert batches == []
+
+    def test_preserves_order_and_content(self):
+        pages = self._pages(25)
+        flat = [p for batch in _page_batches(pages, size=10) for p in batch]
+        assert flat == pages
