@@ -75,19 +75,9 @@ export const ReaderActionCard = ({
       >
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
-        <Link
-          href={readerHref}
-          className="absolute top-3 left-3 flex items-center gap-2 rounded-full bg-black/30 backdrop-blur-sm pl-1 pr-3 py-1 ring-1 ring-white/30 hover:bg-black/40 transition-colors"
-        >
-          <div
-            className="h-7 w-7 rounded-full flex items-center justify-center text-xs font-bold text-white ring-2 ring-white/80"
-            style={{ backgroundColor: color }}
-          >
-            {kid.avatar ?? kid.name[0]?.toUpperCase()}
-          </div>
-          <span className="text-xs font-semibold text-white">{kid.name}</span>
-          <ChevronRight className="w-3 h-3 text-white/80" />
-        </Link>
+        <span className="absolute top-4 left-4 text-3xl font-bold text-white drop-shadow">
+          {kid.name}
+        </span>
 
         <div className="absolute bottom-3 left-4 right-4">
           <p className="text-xs text-white/70 mb-0.5">{metaLabel}</p>
@@ -98,26 +88,6 @@ export const ReaderActionCard = ({
       </div>
 
       <div className="p-4 space-y-3">
-        <div>
-          {isResuming || isFinished ? (
-            <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all"
-                style={{ width: `${lastBook!.progress}%`, backgroundColor: color }}
-              />
-            </div>
-          ) : (
-            <div className="h-1.5 rounded-full bg-muted/60 border border-dashed border-border" />
-          )}
-          <p className="mt-1.5 text-xs text-muted-foreground">
-            {isResuming
-              ? `${lastBook!.progress}% complete`
-              : isFinished
-              ? 'Finished — pick another'
-              : 'No book started yet'}
-          </p>
-        </div>
-
         <button
           onClick={handleCta}
           className="w-full cursor-pointer font-[family-name:var(--font-marcellus)] inline-flex items-center justify-center gap-2 rounded-xl bg-accent px-4 py-3 text-base font-bold text-accent-foreground shadow-[0_4px_14px] shadow-accent/30 hover:opacity-90 transition-opacity"
