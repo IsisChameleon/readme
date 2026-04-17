@@ -135,7 +135,8 @@ A line that is part of a paragraph is NOT a heading.
 If you are unsure whether a line is a heading, do NOT include it.
 
 Return the heading strings in the order they appear, exactly verbatim as they
-appear in the text (same capitalization, same punctuation, same whitespace).
+appear in the text (same capitalization, same punctuation), with no leading or
+trailing whitespace in any title string.
 If the book has no chapter headings (e.g., a picture book), return an empty list.
 
 Text to analyze:
