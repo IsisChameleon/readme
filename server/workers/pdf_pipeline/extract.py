@@ -148,7 +148,7 @@ Text to analyze:
 
 
 def extract_manuscript(book_id: str, title: str, pdf_bytes: bytes) -> Manuscript:
-    """Extract and clean a PDF into a Manuscript."""
+    """Extract and clean a PDF into a Manuscript with chapters."""
     logger.info("Extracting pages | book_id={}", book_id)
     pages = _extract_pages(pdf_bytes)
     image_pages = sum(1 for p in pages if p.image_bytes)
@@ -160,13 +160,20 @@ def extract_manuscript(book_id: str, title: str, pdf_bytes: bytes) -> Manuscript
         book_id,
     )
 
-    logger.info("Cleaning text with LLM | book_id={}", book_id)
-    cleaned_text = _clean_batch(pages)
+    batches = _page_batches(pages, size=20)
+    logger.info("Cleaning {} batches | book_id={}", len(batches), book_id)
+    cleaned_batches = [_clean_batch(batch) for batch in batches]
+    manuscript_text = "\n\n".join(cleaned_batches)
 
-    return Manuscript(  # type: ignore[call-arg]
+    logger.info("Detecting chapters | book_id={}", book_id)
+    chapter_titles = _detect_chapters(manuscript_text)
+    chapters = _slice_into_chapters(manuscript_text, chapter_titles)
+    logger.info("Produced {} chapters | book_id={}", len(chapters), book_id)
+
+    return Manuscript(
         book_id=book_id,
         title=title,
-        text=cleaned_text,  # type: ignore[call-arg]
+        chapters=chapters,
         extraction_model=LLM_MODEL,
         pages_total=len(pages),
         image_pages=image_pages,

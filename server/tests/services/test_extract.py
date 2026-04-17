@@ -74,23 +74,41 @@ class TestCleanBatch:
 
 
 class TestExtractManuscript:
+    @patch("workers.pdf_pipeline.extract._detect_chapters")
     @patch("workers.pdf_pipeline.extract._clean_batch")
     @patch("workers.pdf_pipeline.extract._extract_pages")
-    def test_returns_manuscript(self, mock_pages, mock_clean):
+    def test_titled_chapters_end_to_end(self, mock_pages, mock_clean, mock_detect):
         mock_pages.return_value = [
             PageContent(page_number=1, text="Hello world " * 20),
             PageContent(page_number=2, text="short", image_bytes=b"\x89PNG"),
         ]
-        mock_clean.return_value = "Hello world. The end."
+        mock_clean.return_value = "Chapter 1\nBody one.\n\nChapter 2\nBody two."
+        mock_detect.return_value = ["Chapter 1", "Chapter 2"]
 
         result = extract_manuscript("book_001", "Test Book", b"%PDF-fake")
 
         assert isinstance(result, Manuscript)
         assert result.book_id == "book_001"
         assert result.title == "Test Book"
-        assert result.text == "Hello world. The end."
         assert result.pages_total == 2
         assert result.image_pages == 1
+        assert [c.title for c in result.chapters] == ["Chapter 1", "Chapter 2"]
+        assert result.chapters[0].text == "Body one."
+        assert result.chapters[1].text == "Body two."
+
+    @patch("workers.pdf_pipeline.extract._detect_chapters")
+    @patch("workers.pdf_pipeline.extract._clean_batch")
+    @patch("workers.pdf_pipeline.extract._extract_pages")
+    def test_no_chapters_produces_single_untitled(self, mock_pages, mock_clean, mock_detect):
+        mock_pages.return_value = [PageContent(page_number=1, text="Body " * 40)]
+        mock_clean.return_value = "Once upon a time there was a rabbit."
+        mock_detect.return_value = []
+
+        result = extract_manuscript("book_002", "Picture Book", b"%PDF-fake")
+
+        assert len(result.chapters) == 1
+        assert result.chapters[0].title is None
+        assert result.chapters[0].text == "Once upon a time there was a rabbit."
 
 
 from workers.pdf_pipeline.extract import _page_batches  # noqa: E402
