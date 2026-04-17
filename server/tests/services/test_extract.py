@@ -153,6 +153,13 @@ class TestSliceIntoChapters:
         chapters = _slice_into_chapters(text, ["Chapter 99"])
         assert chapters == [Chapter(title=None, text=text)]
 
+    def test_empty_string_title_is_skipped(self):
+        text = "Chapter 1\nBody here."
+        chapters = _slice_into_chapters(text, ["", "Chapter 1"])
+        assert len(chapters) == 1
+        assert chapters[0].title == "Chapter 1"
+        assert chapters[0].text == "Body here."
+
     def test_duplicate_title_strings_match_monotonically(self):
         text = "Chapter 1\nFirst body.\n\nChapter 1\nSecond body."
         chapters = _slice_into_chapters(text, ["Chapter 1", "Chapter 1"])
