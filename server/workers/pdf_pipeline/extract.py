@@ -9,8 +9,8 @@ import fitz  # PyMuPDF
 from google.genai import types
 from loguru import logger
 
-from ._gemini import LLM_MODEL, generate_text
-from .models import Chapter, Manuscript, PageContent
+from ._gemini import LLM_MODEL, generate_structured, generate_text
+from .models import Chapter, Manuscript, PageContent, _ChapterTitles
 
 MIN_TEXT_WORDS = 25
 
@@ -115,6 +115,35 @@ Instructions:
             parts.append(f"\n[[PAGE {page.page_number}]]\n{page.text}")
 
     return _gemini_generate(parts)
+
+
+def _detect_chapters(manuscript_text: str) -> list[str]:
+    """One LLM call that returns the chapter headings detected in the manuscript.
+
+    Returns an empty list if the book has no chapters (e.g. a picture book) or
+    if the model is unsure.
+    """
+    prompt = f"""You are analyzing the cleaned text of a children's book to find chapter headings.
+
+A chapter heading is a line that:
+- Appears alone on its own line (surrounded by blank lines / paragraph breaks)
+- Is short (typically under 10 words)
+- Precedes a body of prose
+- May or may not contain the word "Chapter" or a number
+
+A line that is part of a paragraph is NOT a heading.
+If you are unsure whether a line is a heading, do NOT include it.
+
+Return the heading strings in the order they appear, exactly verbatim as they
+appear in the text (same capitalization, same punctuation, same whitespace).
+If the book has no chapter headings (e.g., a picture book), return an empty list.
+
+Text to analyze:
+
+{manuscript_text}"""
+
+    result = generate_structured(prompt, _ChapterTitles)
+    return result.titles
 
 
 def extract_manuscript(book_id: str, title: str, pdf_bytes: bytes) -> Manuscript:

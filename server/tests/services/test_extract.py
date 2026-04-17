@@ -178,3 +178,36 @@ class TestSliceIntoChapters:
         assert len(chapters) == 2
         assert chapters[0].text == "First body."
         assert chapters[1].text == "Second body."
+
+
+class TestDetectChapters:
+    @patch("workers.pdf_pipeline.extract.generate_structured")
+    def test_returns_title_list(self, mock_structured):
+        from workers.pdf_pipeline.extract import _detect_chapters
+        from workers.pdf_pipeline.models import _ChapterTitles
+
+        mock_structured.return_value = _ChapterTitles(
+            titles=["The Boy Who Lived", "The Vanishing Glass"]
+        )
+        titles = _detect_chapters("...manuscript text...")
+        assert titles == ["The Boy Who Lived", "The Vanishing Glass"]
+
+    @patch("workers.pdf_pipeline.extract.generate_structured")
+    def test_no_chapters_returns_empty_list(self, mock_structured):
+        from workers.pdf_pipeline.extract import _detect_chapters
+        from workers.pdf_pipeline.models import _ChapterTitles
+
+        mock_structured.return_value = _ChapterTitles(titles=[])
+        assert _detect_chapters("Picture book with no chapters.") == []
+
+    @patch("workers.pdf_pipeline.extract.generate_structured")
+    def test_passes_manuscript_text_as_prompt(self, mock_structured):
+        from workers.pdf_pipeline.extract import _detect_chapters
+        from workers.pdf_pipeline.models import _ChapterTitles
+
+        mock_structured.return_value = _ChapterTitles(titles=[])
+        manuscript = "Chapter 1\nOnce upon a time..."
+        _detect_chapters(manuscript)
+
+        called_prompt = mock_structured.call_args.args[0]
+        assert manuscript in called_prompt
