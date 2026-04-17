@@ -10,7 +10,7 @@ from google.genai import types
 from loguru import logger
 
 from ._gemini import LLM_MODEL, generate_text
-from .models import Manuscript, PageContent
+from .models import Chapter, Manuscript, PageContent
 
 MIN_TEXT_WORDS = 25
 
@@ -45,6 +45,44 @@ def _extract_pages(pdf_bytes: bytes) -> list[PageContent]:
 def _page_batches(pages: list[PageContent], size: int) -> list[list[PageContent]]:
     """Group pages into consecutive windows of `size`. Last window may be smaller."""
     return [pages[i : i + size] for i in range(0, len(pages), size)]
+
+
+def _slice_into_chapters(text: str, titles: list[str]) -> list[Chapter]:
+    """Split cleaned manuscript text into Chapter objects using detected titles.
+
+    Each title is located monotonically (`text.find(title, cursor)`), so duplicate
+    strings match distinct occurrences. Titles not found in the text are skipped
+    with a warning.
+    """
+    if not titles:
+        return [Chapter(title=None, text=text.strip())]
+
+    found: list[tuple[str, int]] = []
+    cursor = 0
+    for title in titles:
+        idx = text.find(title, cursor)
+        if idx < 0:
+            logger.warning("Detected chapter title not found in text | title={}", title)
+            continue
+        found.append((title, idx))
+        cursor = idx + len(title)
+
+    if not found:
+        return [Chapter(title=None, text=text.strip())]
+
+    chapters: list[Chapter] = []
+    first_idx = found[0][1]
+    if first_idx > 0:
+        prelude = text[:first_idx].strip()
+        if prelude:
+            chapters.append(Chapter(title=None, text=prelude))
+
+    for i, (title, idx) in enumerate(found):
+        body_start = idx + len(title)
+        body_end = found[i + 1][1] if i + 1 < len(found) else len(text)
+        chapters.append(Chapter(title=title, text=text[body_start:body_end].strip()))
+
+    return chapters
 
 
 def _clean_text_with_llm(pages: list[PageContent]) -> str:

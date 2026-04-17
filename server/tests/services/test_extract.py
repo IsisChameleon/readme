@@ -109,3 +109,53 @@ class TestPageBatches:
         pages = self._pages(25)
         flat = [p for batch in _page_batches(pages, size=10) for p in batch]
         assert flat == pages
+
+
+from workers.pdf_pipeline.extract import _slice_into_chapters  # noqa: E402
+from workers.pdf_pipeline.models import Chapter  # noqa: E402
+
+
+class TestSliceIntoChapters:
+    def test_no_titles_returns_single_untitled_chapter(self):
+        text = "Once upon a time there was a rabbit."
+        chapters = _slice_into_chapters(text, [])
+        assert chapters == [Chapter(title=None, text="Once upon a time there was a rabbit.")]
+
+    def test_no_titles_strips_whitespace(self):
+        chapters = _slice_into_chapters("   body text  \n", [])
+        assert chapters[0].text == "body text"
+
+    def test_titles_found_slice_correctly(self):
+        text = "Chapter 1\nBody one here.\n\nChapter 2\nBody two here."
+        chapters = _slice_into_chapters(text, ["Chapter 1", "Chapter 2"])
+        assert len(chapters) == 2
+        assert chapters[0].title == "Chapter 1"
+        assert chapters[0].text == "Body one here."
+        assert chapters[1].title == "Chapter 2"
+        assert chapters[1].text == "Body two here."
+
+    def test_opening_prelude_becomes_untitled_chapter(self):
+        text = "Preface words before anything.\n\nChapter 1\nBody here."
+        chapters = _slice_into_chapters(text, ["Chapter 1"])
+        assert len(chapters) == 2
+        assert chapters[0].title is None
+        assert chapters[0].text == "Preface words before anything."
+        assert chapters[1].title == "Chapter 1"
+        assert chapters[1].text == "Body here."
+
+    def test_hallucinated_title_is_skipped(self):
+        text = "Chapter 1\nBody one.\n\nChapter 2\nBody two."
+        chapters = _slice_into_chapters(text, ["Chapter 1", "Chapter XYZ Not In Text", "Chapter 2"])
+        assert [c.title for c in chapters] == ["Chapter 1", "Chapter 2"]
+
+    def test_all_titles_hallucinated_falls_back_to_single_untitled(self):
+        text = "Just some body text with no real chapter headings."
+        chapters = _slice_into_chapters(text, ["Chapter 99"])
+        assert chapters == [Chapter(title=None, text=text)]
+
+    def test_duplicate_title_strings_match_monotonically(self):
+        text = "Chapter 1\nFirst body.\n\nChapter 1\nSecond body."
+        chapters = _slice_into_chapters(text, ["Chapter 1", "Chapter 1"])
+        assert len(chapters) == 2
+        assert chapters[0].text == "First body."
+        assert chapters[1].text == "Second body."
