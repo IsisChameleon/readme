@@ -4,9 +4,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { motion } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { EmberLogo } from '@/components/EmberLogo';
 import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 
 const GoogleIcon = () => (
@@ -116,31 +118,31 @@ export const AuthPage = ({ mode }: AuthPageProps) => {
     <div className="min-h-svh flex flex-col items-center justify-center bg-background p-4">
       {/* Logo & Mascot */}
       <div className="flex flex-col items-center mb-6">
-        <div className="flex items-center gap-2 mb-4">
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              className="w-6 h-6 text-primary-foreground"
-            >
-              <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
-            </svg>
+        <div className="flex items-center gap-3 mb-4">
+          <EmberLogo size={40} className="text-primary shrink-0" />
+          <div>
+            <h1 className="font-[family-name:var(--font-marcellus)] text-2xl font-bold text-foreground leading-tight">
+              EmberTales
+            </h1>
+            <p className="text-sm text-muted-foreground">Stories, read together</p>
           </div>
-          <span className="text-2xl font-display font-bold text-foreground">
-            EmberTales
-          </span>
         </div>
-        
-        <Image
-          src="/images/dragon-mascot.jpg"
-          alt="EmberTales Dragon Mascot"
-          width={140}
-          height={140}
-          className="rounded-full"
-          priority
-        />
+
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+          className="w-32 h-32 md:w-40 md:h-40 flex-shrink-0"
+        >
+          <Image
+            src="/images/ember-dragon.png"
+            alt="Ember the dragon"
+            width={160}
+            height={160}
+            className="w-full h-full object-cover"
+            priority
+          />
+        </motion.div>
       </div>
 
       {/* Auth Card */}
