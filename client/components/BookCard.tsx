@@ -195,9 +195,9 @@ const ParentBookCard = ({
   };
 
   return (
-    <div className="flex rounded-xl border border-border bg-card overflow-hidden hover:border-primary transition-colors">
+    <div className="flex rounded-xl border border-border bg-card hover:border-primary transition-colors">
       <div
-        className="w-16 h-24 flex items-center justify-center shrink-0"
+        className="w-16 flex items-center justify-center shrink-0 rounded-l-xl overflow-hidden"
         style={{ backgroundColor: book.coverImageUrl ? undefined : coverColor }}
       >
         {book.coverImageUrl ? (
