@@ -1,13 +1,13 @@
-# Test fixtures — pdf_pipeline
+# Test recordings — pdf_pipeline
 
-These fixtures let `tests/services/test_integration.py` run full-pipeline
+These recordings let `tests/workers/test_book_processor_jobs_replay.py` run full-pipeline
 tests against real PDFs without paying for Gemini API calls on every run.
 
 ## How it works
 
-For each fixture book (e.g. `alice/`):
+For each recording (e.g. `alice_in_wonderland/`):
 
-- A real PDF is checked in at `<fixture>/<book>.pdf`.
+- A real PDF is checked in at `<recording>/<book>.pdf`.
 - The *recorded output* of every paid LLM call the pipeline makes is also
   checked in:
   - One cleaned-text string per 20-page batch: `clean_batch_01.txt`, `clean_batch_02.txt`, ...
@@ -16,7 +16,7 @@ For each fixture book (e.g. `alice/`):
   - The final flat `Chunk` list the pipeline produces: `expected_chunks.json`
   - The full `Manuscript` object for reference: `manuscript.json`
 
-The integration test loads the PDF, mocks the three LLM entry points
+The replay test loads the PDF, mocks the three LLM entry points
 (`_clean_batch`, `_detect_chapters`, `_gemini_chunk`) to return the recorded
 values, runs the full `process_book_job`, and asserts the chunks handed to
 `upsert_chunks` match `expected_chunks.json` exactly.
@@ -58,11 +58,11 @@ Don't re-record when you change:
 ```bash
 cd server
 
-# Alice fixture
-uv run python scripts/record_fixtures.py \
+# Alice recording
+uv run python scripts/record_llm_outputs.py \
     --pdf /path/to/alice.pdf \
     --title "Alice in Wonderland" \
-    --out tests/fixtures/alice
+    --out tests/workers/recordings/alice_in_wonderland
 ```
 
 Requirements:
@@ -70,28 +70,28 @@ Requirements:
 - `GOOGLE_API_KEY` set in the environment (the script hits real Gemini).
 - The PDF at `--pdf` must exist on disk.
 
-The script overwrites fixture files in place. Review the diff before
+The script overwrites recording files in place. Review the diff before
 committing — an unexpected change (e.g. detected chapter count changed)
 usually means the prompt or model behavior has drifted.
 
-## Adding a new fixture book
+## Adding a new recording
 
 1. Place the PDF somewhere accessible (local path, not in the repo).
-2. Create the fixture directory:
+2. Create the recording directory:
 
    ```bash
-   mkdir server/tests/fixtures/<book_slug>
+   mkdir server/tests/workers/recordings/<book_slug>
    ```
 
-3. Run the record script with `--out tests/fixtures/<book_slug>`.
-4. Add a new test case to `test_integration.py` that loads from that
-   directory. Mirror the structure of `test_alice_end_to_end`; the fixture
+3. Run the record script with `--out tests/workers/recordings/<book_slug>`.
+4. Add a new test case to `test_book_processor_jobs_replay.py` that loads from that
+   directory. Mirror the structure of `test_alice_end_to_end`; the recording
    loaders in that file (`_load_cleaned_batches`, `_load_detected_chapters`,
    `_load_per_chapter_chunks`, `_load_expected_chunks`) already take the
    directory constant as input — generalize them if adding a second book.
-5. Commit the new fixture directory.
+5. Commit the new recording directory.
 
-## Fixture files reference
+## Recording files reference
 
 | File | Purpose |
 |---|---|

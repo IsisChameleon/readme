@@ -1,6 +1,6 @@
-"""Integration test for the full PDF ingestion pipeline using recorded LLM fixtures.
+"""Replay test for process_book_job using recorded LLM outputs.
 
-See server/tests/fixtures/README.md for how to record fixtures.
+See server/tests/workers/recordings/README.md for how to record LLM outputs.
 """
 
 from __future__ import annotations
@@ -13,8 +13,8 @@ import pytest
 
 from workers.pdf_pipeline.models import LLMChunk
 
-FIXTURE_ROOT = Path(__file__).resolve().parent.parent / "fixtures"
-ALICE_DIR = FIXTURE_ROOT / "alice"
+RECORDINGS_ROOT = Path(__file__).resolve().parent / "recordings"
+ALICE_DIR = RECORDINGS_ROOT / "alice_in_wonderland"
 
 
 def _pdf_path() -> Path | None:
@@ -44,7 +44,7 @@ def _load_expected_chunks() -> list[dict]:
 
 pytestmark = pytest.mark.skipif(
     _pdf_path() is None,
-    reason="Alice fixtures not recorded. See server/tests/fixtures/README.md.",
+    reason="Alice recordings not present. See server/tests/workers/recordings/README.md.",
 )
 
 

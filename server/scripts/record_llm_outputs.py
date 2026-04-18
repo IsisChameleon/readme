@@ -1,13 +1,13 @@
-"""One-off script to record Gemini LLM outputs as test fixtures.
+"""One-off script to record Gemini LLM outputs for use in replay tests.
 
 Usage:
     cd server
-    uv run python scripts/record_fixtures.py \\
+    uv run python scripts/record_llm_outputs.py \\
         --pdf /path/to/alice.pdf \\
         --title "Alice in Wonderland" \\
-        --out tests/fixtures/alice
+        --out tests/workers/recordings/alice_in_wonderland
 
-Requires GOOGLE_API_KEY in the environment. Overwrites fixture files in place.
+Requires GOOGLE_API_KEY in the environment. Overwrites output files in place.
 """
 
 from __future__ import annotations
