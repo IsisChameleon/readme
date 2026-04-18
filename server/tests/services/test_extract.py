@@ -224,8 +224,9 @@ class TestSliceIntoChapters:
         assert chapters[0].text == "First body."
         assert chapters[1].text == "Second body."
 
-    def test_title_substring_in_body_is_skipped(self):
-        # The word "Magic" appears mid-paragraph before the actual chapter heading.
+    def test_line_boundary_match_preferred_over_substring(self):
+        # "Magic" appears mid-paragraph before the actual line-boundary heading.
+        # The slicer should prefer the line-boundary match.
         text = "She felt the Magic in the air.\n\nMagic\nThe real chapter starts here."
         chapters = _slice_into_chapters(text, ["Magic"])
         assert len(chapters) == 2
@@ -233,6 +234,19 @@ class TestSliceIntoChapters:
         assert "She felt the Magic in the air." in chapters[0].text
         assert chapters[1].title == "Magic"
         assert chapters[1].text == "The real chapter starts here."
+
+    def test_fallback_when_no_line_boundary_match(self):
+        # If the only occurrence of a title is inline (e.g. clean step smooshed
+        # chapter headings into paragraphs), the slicer falls back to a plain
+        # substring match with a warning.
+        text = "Some prose. Chapter I. Down the Rabbit-Hole. Once upon a time."
+        chapters = _slice_into_chapters(text, ["Chapter I. Down the Rabbit-Hole"])
+        # One untitled prelude + the titled chapter
+        assert len(chapters) == 2
+        assert chapters[0].title is None
+        assert chapters[0].text == "Some prose."
+        assert chapters[1].title == "Chapter I. Down the Rabbit-Hole"
+        assert chapters[1].text == ". Once upon a time."
 
 
 class TestDetectChapters:

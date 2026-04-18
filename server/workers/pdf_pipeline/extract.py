@@ -63,8 +63,10 @@ def _slice_into_chapters(text: str, titles: list[str]) -> list[Chapter]:
         if not title.strip():
             logger.warning("Empty chapter title in detected list | skipping")
             continue
-        search_start = cursor
+
+        # Stage 1: prefer line-boundary match from `cursor` onward.
         idx = -1
+        search_start = cursor
         while True:
             candidate = text.find(title, search_start)
             if candidate < 0:
@@ -73,9 +75,17 @@ def _slice_into_chapters(text: str, titles: list[str]) -> list[Chapter]:
                 idx = candidate
                 break
             search_start = candidate + 1
+
+        # Stage 2: if no line-boundary match, fall back to plain substring match
+        # (still monotonic via `cursor`). Logs a warning so we can spot books
+        # where the cleaning step smooshed chapter headings into paragraphs.
         if idx < 0:
-            logger.warning("Detected chapter title not found at line boundary | title={}", title)
-            continue
+            idx = text.find(title, cursor)
+            if idx < 0:
+                logger.warning("Detected chapter title not found in text | title={}", title)
+                continue
+            logger.warning("Chapter title found but not at a line boundary | title={}", title)
+
         found.append((title, idx))
         cursor = idx + len(title)
 
