@@ -32,7 +32,7 @@ export default function PrivacyPage() {
             <h2 className="text-lg font-semibold mb-2">1. Who We Are</h2>
             <p className="text-muted-foreground leading-relaxed">
               EmberTales is operated by Isis Desade, based in Sydney, New South Wales, Australia
-              ("we", "us", "our"). We are committed to protecting the privacy of all users,
+              (&quot;we&quot;, &quot;us&quot;, &quot;our&quot;). We are committed to protecting the privacy of all users,
               especially children. This Privacy Policy explains what personal information we collect,
               why we collect it, and how we use and protect it.
             </p>
@@ -40,14 +40,14 @@ export default function PrivacyPage() {
               This policy is governed by the{' '}
               <em>Privacy Act 1988</em> (Cth) and the Australian Privacy Principles (APPs).
               Because the Service involves children, we also apply practices consistent with
-              children's privacy best practice, including those reflected in the US Children's
+              children&apos;s privacy best practice, including those reflected in the US Children&apos;s
               Online Privacy Protection Act (COPPA), for any users in applicable jurisdictions.
             </p>
           </section>
 
           {/* 2 */}
           <section>
-            <h2 className="text-lg font-semibold mb-2">2. Children's Privacy</h2>
+            <h2 className="text-lg font-semibold mb-2">2. Children&apos;s Privacy</h2>
             <p className="text-muted-foreground leading-relaxed">
               EmberTales is designed for use by children under the supervision of a parent or
               guardian. <strong>Children do not create their own accounts.</strong> A parent or
@@ -56,7 +56,7 @@ export default function PrivacyPage() {
             </p>
             <p className="text-muted-foreground leading-relaxed mt-3">
               By creating a Reader profile for a child, the parent or guardian consents to the
-              collection and use of that child's information as described in this policy. We do not
+              collection and use of that child&apos;s information as described in this policy. We do not
               knowingly collect personal information directly from children. If you believe a child
               has provided us with personal information without parental consent, please contact us
               immediately at{' '}
@@ -114,7 +114,7 @@ export default function PrivacyPage() {
               <li>To comply with legal obligations</li>
             </ul>
             <p className="text-muted-foreground leading-relaxed mt-3">
-              We do not use your information or your children's information for advertising,
+              We do not use your information or your children&apos;s information for advertising,
               profiling, or any automated decision-making that produces legal or similarly
               significant effects.
             </p>
@@ -132,7 +132,7 @@ export default function PrivacyPage() {
                 <p className="font-medium text-sm">Supabase</p>
                 <p className="text-muted-foreground text-sm">
                   Authentication, database (account and progress data), and file storage (uploaded
-                  PDFs). Data is hosted in Australia where possible; see Supabase's privacy policy
+                  PDFs). Data is hosted in Australia where possible; see Supabase&apos;s privacy policy
                   for details.
                 </p>
               </div>
@@ -158,13 +158,13 @@ export default function PrivacyPage() {
               <div>
                 <p className="font-medium text-sm">Google (OAuth)</p>
                 <p className="text-muted-foreground text-sm">
-                  Optional sign-in via Google. If you choose "Continue with Google", Google shares
+                  Optional sign-in via Google. If you choose &quot;Continue with Google&quot;, Google shares
                   your name and email with us. We do not receive your Google password.
                 </p>
               </div>
             </div>
             <p className="text-muted-foreground leading-relaxed mt-3">
-              We do not sell your personal information or your children's personal information to
+              We do not sell your personal information or your children&apos;s personal information to
               any third party, and we do not share it for advertising purposes.
             </p>
           </section>
