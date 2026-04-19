@@ -1,0 +1,1 @@
+supabase db push --db-url "postgresql://postgres.yyoeujuveqocjexlszoq:pgU%2A0w5sfY1QQTp%258aka@aws-1-us-east-1.pooler.supabase.com:6543/postgres" --dry-run

@@ -33,13 +33,13 @@ export default function TermsPage() {
             <p className="text-muted-foreground leading-relaxed">
               EmberTales is a voice-interactive reading companion that lets parents upload books and
               have them narrated aloud to children by an AI voice. These Terms of Service
-              ("Terms") govern your access to and use of the EmberTales application and any related
-              services (collectively, the "Service"). The Service is currently in a private beta
+              (&quot;Terms&quot;) govern your access to and use of the EmberTales application and any related
+              services (collectively, the &quot;Service&quot;). The Service is currently in a private beta
               phase, available by invitation only.
             </p>
             <p className="text-muted-foreground leading-relaxed mt-3">
               EmberTales is operated by Isis Desade, an individual based in Sydney, New South Wales,
-              Australia ("we", "us", or "our"). By creating an account or using the Service you
+              Australia (&quot;we&quot;, &quot;us&quot;, or &quot;our&quot;). By creating an account or using the Service you
               agree to be bound by these Terms.
             </p>
           </section>
@@ -49,8 +49,8 @@ export default function TermsPage() {
             <h2 className="text-lg font-semibold mb-2">2. Who May Use EmberTales</h2>
             <p className="text-muted-foreground leading-relaxed">
               You must be at least 18 years old to create an EmberTales account. Accounts are
-              intended for parents or legal guardians ("Parents") who set up a household and manage
-              reader profiles on behalf of their children ("Readers"). Children do not create their
+              intended for parents or legal guardians (&quot;Parents&quot;) who set up a household and manage
+              reader profiles on behalf of their children (&quot;Readers&quot;). Children do not create their
               own accounts; they access the Service through a Reader profile created and controlled
               by a Parent.
             </p>
@@ -119,7 +119,7 @@ export default function TermsPage() {
             <p className="text-muted-foreground leading-relaxed">
               The Service uses artificial intelligence and third-party voice technology to narrate
               books and respond to questions from Readers. AI-generated narration may contain
-              errors. It is not a substitute for parental involvement in your child's reading
+              errors. It is not a substitute for parental involvement in your child&apos;s reading
               experience. We encourage Parents to review books before assigning them to Readers.
             </p>
           </section>
@@ -153,8 +153,8 @@ export default function TermsPage() {
           <section>
             <h2 className="text-lg font-semibold mb-2">9. Disclaimer of Warranties</h2>
             <p className="text-muted-foreground leading-relaxed">
-              To the maximum extent permitted by law, the Service is provided "as is" and "as
-              available" without warranties of any kind, express or implied. We do not warrant that
+              To the maximum extent permitted by law, the Service is provided &quot;as is&quot; and &quot;as
+              available&quot; without warranties of any kind, express or implied. We do not warrant that
               the Service will be error-free, secure, or always available.
             </p>
             <p className="text-muted-foreground leading-relaxed mt-3">
