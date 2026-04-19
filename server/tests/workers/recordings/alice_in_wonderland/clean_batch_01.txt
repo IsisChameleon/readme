@@ -1,6 +1,4 @@
-Chapter I.
-Down the Rabbit-Hole
-
+Chapter I. Down the Rabbit-Hole
 Alice was beginning to get very tired of sitting by her sister on the bank, and of having nothing to do: once or twice she had peeped into the book her sister was reading, but it had no pictures or conversations in it, ‘and what is the use of a book,’ thought Alice ‘without pictures or conversation?’
 So she was considering in her own mind (as well as she could, for the hot day made her feel very sleepy and stupid), whether the pleasure of making a daisy-chain would be worth the trouble of getting up and picking the daisies, when suddenly a White Rabbit with pink eyes ran close by her.
 There was nothing so very remarkable in that; nor did Alice think it so very much out of the way to hear the Rabbit say to itself, ‘Oh dear! Oh dear! I shall be late!’ (when she thought it over afterwards, it occurred to her that she ought to have wondered at this, but at the time it all seemed quite natural); but when the Rabbit actually took a watch out of its waistcoat-pocket, and looked at it, and then hurried on, Alice started to her feet, for it flashed across her mind that she had never before seen a rabbit with either a waistcoat-pocket, or a watch to take out of it, and burning with curiosity, she ran across the field after it, and fortunately was just in time to see it pop down a large rabbit-hole under the hedge.
@@ -18,6 +16,7 @@ Alice opened the door and found that it led into a small passage, not much large
 There seemed to be no use in waiting by the little door, so she went back to the table, half hoping she might find another key on it, or at any rate a book of rules for shutting people up like telescopes: this time she found a little bottle on it, (’which certainly was not here before,’ said Alice,) and round the neck of the bottle was a paper label, with the words ‘DRINK ME’ beautifully printed on it in large letters.
 It was all very well to say ‘Drink me,’ but the wise little Alice was not going to do that in a hurry. ‘No, I’ll look first,’ she said, ‘and see whether it’s marked ‘poison’ or not’; for she had read several nice little histories about children who had got burnt, and eaten up by wild beasts and other unpleasant things, all because they would not remember the simple rules their friends had taught them: such as, that a red-hot poker will burn you if you hold it too long; and that if you cut your finger very deeply with a knife, it usually bleeds; and she had never forgotten that, if you drink much from a bottle marked ‘poison,’ it is almost certain to disagree with you, sooner or later.
 However, this bottle was not marked ‘poison,’ so Alice ventured to taste it, and finding it very nice, (it had, in fact, a sort of mixed flavour of cherry-tart, custard, pine-apple, roast turkey, toffee, and hot buttered toast,) she very soon finished it off.
+*****
 ‘What a curious feeling!’ said Alice; ‘I must be shutting up like a telescope.’
 And so it was indeed: she was now only ten inches high, and her face brightened up at the thought that she was now the right size for going through the little door into that lovely garden. First, however, she waited for a few minutes to see if she was going to shrink any further: she felt a little nervous about this; ‘for it might end, you know,’ said Alice to herself, ‘in my going out altogether, like a candle. I wonder what I should be like then?’ And she tried to fancy what the flame of a candle is like after the candle is blown out, for she could not remember ever having seen such a thing.
 After a while, finding that nothing more happened, she decided on going into the garden at once; but, alas for poor Alice! when she got to the door, she found she had forgotten the little golden key, and when she went back to the table for it, she found she could not possibly reach it: she could see it quite plainly through the glass, and she tried her best to climb up one of the legs of the table, but it was too slippery; and when she had tired herself out with trying, the poor little thing sat down and cried.
@@ -25,10 +24,9 @@ After a while, finding that nothing more happened, she decided on going into the
 Soon her eye fell on a little glass box that was lying under the table: she opened it, and found in it a very small cake, on which the words ‘EAT ME’ were beautifully marked in currants. ‘Well, I’ll eat it,’ said Alice, ‘and if it makes me grow larger, I can reach the key; and if it makes me grow smaller, I can creep under the door; so either way I’ll get into the garden, and I don’t care which happens!’
 She ate a little bit, and said anxiously to herself, ‘Which way? Which way?’, holding her hand on the top of her head to feel which way it was growing, and she was quite surprised to find that she remained the same size: to be sure, this generally happens when one eats cake, but Alice had got so much into the way of expecting nothing but out-of-the-way things to happen, that it seemed quite dull and stupid for life to go on in the common way.
 So she set to work, and very soon finished off the cake.
+*****
 
-Chapter III.
-A Caucus-Race and a Long Tale
-
+Chapter III. A Caucus-Race and a Long Tale
 They were indeed a queer-looking party that assembled on the bank—the birds with draggled feathers, the animals with their fur clinging close to them, and all dripping wet, cross, and uncomfortable.
 The first question of course was, how to get dry again: they had a consultation about this, and after a few minutes it seemed quite natural to Alice to find herself talking familiarly with them, as if she had known them all her life. Indeed, she had quite a long argument with the Lory, who at last turned sulky, and would only say, ‘I am older than you, and must know better’; and this Alice would not allow without knowing how old it was, and, as the Lory positively refused to tell its age, there was no more to be said.
 At last the Mouse, who seemed to be a person of authority among them, called out, ‘Sit down, all of you, and listen to me! I’ll soon make you dry enough!’ They all sat down at once, in a large ring, with the Mouse in the middle. Alice kept her eyes anxiously fixed on it, for she felt sure she would catch a bad cold if she did not get dry very soon.
@@ -62,21 +60,57 @@ The next thing was to eat the comfits: this caused some noise and confusion, as 
 ‘You promised to tell me your history, you know,’ said Alice, ‘and why it is you hate—C and D,’ she added in a whisper, half afraid that it would be offended again.
 ‘Mine is a long and a sad tale!’ said the Mouse, turning to Alice, and sighing.
 ‘It IS a long tail, certainly,’ said Alice, looking down with wonder at the Mouse’s tail; ‘but why do you call it sad?’ And she kept on puzzling about it while the Mouse was speaking, so that her idea of the tale was something like this:—
-Fury said to a mouse,
-That he met in the house,
-‘Let us both go to law:
-I will prosecute you.—
-Come, I’ll take no denial;
-We must have a trial:
-For really this morning I’ve nothing to do.’
-Said the mouse to the cur,
-‘Such a trial, dear sir,
-With no jury or judge
-would be wasting our breath.’
-‘I’ll be judge, I’ll be jury,’
-Said cunning old Fury!
-‘I’ll try the whole cause,
-and condemn you to death.’
+Fury said to
+  a mouse, That
+           he met
+              in the
+                house,
+                ‘Let us
+            both go
+         to law:
+      I will
+    prosecute
+  you.—
+   Come, I’ll
+       take no
+         denial;
+            We must
+                   have a
+                        trial:
+                        For
+                    really
+                   this
+                    morning
+                           I’ve
+                      nothing
+                   to do.’
+             Said the
+              mouse to
+         the cur,
+             ‘Such a
+                   trial,
+                dear sir,
+            With no
+         jury or
+     judge
+      would be
+        wasting
+           our breath.’
+             ‘I’ll be
+           judge,
+        I’ll be
+    jury,’
+ Said
+     cunning
+         old Fury!
+               ‘I’ll try
+                    the whole
+                           cause,
+                            and
+                     condemn
+                       you
+                     to
+                      death.’
 ‘You are not attending!’ said the Mouse to Alice severely. ‘What are you thinking of?’
 ‘I beg your pardon,’ said Alice very humbly: ‘you had got to the fifth bend, I think?’
 ‘I had not!’ cried the Mouse, sharply and very angrily.
@@ -92,9 +126,7 @@ Alice replied eagerly, for she was always ready to talk about her pet: ‘Dinah�
 This speech caused a remarkable sensation among the party. Some of the birds hurried off at once: one old Magpie began wrapping itself up very carefully, remarking, ‘I really must be getting home; the night-air doesn’t suit my throat!’ and a Canary called out in a trembling voice to its children, ‘Come away, my dears! It’s high time you were all in bed!’ On various pretexts they all moved off, and Alice was soon left alone.
 ‘I wish I hadn’t mentioned Dinah!’ she said to herself in a melancholy tone. ‘Nobody seems to like her, down here, and I’m sure she’s the best cat in the world! Oh, my dear Dinah! I wonder if I shall ever see you any more!’ And here poor Alice began to cry again, for she felt very lonely and low-spirited. In a little while, however, she again heard a little pattering of footsteps in the distance, and she looked up eagerly, half hoping that the Mouse had changed his mind, and was coming back to finish his story.
 
-Chapter VI.
-Pig and Pepper
-
+Chapter VI. Pig and Pepper
 For a minute or two she stood looking at the house, and wondering what to do next, when suddenly a footman in livery came running out of the wood—(she considered him to be a footman because he was in livery: otherwise, judging by his face only, she would have called him a fish)—and rapped loudly at the door with his knuckles. It was opened by another footman in livery, with a round face, and large eyes like a frog; and both footmen, Alice noticed, had powdered hair that curled all over their heads. She felt very curious to know what it was all about, and crept a little way out of the wood to listen.
 The Fish-Footman began by producing from under his arm a great letter, nearly as large as himself, and this he handed over to the other, saying, in a solemn tone, ‘For the Duchess. An invitation from the Queen to play croquet.’ The Frog-Footman repeated, in the same solemn tone, only changing the order of the words a little, ‘From the Queen. An invitation for the Duchess to play croquet.’
 Then they both bowed low, and their curls got entangled together.
@@ -103,8 +135,7 @@ Alice went timidly up to the door, and knocked.
 ‘There’s no sort of use in knocking,’ said the Footman, ‘and that for two reasons. First, because I’m on the same side of the door as you are; secondly, because they’re making such a noise inside, no one could possibly hear you.’ And certainly there was a most extraordinary noise going on within—a constant howling and sneezing, and every now and then a great crash, as if a dish or kettle had been broken to pieces.
 ‘Please, then,’ said Alice, ‘how am I to get in?’
 ‘There might be some sense in your knocking,’ the Footman went on without attending to her, ‘if we had the door between us. For instance, if you were inside, you might knock, and I could let you out, you know.’ He was looking up into the sky all the time he was speaking, and this Alice thought decidedly uncivil. ‘But perhaps he can’t help it,’ she said to herself; ‘his eyes are so very nearly at the top of his head. But at any rate he might answer questions.—How am I to get in?’ she repeated, aloud.
-‘I shall sit here,’ the Footman remarked, ‘till tomorrow—’
-At this moment the door of the house opened, and a large plate came skimming out, straight at the Footman’s head: it just grazed his nose, and broke to pieces against one of the trees behind him.
+‘I shall sit here,’ the Footman remarked, ‘till tomorrow—At this moment the door of the house opened, and a large plate came skimming out, straight at the Footman’s head: it just grazed his nose, and broke to pieces against one of the trees behind him.
 ‘—or next day, maybe,’ the Footman continued in the same tone, exactly as if nothing had happened.
 ‘How am I to get in?’ asked Alice again, in a louder tone.
 ‘Are you to get in at all?’ said the Footman. ‘That’s the first question, you know.’

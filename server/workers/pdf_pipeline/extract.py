@@ -121,6 +121,18 @@ Instructions:
 - Strip back matter: glossary, author bio, discussion guide, FAQs, marketing.
 - Fix OCR/extraction artifacts: broken words, stray mid-sentence capitals, garbled text.
 - Preserve the story text VERBATIM — do not paraphrase, summarize, or rewrite.
+- Chapter headings MUST be on a SINGLE line each. The source PDF may split a chapter
+  heading across two or three consecutive lines with no blank line between them. You MUST
+  join ALL such lines into ONE line separated by single spaces. Examples:
+    Source:           Output:
+    Chapter I.        Chapter I. Down the Rabbit-Hole
+    Down the Rabbit-Hole
+    ---
+    Chapter IV.       Chapter IV. The Rabbit Sends in a Little Bill
+    The Rabbit Sends
+    in a Little Bill
+  Do NOT preserve multi-line chapter headings. Always collapse them to one line.
+  Preserve all chapter headings verbatim — never strip, omit, or reword the words.
 - Output ONLY the cleaned story text, nothing else. No commentary, no labels."""
     )
 
