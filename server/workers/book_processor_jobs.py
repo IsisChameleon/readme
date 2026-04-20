@@ -1,7 +1,7 @@
 from loguru import logger
 
 from workers.pdf_pipeline import (
-    chunk_manuscript,
+    chunk_chapter,
     download_manuscript,
     download_pdf,
     extract_manuscript,
@@ -9,6 +9,14 @@ from workers.pdf_pipeline import (
     upload_manuscript,
     upsert_chunks,
 )
+from workers.pdf_pipeline.models import Chunk, Manuscript
+
+
+def _chapters_to_chunks(manuscript: Manuscript) -> list[Chunk]:
+    all_chunks: list[Chunk] = []
+    for chapter in manuscript.chapters:
+        all_chunks.extend(chunk_chapter(chapter, starting_index=len(all_chunks)))
+    return all_chunks
 
 
 def process_book_job(book_id: str) -> None:
@@ -17,7 +25,7 @@ def process_book_job(book_id: str) -> None:
         pdf_bytes, title = download_pdf(book_id)
         manuscript = extract_manuscript(book_id, title, pdf_bytes)
         upload_manuscript(book_id, manuscript)
-        chunks = chunk_manuscript(manuscript)
+        chunks = _chapters_to_chunks(manuscript)
         upsert_chunks(book_id, chunks)
         logger.info("Book processing complete | book_id={}", book_id)
     except Exception:
@@ -30,7 +38,7 @@ def rechunk_book_job(book_id: str) -> None:
     logger.info("Starting rechunk | book_id={}", book_id)
     try:
         manuscript = download_manuscript(book_id)
-        chunks = chunk_manuscript(manuscript)
+        chunks = _chapters_to_chunks(manuscript)
         upsert_chunks(book_id, chunks)
         logger.info("Rechunk complete | book_id={}", book_id)
     except Exception:

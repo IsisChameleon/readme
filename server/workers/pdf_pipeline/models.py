@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class PageContent(BaseModel):
@@ -15,22 +15,33 @@ class PageContent(BaseModel):
     image_bytes: bytes | None = None
 
 
+class Chapter(BaseModel):
+    """One chapter. Order is determined by list position; no explicit index."""
+
+    title: str | None  # None for untitled/single-chapter books
+    text: str  # verbatim body (no heading in the text)
+
+
 class Manuscript(BaseModel):
-    """Cleaned full-text output of extraction. Persisted to Supabase Storage."""
+    """Cleaned, structured output of extraction. Persisted to Supabase Storage."""
 
     book_id: str
     title: str
-    text: str
+    chapters: Annotated[list[Chapter], Field(min_length=1)]  # ordered, always >= 1
     extraction_model: str
     pages_total: int
     image_pages: int
 
 
-class LLMChunk(BaseModel):
-    """Raw chunk shape returned by Gemini (no chunk_index)."""
+class _ChapterTitles(BaseModel):
+    """Internal structured-output wrapper for the chapter-detection call."""
 
-    chunk_kind: Literal["content", "chapter_title"]
-    chapter_title: str
+    titles: list[str]
+
+
+class LLMChunk(BaseModel):
+    """Raw chunker output — kind/title are added at the caller."""
+
     chunk_hint: str
     text: str
 

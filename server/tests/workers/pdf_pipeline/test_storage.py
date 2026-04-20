@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from workers.pdf_pipeline.models import Chunk, Manuscript
+from workers.pdf_pipeline.models import Chapter, Chunk, Manuscript
 from workers.pdf_pipeline.storage import (
     download_manuscript,
     download_pdf,
@@ -66,7 +66,7 @@ class TestUploadManuscript:
         manuscript = Manuscript(
             book_id="book_001",
             title="Test Book",
-            text="Story text.",
+            chapters=[Chapter(title=None, text="Story text.")],
             extraction_model="gemini-2.5-flash",
             pages_total=5,
             image_pages=1,
@@ -88,7 +88,7 @@ class TestDownloadManuscript:
         manuscript = Manuscript(
             book_id="book_001",
             title="Test Book",
-            text="Story text.",
+            chapters=[Chapter(title=None, text="Story text.")],
             extraction_model="gemini-2.5-flash",
             pages_total=5,
             image_pages=1,
@@ -97,7 +97,7 @@ class TestDownloadManuscript:
 
         result = download_manuscript("book_001")
         assert result.book_id == "book_001"
-        assert result.text == "Story text."
+        assert result.chapters[0].text == "Story text."
 
 
 class TestUpsertChunks:

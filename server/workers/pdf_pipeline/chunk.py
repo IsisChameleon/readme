@@ -1,4 +1,4 @@
-"""Step 2: Split manuscript text into semantic, TTS-ready chunks."""
+"""Step 2: Split a Chapter's body into semantic, TTS-ready chunks."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from loguru import logger
 from pydantic import BaseModel
 
 from ._gemini import generate_structured
-from .models import Chunk, LLMChunk, Manuscript
+from .models import Chapter, Chunk, LLMChunk
 
 
 class _LLMChunkResponse(BaseModel):
@@ -14,20 +14,22 @@ class _LLMChunkResponse(BaseModel):
 
 
 def _gemini_chunk(text: str) -> list[LLMChunk]:
-    """Send full manuscript text to Gemini for semantic chunking."""
+    """Send one chapter's body text to Gemini; return content chunks only."""
     if not text.strip():
         return []
 
-    prompt = f"""You are chunking a children's book for text-to-speech narration.
+    prompt = f"""You are chunking one chapter of a children's book for text-to-speech narration.
+
+The chapter heading itself is NOT in the text you're given — do not emit a
+chapter_title chunk. Emit only content chunks.
 
 Instructions:
 - Split the text into chunks by narrative beat, roughly 150-250 words each.
 - Never cut mid-sentence or mid-dialogue.
 - Group dialogue with its surrounding action/narration.
-- If you find chapter headings, emit a separate chunk with chunk_kind="chapter_title".
-- For each content chunk, generate a chunk_hint: one sentence describing what happens.
-- For chapter_title chunks, the chunk_hint should describe what the chapter is about.
-- Strip any non-story content (copyright, marketing) that may have slipped through.
+- For each chunk, generate a chunk_hint: one sentence describing what happens.
+- Strip any non-story content (copyright, marketing, ads) that may have slipped
+  through extraction.
 - Preserve the story text VERBATIM — do not paraphrase.
 
 Text to chunk:
@@ -38,24 +40,38 @@ Text to chunk:
     return result.chunks
 
 
-def _assign_indices(llm_chunks: list[LLMChunk]) -> list[Chunk]:
-    """Convert LLMChunks to Chunks with sequential indices."""
-    return [
-        Chunk(
-            chunk_index=i,
-            chunk_kind=c.chunk_kind,
-            chapter_title=c.chapter_title,
-            chunk_hint=c.chunk_hint,
-            text=c.text,
+def chunk_chapter(chapter: Chapter, starting_index: int) -> list[Chunk]:
+    """Produce the final Chunk list for one chapter, including a chapter_title
+    chunk if the chapter is titled."""
+    chunks: list[Chunk] = []
+    idx = starting_index
+
+    if chapter.title:
+        chunks.append(
+            Chunk(
+                chunk_index=idx,
+                chunk_kind="chapter_title",
+                chapter_title=chapter.title,
+                chunk_hint=f"Start of chapter: {chapter.title}",
+                text=chapter.title,
+            )
         )
-        for i, c in enumerate(llm_chunks)
-    ]
+        idx += 1
 
+    body = _gemini_chunk(chapter.text)
+    logger.info(
+        "Chunked chapter | title={} body_chunks={}", chapter.title or "(untitled)", len(body)
+    )
+    for c in body:
+        chunks.append(
+            Chunk(
+                chunk_index=idx,
+                chunk_kind="content",
+                chapter_title=chapter.title or "",
+                chunk_hint=c.chunk_hint,
+                text=c.text,
+            )
+        )
+        idx += 1
 
-def chunk_manuscript(manuscript: Manuscript) -> list[Chunk]:
-    """Split a manuscript into semantic, TTS-ready chunks with hints."""
-    logger.info("Chunking manuscript | book_id={}", manuscript.book_id)
-    llm_chunks = _gemini_chunk(manuscript.text)
-    chunks = _assign_indices(llm_chunks)
-    logger.info("Produced {} chunks | book_id={}", len(chunks), manuscript.book_id)
     return chunks
